@@ -9,7 +9,8 @@ class BusinessDnaProfile extends Model
 {
     protected $fillable = [
         'team_id', 'industry', 'operational_patterns', 'seasonal_trends',
-        'risk_tolerance', 'growth_signals', 'last_computed_at',
+        'risk_tolerance', 'growth_signals', 'decision_patterns', 'customer_behavior',
+        'bottlenecks', 'industry_benchmarks', 'confidence_score', 'last_computed_at',
     ];
 
     protected $casts = [
@@ -17,6 +18,11 @@ class BusinessDnaProfile extends Model
         'seasonal_trends'      => 'array',
         'risk_tolerance'       => 'array',
         'growth_signals'       => 'array',
+        'decision_patterns'    => 'array',
+        'customer_behavior'    => 'array',
+        'bottlenecks'          => 'array',
+        'industry_benchmarks'  => 'array',
+        'confidence_score'     => 'float',
         'last_computed_at'     => 'datetime',
     ];
 

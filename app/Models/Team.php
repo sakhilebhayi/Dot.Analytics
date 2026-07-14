@@ -11,6 +11,15 @@ use Laravel\Jetstream\Events\TeamDeleted;
 use Laravel\Jetstream\Events\TeamUpdated;
 use Laravel\Jetstream\Team as JetstreamTeam;
 
+/**
+ * @property int    $id
+ * @property string $name
+ * @property bool   $personal_team
+ * @property string $currency
+ * @property string $locale
+ * @property string $timezone
+ * @property string|null $industry
+ */
 class Team extends JetstreamTeam
 {
     /** @use HasFactory<TeamFactory> */
@@ -24,6 +33,10 @@ class Team extends JetstreamTeam
     protected $fillable = [
         'name',
         'personal_team',
+        'currency',
+        'locale',
+        'timezone',
+        'industry',
     ];
 
     /**
@@ -72,5 +85,15 @@ class Team extends JetstreamTeam
     public function businessDna(): \Illuminate\Database\Eloquent\Relations\HasOne
     {
         return $this->hasOne(BusinessDnaProfile::class);
+    }
+
+    public function crossPlatformInsights(): HasMany
+    {
+        return $this->hasMany(CrossPlatformInsight::class);
+    }
+
+    public function intelligenceEngineRuns(): HasMany
+    {
+        return $this->hasMany(IntelligenceEngineRun::class);
     }
 }

@@ -1,0 +1,140 @@
+services:
+
+  app:
+    build:
+      context: .
+      target: development
+    container_name: dot_analytics_app
+    restart: unless-stopped
+    environment:
+      APP_ENV: local
+      APP_DEBUG: "true"
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: dot_analytics
+      DB_USERNAME: postgres
+      DB_PASSWORD: secret
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      QUEUE_CONNECTION: redis
+      BROADCAST_CONNECTION: reverb
+      REVERB_APP_ID: dot_analytics
+      REVERB_APP_KEY: analytics_key
+      REVERB_APP_SECRET: analytics_secret
+      REVERB_HOST: reverb
+      REVERB_PORT: 8080
+    volumes:
+      - .:/var/www/html
+      - /var/www/html/vendor
+    ports:
+      - "8000:80"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - dot_network
+
+  queue:
+    build:
+      context: .
+      target: development
+    container_name: dot_analytics_queue
+    restart: unless-stopped
+    command: php artisan queue:work redis --sleep=3 --tries=3 --max-time=3600
+    environment:
+      DB_HOST: postgres
+      REDIS_HOST: redis
+      QUEUE_CONNECTION: redis
+    volumes:
+      - .:/var/www/html
+      - /var/www/html/vendor
+    depends_on:
+      - app
+    networks:
+      - dot_network
+
+  scheduler:
+    build:
+      context: .
+      target: development
+    container_name: dot_analytics_scheduler
+    restart: unless-stopped
+    command: sh -c "while true; do php artisan schedule:run; sleep 60; done"
+    environment:
+      DB_HOST: postgres
+      REDIS_HOST: redis
+    volumes:
+      - .:/var/www/html
+      - /var/www/html/vendor
+    depends_on:
+      - app
+    networks:
+      - dot_network
+
+  reverb:
+    build:
+      context: .
+      target: development
+    container_name: dot_analytics_reverb
+    restart: unless-stopped
+    command: php artisan reverb:start --host=0.0.0.0 --port=8080
+    environment:
+      DB_HOST: postgres
+      REDIS_HOST: redis
+      REVERB_APP_ID: dot_analytics
+      REVERB_APP_KEY: analytics_key
+      REVERB_APP_SECRET: analytics_secret
+    ports:
+      - "8080:8080"
+    depends_on:
+      - app
+    networks:
+      - dot_network
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: dot_analytics_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: dot_analytics
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: secret
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - dot_network
+
+  redis:
+    image: redis:7-alpine
+    container_name: dot_analytics_redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - dot_network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  dot_network:
+    driver: bridge

@@ -1,5 +1,275 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Dot.Analytics — Enterprise Intelligence Platform</title>
+    <link rel="preconnect" href="https://fonts.bunny.net">
+    <link href="https://fonts.bunny.net/css?family=figtree:300,400,500,600,700&display=swap" rel="stylesheet" />
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+</head>
+<body class="bg-slate-950 text-white font-sans antialiased">
+
+    {{-- Navigation --}}
+    <nav class="fixed top-0 inset-x-0 z-50 border-b border-white/5 bg-slate-950/80 backdrop-blur-sm">
+        <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <div class="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center">
+                    <span class="text-xs font-bold text-white">D</span>
+                </div>
+                <span class="font-semibold text-white tracking-tight">Dot.Analytics</span>
+                <span class="text-xs text-slate-500 font-medium ml-1">EIP</span>
+            </div>
+            <div class="flex items-center gap-3">
+                @auth
+                    <a href="{{ url('/dashboard') }}" class="text-sm text-slate-300 hover:text-white transition-colors">Dashboard</a>
+                @else
+                    <a href="{{ route('login') }}" class="text-sm text-slate-400 hover:text-white transition-colors">Sign in</a>
+                    @if (Route::has('register'))
+                        <a href="{{ route('register') }}" class="text-sm bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-1.5 rounded-lg font-medium transition-colors">Get started</a>
+                    @endif
+                @endauth
+            </div>
+        </div>
+    </nav>
+
+    {{-- Hero --}}
+    <section class="pt-40 pb-24 px-6">
+        <div class="max-w-5xl mx-auto text-center">
+            <div class="inline-flex items-center gap-2 bg-indigo-950/60 border border-indigo-800/40 rounded-full px-4 py-1.5 mb-8">
+                <span class="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse"></span>
+                <span class="text-xs text-indigo-300 font-medium">Enterprise Intelligence Platform</span>
+            </div>
+
+            <h1 class="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight leading-tight mb-6">
+                The intelligence layer<br class="hidden sm:block" />
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-blue-400">of the Dot ecosystem</span>
+            </h1>
+
+            <p class="text-xl text-slate-400 leading-relaxed max-w-2xl mx-auto mb-10">
+                Not a BI tool. Not a dashboard platform. The central nervous system that
+                continuously consumes data from every Dot platform, understands the relationships
+                between them, and produces intelligence for the entire ecosystem.
+            </p>
+
+            <div class="flex flex-wrap items-center justify-center gap-4">
+                @auth
+                    <a href="{{ url('/dashboard') }}" class="bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-3 rounded-xl font-semibold text-sm transition-all hover:scale-105">
+                        Open Intelligence Dashboard
+                    </a>
+                @else
+                    <a href="{{ route('register') }}" class="bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-3 rounded-xl font-semibold text-sm transition-all hover:scale-105">
+                        Get started free
+                    </a>
+                    <a href="{{ route('login') }}" class="bg-white/5 hover:bg-white/10 border border-white/10 text-white px-8 py-3 rounded-xl font-semibold text-sm transition-all">
+                        Sign in
+                    </a>
+                @endauth
+            </div>
+        </div>
+    </section>
+
+    {{-- Intelligence Stats --}}
+    <section class="py-12 px-6 border-y border-white/5">
+        <div class="max-w-5xl mx-auto grid grid-cols-3 divide-x divide-white/5">
+            <div class="text-center px-8">
+                <div class="text-4xl font-bold text-indigo-400">15</div>
+                <div class="text-sm text-slate-500 mt-1">Dot platforms</div>
+            </div>
+            <div class="text-center px-8">
+                <div class="text-4xl font-bold text-blue-400">17</div>
+                <div class="text-sm text-slate-500 mt-1">Intelligence engines</div>
+            </div>
+            <div class="text-center px-8">
+                <div class="text-4xl font-bold text-violet-400">∞</div>
+                <div class="text-sm text-slate-500 mt-1">Cross-platform insights</div>
+            </div>
+        </div>
+    </section>
+
+    {{-- Ecosystem Diagram --}}
+    <section class="py-24 px-6">
+        <div class="max-w-5xl mx-auto">
+            <div class="text-center mb-14">
+                <h2 class="text-3xl font-bold mb-3">Every platform contributes. Every platform benefits.</h2>
+                <p class="text-slate-400 max-w-xl mx-auto">Connect any Dot platform and immediately gain intelligence that no individual platform can produce alone.</p>
+            </div>
+
+            {{-- Central node + platform grid --}}
+            <div class="relative flex flex-col items-center gap-8">
+                {{-- Center --}}
+                <div class="bg-gradient-to-br from-indigo-600 to-blue-600 rounded-2xl px-8 py-4 shadow-lg shadow-indigo-900/50">
+                    <p class="text-sm font-bold text-white text-center">Dot.Analytics</p>
+                    <p class="text-xs text-indigo-200 text-center">Intelligence Core</p>
+                </div>
+
+                {{-- Platform grid --}}
+                <div class="grid grid-cols-3 sm:grid-cols-5 gap-3 w-full max-w-3xl">
+                    @foreach([
+                        ['Dot.Fleet',      'bg-blue-950',   'border-blue-800',   'text-blue-400'],
+                        ['Dot.CRM',        'bg-green-950',  'border-green-800',  'text-green-400'],
+                        ['Dot.HR',         'bg-purple-950', 'border-purple-800', 'text-purple-400'],
+                        ['Dot.Hear',       'bg-pink-950',   'border-pink-800',   'text-pink-400'],
+                        ['Dot.Documents',  'bg-yellow-950', 'border-yellow-800', 'text-yellow-400'],
+                        ['Dot.Support',    'bg-orange-950', 'border-orange-800', 'text-orange-400'],
+                        ['Dot.Inventory',  'bg-teal-950',   'border-teal-800',   'text-teal-400'],
+                        ['Dot.Payments',   'bg-emerald-950','border-emerald-800','text-emerald-400'],
+                        ['Dot.Security',   'bg-red-950',    'border-red-800',    'text-red-400'],
+                        ['Dot.API',        'bg-indigo-950', 'border-indigo-800', 'text-indigo-400'],
+                        ['Dot.Flow',       'bg-cyan-950',   'border-cyan-800',   'text-cyan-400'],
+                        ['Dot.Assets',     'bg-slate-800',  'border-slate-700',  'text-slate-400'],
+                        ['Dot.Agents',     'bg-violet-950', 'border-violet-800', 'text-violet-400'],
+                        ['Dot.Finance',    'bg-lime-950',   'border-lime-800',   'text-lime-400'],
+                        ['Dot.Vault',      'bg-amber-950',  'border-amber-800',  'text-amber-400'],
+                    ] as [$name, $bg, $border, $text])
+                        <div class="border {{ $border }} {{ $bg }} rounded-xl p-3 flex items-center justify-center">
+                            <span class="text-xs font-medium {{ $text }}">{{ $name }}</span>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {{-- Cross-platform example --}}
+    <section class="py-24 px-6 bg-slate-900/50">
+        <div class="max-w-5xl mx-auto">
+            <div class="text-center mb-14">
+                <h2 class="text-3xl font-bold mb-3">Intelligence no single platform can see</h2>
+                <p class="text-slate-400 max-w-xl mx-auto">This is what separates Dot.Analytics from Power BI, Tableau, and Looker. They visualise data you give them. We discover what the data means.</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-slate-900 border border-white/5 rounded-2xl p-6">
+                    <div class="flex flex-wrap gap-2 mb-4">
+                        @foreach(['Dot.Fleet', 'Dot.HR', 'Dot.Finance', 'Dot.Assets'] as $p)
+                            <span class="text-xs bg-slate-800 border border-slate-700 text-slate-300 px-2 py-0.5 rounded">{{ $p }}</span>
+                        @endforeach
+                    </div>
+                    <p class="text-sm font-semibold text-white mb-2">Mining productivity dropped 8%</p>
+                    <p class="text-sm text-slate-400 leading-relaxed">Three certified operators are on leave (HR). Equipment idle time is elevated (Fleet). Overtime costs spiked (Finance). Maintenance is behind schedule (Assets). No individual platform sees this — only the intelligence layer does.</p>
+                </div>
+
+                <div class="bg-slate-900 border border-white/5 rounded-2xl p-6">
+                    <div class="flex flex-wrap gap-2 mb-4">
+                        @foreach(['Dot.CRM', 'Dot.Hear', 'Dot.Support', 'Dot.Payments', 'Dot.Documents'] as $p)
+                            <span class="text-xs bg-slate-800 border border-slate-700 text-slate-300 px-2 py-0.5 rounded">{{ $p }}</span>
+                        @endforeach
+                    </div>
+                    <p class="text-sm font-semibold text-white mb-2">High-risk customer identified</p>
+                    <p class="text-sm text-slate-400 leading-relaxed">Sentiment declined (Hear). Sales dropped (CRM). Support tickets increased (Support). Invoices are overdue (Payments). Contract expires in 30 days (Documents). Result: proactive intervention before churn.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {{-- Intelligence Engines --}}
+    <section class="py-24 px-6">
+        <div class="max-w-5xl mx-auto">
+            <div class="text-center mb-14">
+                <h2 class="text-3xl font-bold mb-3">17 specialised intelligence engines</h2>
+                <p class="text-slate-400 max-w-xl mx-auto">Each engine consumes data from multiple platforms and produces a holistic view — from financial intelligence to predictive maintenance to community sentiment.</p>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                @foreach([
+                    ['Business Intelligence',    'text-blue-400'],
+                    ['Operational Intelligence', 'text-green-400'],
+                    ['Financial Intelligence',   'text-emerald-400'],
+                    ['People Intelligence',      'text-purple-400'],
+                    ['Customer Intelligence',    'text-pink-400'],
+                    ['Predictive Intelligence',  'text-orange-400'],
+                    ['Risk Intelligence',        'text-red-400'],
+                    ['Decision Intelligence',    'text-indigo-400'],
+                    ['Document Intelligence',    'text-yellow-400'],
+                    ['Community Intelligence',   'text-teal-400'],
+                    ['Security Intelligence',    'text-rose-400'],
+                    ['Asset Intelligence',       'text-slate-400'],
+                    ['AI Intelligence',          'text-violet-400'],
+                    ['Data Intelligence',        'text-cyan-400'],
+                    ['Mining Intelligence',      'text-lime-400'],
+                    ['Agriculture Intelligence', 'text-green-300'],
+                    ['Construction Intelligence','text-amber-400'],
+                ] as [$engine, $color])
+                    <div class="bg-slate-900 border border-white/5 rounded-xl p-3">
+                        <div class="w-1.5 h-1.5 rounded-full {{ str_replace('text-', 'bg-', $color) }} mb-2"></div>
+                        <p class="text-xs font-medium {{ $color }}">{{ $engine }}</p>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    </section>
+
+    {{-- Business DNA --}}
+    <section class="py-24 px-6 bg-slate-900/50">
+        <div class="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div>
+                <div class="inline-block text-xs font-semibold text-indigo-400 bg-indigo-950/50 border border-indigo-800/30 rounded-full px-3 py-1 mb-4">Business DNA</div>
+                <h2 class="text-3xl font-bold mb-4">Your organisation's evolving operational fingerprint</h2>
+                <p class="text-slate-400 leading-relaxed mb-6">Every organisation on the Dot ecosystem has a unique fingerprint. Dot.Analytics continuously builds a Business DNA Model by learning how your company operates, its seasonal rhythms, decision patterns, team performance, and growth opportunities.</p>
+                <p class="text-slate-400 leading-relaxed">This evolving model becomes increasingly accurate over time — producing recommendations tailored to your organisation, not generic analytics.</p>
+            </div>
+            <div class="bg-slate-900 border border-white/5 rounded-2xl p-6 space-y-4">
+                @foreach([
+                    ['Operational Patterns',  'bg-blue-500',    '82%'],
+                    ['Seasonal Trends',       'bg-purple-500',  '64%'],
+                    ['Risk Profile',          'bg-orange-500',  '91%'],
+                    ['Growth Signals',        'bg-green-500',   '73%'],
+                    ['Decision Patterns',     'bg-indigo-500',  '58%'],
+                    ['Customer Behaviour',    'bg-pink-500',    '77%'],
+                ] as [$label, $color, $pct])
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-slate-400">{{ $label }}</span>
+                            <span class="text-slate-500">{{ $pct }}</span>
+                        </div>
+                        <div class="h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                            <div class="{{ $color }} h-1.5 rounded-full" style="width: {{ $pct }}"></div>
+                        </div>
+                    </div>
+                @endforeach
+                <p class="text-xs text-slate-600 pt-2 border-t border-white/5">Profile confidence grows as more platforms connect and more data accumulates.</p>
+            </div>
+        </div>
+    </section>
+
+    {{-- CTA --}}
+    <section class="py-24 px-6">
+        <div class="max-w-2xl mx-auto text-center">
+            <h2 class="text-3xl font-bold mb-4">Ready to connect your ecosystem?</h2>
+            <p class="text-slate-400 mb-8">Connect your first Dot platform and start discovering intelligence that no individual tool can produce.</p>
+            @auth
+                <a href="{{ url('/dashboard') }}" class="inline-block bg-indigo-600 hover:bg-indigo-500 text-white px-10 py-3 rounded-xl font-semibold text-sm transition-all hover:scale-105">
+                    Open Intelligence Dashboard
+                </a>
+            @else
+                <div class="flex justify-center gap-4">
+                    <a href="{{ route('register') }}" class="bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-3 rounded-xl font-semibold text-sm transition-all hover:scale-105">
+                        Get started free
+                    </a>
+                    <a href="{{ route('login') }}" class="bg-white/5 hover:bg-white/10 border border-white/10 text-white px-8 py-3 rounded-xl font-semibold text-sm transition-all">
+                        Sign in
+                    </a>
+                </div>
+            @endauth
+        </div>
+    </section>
+
+    {{-- Footer --}}
+    <footer class="border-t border-white/5 py-8 px-6">
+        <div class="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-2">
+                <div class="w-5 h-5 rounded-md bg-indigo-600 flex items-center justify-center">
+                    <span class="text-xs font-bold text-white">D</span>
+                </div>
+                <span class="text-sm text-slate-500">Dot.Analytics &mdash; Part of the Dot Ecosystem</span>
+            </div>
+            <p class="text-xs text-slate-600">&copy; {{ date('Y') }} SK Digital / BluPin Incorporated</p>
+        </div>
+    </footer>
+
+</body>
+</html>
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">

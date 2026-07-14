@@ -33,8 +33,8 @@ class AnalyticsReport extends Model
         return $this->hasMany(ReportRun::class);
     }
 
-    public function latestRun(): ?ReportRun
+    public function latestRun(): \Illuminate\Database\Eloquent\Relations\HasOne
     {
-        return $this->runs()->latest()->first();
+        return $this->hasOne(ReportRun::class, 'analytics_report_id')->latestOfMany();
     }
 }

@@ -6,8 +6,10 @@ use App\Models\AnalyticsAlert;
 use App\Models\ComputedMetric;
 use App\Models\DataSource;
 use App\Models\Recommendation;
-use App\Services\AiInsightService;
+use App\Services\AiModelRouter;
+use App\Services\IntelligenceEngineService;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
@@ -52,15 +54,21 @@ class IntelligenceDashboard extends Component
 
         $this->queryLoading = true;
 
-        $service = new AiInsightService(
-            apiKey: config('services.anthropic.key', ''),
-        );
+        $team    = Auth::user()->currentTeam;
+        $router  = app(AiModelRouter::class);
+        $engine  = app(IntelligenceEngineService::class);
+        $context = $engine->buildEcosystemContext($team);
 
-        $this->queryAnswer = $service->answerIntelligenceQuery(
-            auth()->user()->currentTeam,
-            $this->intelligenceQuery,
-        );
+        $prompt = <<<PROMPT
+You are Dot.Analytics — the Enterprise Intelligence Platform for {$team->name}.
+You trace relationships across the entire Dot ecosystem to answer questions no single platform can answer.
 
+{$context}
+
+Question: {$this->intelligenceQuery}
+PROMPT;
+
+        $this->queryAnswer  = $router->complete($prompt, 'query', $team->id);
         $this->queryLoading = false;
     }
 

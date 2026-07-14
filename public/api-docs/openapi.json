@@ -1,0 +1,1370 @@
+{
+    "openapi": "3.0.3",
+    "info": {
+        "title": "Dot.Analytics API",
+        "description": "The Enterprise Intelligence Platform API for the Dot Ecosystem. Provides cross-platform intelligence, knowledge graph traversal, metric computation, and AI-powered recommendations.",
+        "version": "v1",
+        "contact": {
+            "name": "Dot Ecosystem",
+            "url": "https://infodot.app"
+        },
+        "license": {
+            "name": "MIT"
+        }
+    },
+    "servers": [
+        {
+            "url": "http://analytics.infodot.app/api",
+            "description": "Current server"
+        },
+        {
+            "url": "https://analytics.infodot.app/api",
+            "description": "Production"
+        }
+    ],
+    "security": [
+        {
+            "bearerAuth": []
+        }
+    ],
+    "components": {
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "scheme": "bearer",
+                "bearerFormat": "Sanctum API Token",
+                "description": "Obtain a token via POST /api/v1/tokens/create or from the dashboard."
+            }
+        },
+        "responses": {
+            "Unauthorized": {
+                "description": "Unauthenticated \u2014 missing or invalid API token."
+            },
+            "Forbidden": {
+                "description": "Forbidden \u2014 insufficient permissions."
+            },
+            "NotFound": {
+                "description": "Resource not found."
+            },
+            "Unprocessable": {
+                "description": "Validation error \u2014 check the errors field."
+            },
+            "TooManyRequests": {
+                "description": "Rate limit exceeded. Retry after the X-RateLimit-Reset header value."
+            }
+        },
+        "schemas": {
+            "SuccessResponse": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "message": {
+                        "type": "string"
+                    },
+                    "data": {
+                        "type": "object"
+                    }
+                }
+            },
+            "PaginatedResponse": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean"
+                    },
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "type": "object"
+                        }
+                    },
+                    "meta": {
+                        "type": "object",
+                        "properties": {
+                            "current_page": {
+                                "type": "integer"
+                            },
+                            "last_page": {
+                                "type": "integer"
+                            },
+                            "per_page": {
+                                "type": "integer"
+                            },
+                            "total": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                }
+            },
+            "CrossPlatformInsight": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "narrative": {
+                        "type": "string"
+                    },
+                    "platforms_involved": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "example": [
+                            "dot.fleet",
+                            "dot.hr"
+                        ]
+                    },
+                    "insight_type": {
+                        "type": "string",
+                        "enum": [
+                            "correlation",
+                            "causation",
+                            "prediction",
+                            "risk",
+                            "opportunity"
+                        ]
+                    },
+                    "confidence": {
+                        "type": "number",
+                        "format": "float",
+                        "minimum": 0,
+                        "maximum": 1
+                    },
+                    "severity": {
+                        "type": "string",
+                        "enum": [
+                            "info",
+                            "warning",
+                            "critical"
+                        ]
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "new",
+                            "reviewed",
+                            "dismissed"
+                        ]
+                    }
+                }
+            },
+            "DataSource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "platform": {
+                        "type": "string",
+                        "example": "dot.fleet"
+                    },
+                    "display_name": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "pending",
+                            "connected",
+                            "error",
+                            "not_connected"
+                        ]
+                    },
+                    "last_synced_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    }
+                }
+            },
+            "FeatureFlag": {
+                "type": "object",
+                "properties": {
+                    "key": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "enabled_globally": {
+                        "type": "boolean"
+                    },
+                    "rollout_percentage": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 100
+                    },
+                    "environment": {
+                        "type": "string",
+                        "enum": [
+                            "all",
+                            "production",
+                            "local"
+                        ]
+                    }
+                }
+            }
+        }
+    },
+    "paths": {
+        "/ping": {
+            "get": {
+                "tags": [
+                    "Health"
+                ],
+                "summary": "Liveness probe \u2014 fast, no auth.",
+                "operationId": "ping",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/Unprocessable"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/TooManyRequests"
+                    }
+                },
+                "security": []
+            }
+        },
+        "/health": {
+            "get": {
+                "tags": [
+                    "Health"
+                ],
+                "summary": "Basic health check.",
+                "operationId": "health",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/Unprocessable"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/TooManyRequests"
+                    }
+                },
+                "security": []
+            }
+        },
+        "/v1/health/detailed": {
+            "get": {
+                "tags": [
+                    "Health"
+                ],
+                "summary": "Detailed subsystem health check.",
+                "operationId": "health-detailed",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/Unprocessable"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/TooManyRequests"
+                    }
+                }
+            }
+        },
+        "/v1/intelligence/engines": {
+            "get": {
+                "tags": [
+                    "Intelligence"
+                ],
+                "summary": "List all intelligence engines with active status.",
+                "operationId": "intelligence-engines",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/Unprocessable"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/TooManyRequests"
+                    }
+                }
+            }
+        },
+        "/v1/intelligence/insights": {
+            "get": {
+                "tags": [
+                    "Intelligence"
+                ],
+                "summary": "List cross-platform insights.",
+                "operationId": "insights",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/Unprocessable"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/TooManyRequests"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "type",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "severity",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "info",
+                                "warning",
+                                "critical"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "default": 20,
+                            "maximum": 100
+                        }
+                    }
+                ]
+            }
+        },
+        "/v1/intelligence/run": {
+            "post": {
+                "tags": [
+                    "Intelligence"
+                ],
+                "summary": "Dispatch intelligence engine jobs.",
+                "operationId": "intelligence-run",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/Unprocessable"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/TooManyRequests"
+                    }
+                },
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "engines": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/intelligence/graph": {
+            "get": {
+                "tags": [
+                    "Intelligence"
+                ],
+                "summary": "Knowledge graph statistics.",
+                "operationId": "graph-stats",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/Unprocessable"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/TooManyRequests"
+                    }
+                }
+            }
+        },
+        "/v1/intelligence/graph/traverse": {
+            "post": {
+                "tags": [
+                    "Intelligence"
+                ],
+                "summary": "Traverse entity relationships in the knowledge graph.",
+                "operationId": "graph-traverse",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/Unprocessable"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/TooManyRequests"
+                    }
+                },
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "entity_type": {
+                                        "type": "string",
+                                        "example": "customer"
+                                    },
+                                    "entity_id": {
+                                        "type": "string",
+                                        "example": "CUST-001"
+                                    },
+                                    "max_depth": {
+                                        "type": "integer",
+                                        "minimum": 1,
+                                        "maximum": 5,
+                                        "default": 3
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/platforms": {
+            "get": {
+                "tags": [
+                    "Platforms"
+                ],
+                "summary": "List the full Dot platform catalog with connection status.",
+                "operationId": "platforms-catalog",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/Unprocessable"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/TooManyRequests"
+                    }
+                }
+            }
+        },
+        "/v1/platforms/connected": {
+            "get": {
+                "tags": [
+                    "Platforms"
+                ],
+                "summary": "List only connected platforms.",
+                "operationId": "platforms-connected",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/Unprocessable"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/TooManyRequests"
+                    }
+                }
+            }
+        },
+        "/v1/platforms/{platform}": {
+            "get": {
+                "tags": [
+                    "Platforms"
+                ],
+                "summary": "Get a connected platform by key.",
+                "operationId": "platform-show",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/Unprocessable"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/TooManyRequests"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "platform",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ]
+            }
+        },
+        "/v1/platforms/{platform}/connect": {
+            "post": {
+                "tags": [
+                    "Platforms"
+                ],
+                "summary": "Connect a Dot platform.",
+                "operationId": "platform-connect",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/Unprocessable"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/TooManyRequests"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "platform",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "base_url": {
+                                        "type": "string",
+                                        "format": "uri"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/metrics": {
+            "get": {
+                "tags": [
+                    "Metrics"
+                ],
+                "summary": "List computed metrics for the team.",
+                "operationId": "metrics",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/Unprocessable"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/TooManyRequests"
+                    }
+                }
+            }
+        },
+        "/v1/metrics/definitions": {
+            "get": {
+                "tags": [
+                    "Metrics"
+                ],
+                "summary": "List metric definitions.",
+                "operationId": "metric-defs",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/Unprocessable"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/TooManyRequests"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "engine",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "platform",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ]
+            }
+        },
+        "/v1/metrics/ai-usage": {
+            "get": {
+                "tags": [
+                    "Metrics"
+                ],
+                "summary": "AI model usage and cost summary.",
+                "operationId": "ai-usage",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/Unprocessable"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/TooManyRequests"
+                    }
+                }
+            }
+        },
+        "/v1/reports/{type}": {
+            "get": {
+                "tags": [
+                    "Reports"
+                ],
+                "summary": "Generate a JSON report. Types: insights, alerts, recommendations, metrics.",
+                "operationId": "report-json",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/Unprocessable"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/TooManyRequests"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "type",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ]
+            }
+        },
+        "/v1/reports/{type}/csv": {
+            "get": {
+                "tags": [
+                    "Reports"
+                ],
+                "summary": "Stream a CSV report download.",
+                "operationId": "report-csv",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/Unprocessable"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/TooManyRequests"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "type",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ]
+            }
+        },
+        "/v1/reports/{type}/html": {
+            "get": {
+                "tags": [
+                    "Reports"
+                ],
+                "summary": "Get an HTML report for print/PDF.",
+                "operationId": "report-html",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/Unprocessable"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/TooManyRequests"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "type",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ]
+            }
+        },
+        "/v1/saved-reports": {
+            "get": {
+                "tags": [
+                    "Saved Reports"
+                ],
+                "summary": "List saved report definitions.",
+                "operationId": "saved-reports-list",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/Unprocessable"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/TooManyRequests"
+                    }
+                }
+            }
+        },
+        "/v1/saved-reports/{id}/run": {
+            "post": {
+                "tags": [
+                    "Saved Reports"
+                ],
+                "summary": "Execute a saved report and persist output.",
+                "operationId": "saved-report-run",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/Unprocessable"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/TooManyRequests"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ]
+            }
+        },
+        "/v1/sql/query": {
+            "post": {
+                "tags": [
+                    "AI SQL"
+                ],
+                "summary": "Execute a natural-language SQL query against a connected database.",
+                "operationId": "sql-query",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/Unprocessable"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/TooManyRequests"
+                    }
+                },
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "question": {
+                                        "type": "string",
+                                        "minLength": 5
+                                    },
+                                    "connector_id": {
+                                        "type": "integer"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/sql/generate": {
+            "post": {
+                "tags": [
+                    "AI SQL"
+                ],
+                "summary": "Generate SQL from natural language without executing it.",
+                "operationId": "sql-generate",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/Unprocessable"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/TooManyRequests"
+                    }
+                },
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "question": {
+                                        "type": "string",
+                                        "minLength": 5
+                                    },
+                                    "connector_id": {
+                                        "type": "integer"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/ingest/{platform}": {
+            "post": {
+                "tags": [
+                    "Ingest"
+                ],
+                "summary": "Push a data snapshot from a Dot platform via webhook.",
+                "operationId": "ingest",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/Unprocessable"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/TooManyRequests"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "platform",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ]
+            }
+        },
+        "/v1/ingest/{platform}/ping": {
+            "get": {
+                "tags": [
+                    "Ingest"
+                ],
+                "summary": "Check webhook connectivity for a platform.",
+                "operationId": "ingest-ping",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/Unprocessable"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/TooManyRequests"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "platform",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ]
+            }
+        },
+        "/v1/feature-flags": {
+            "get": {
+                "tags": [
+                    "Feature Flags"
+                ],
+                "summary": "List all feature flags.",
+                "operationId": "flags-list",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/Unprocessable"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/TooManyRequests"
+                    }
+                }
+            }
+        },
+        "/v1/feature-flags/check/{key}": {
+            "get": {
+                "tags": [
+                    "Feature Flags"
+                ],
+                "summary": "Check if a flag is enabled for the authenticated user.",
+                "operationId": "flag-check",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/Unprocessable"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/TooManyRequests"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "key",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ]
+            }
+        },
+        "/v1/feature-flags/{key}/enable": {
+            "patch": {
+                "tags": [
+                    "Feature Flags"
+                ],
+                "summary": "Enable a feature flag globally.",
+                "operationId": "flag-enable",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/Unprocessable"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/TooManyRequests"
+                    }
+                }
+            }
+        },
+        "/v1/feature-flags/{key}/disable": {
+            "patch": {
+                "tags": [
+                    "Feature Flags"
+                ],
+                "summary": "Disable a feature flag globally.",
+                "operationId": "flag-disable",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/Unprocessable"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/TooManyRequests"
+                    }
+                }
+            }
+        },
+        "/v1/feature-flags/{key}/rollout": {
+            "patch": {
+                "tags": [
+                    "Feature Flags"
+                ],
+                "summary": "Set gradual rollout percentage.",
+                "operationId": "flag-rollout",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/Unprocessable"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/TooManyRequests"
+                    }
+                }
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Health",
+            "description": "System health and liveness probes"
+        },
+        {
+            "name": "Intelligence",
+            "description": "Cross-platform intelligence engines and insights"
+        },
+        {
+            "name": "Platforms",
+            "description": "Dot ecosystem platform connections"
+        },
+        {
+            "name": "Metrics",
+            "description": "Computed metrics and definitions"
+        },
+        {
+            "name": "Reports",
+            "description": "Analytics reports (JSON, CSV, HTML)"
+        },
+        {
+            "name": "Saved Reports",
+            "description": "Persistent report definitions with run history"
+        },
+        {
+            "name": "AI SQL",
+            "description": "Natural language to SQL query generation"
+        },
+        {
+            "name": "Ingest",
+            "description": "Webhook data ingestion from Dot platforms"
+        },
+        {
+            "name": "Feature Flags",
+            "description": "Runtime feature flag management"
+        }
+    ]
+}

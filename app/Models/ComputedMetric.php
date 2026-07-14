@@ -21,8 +21,13 @@ class ComputedMetric extends Model
         return $this->belongsTo(Team::class);
     }
 
-    public function definition(): BelongsTo
+    public function metricDefinition(): BelongsTo
     {
         return $this->belongsTo(MetricDefinition::class, 'metric_definition_id');
+    }
+
+    public function definition(): BelongsTo
+    {
+        return $this->metricDefinition();
     }
 }

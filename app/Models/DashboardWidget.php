@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class DashboardWidget extends Model
 {
+    use HasFactory;
     protected $fillable = [
         'analytics_dashboard_id', 'widget_type', 'title', 'config', 'col', 'row', 'width', 'height',
     ];
