@@ -22,7 +22,7 @@ class IntelligenceDashboard extends Component
     #[Computed]
     public function connectedSources(): Collection
     {
-        return DataSource::where('team_id', auth()->user()->currentTeam->id)
+        return DataSource::where('team_id', Auth::user()->currentTeam->id)
             ->where('status', 'connected')
             ->get();
     }
@@ -30,7 +30,7 @@ class IntelligenceDashboard extends Component
     #[Computed]
     public function openAlerts(): Collection
     {
-        return AnalyticsAlert::where('team_id', auth()->user()->currentTeam->id)
+        return AnalyticsAlert::where('team_id', Auth::user()->currentTeam->id)
             ->where('status', 'open')
             ->orderBy('severity')
             ->orderByDesc('triggered_at')
@@ -41,7 +41,7 @@ class IntelligenceDashboard extends Component
     #[Computed]
     public function pendingRecommendations(): Collection
     {
-        return Recommendation::where('team_id', auth()->user()->currentTeam->id)
+        return Recommendation::where('team_id', Auth::user()->currentTeam->id)
             ->where('status', 'pending')
             ->orderByRaw("CASE priority WHEN 'critical' THEN 1 WHEN 'high' THEN 2 WHEN 'medium' THEN 3 ELSE 4 END")
             ->limit(5)
