@@ -24,18 +24,42 @@ class FeatureFlagController extends BaseApiController
     /**
      * GET /api/v1/feature-flags
      * List all feature flags with their current state.
+     *
+     * `enabled_for_teams` / `enabled_for_users` are internal targeting lists that
+     * reference OTHER teams' and users' IDs — they are only included for admins
+     * (Gate: manage-platforms). Non-admins get a boolean telling them whether their
+     * own current team/user is targeted, without leaking who else is.
      */
     public function index(): JsonResponse
     {
-        $flags = $this->flagService->all()->map(fn ($f) => [
-            'key'                => $f->key,
-            'name'               => $f->name,
-            'description'        => $f->description,
-            'enabled_globally'   => $f->enabled_globally,
-            'enabled_for_teams'  => $f->enabled_for_teams,
-            'rollout_percentage' => $f->rollout_percentage,
-            'environment'        => $f->environment,
-        ]);
+        $isAdmin       = Gate::allows('manage-platforms');
+        $currentTeamId = Auth::user()->currentTeam?->id;
+        $currentUserId = Auth::id();
+
+        $flags = $this->flagService->all()->map(function ($f) use ($isAdmin, $currentTeamId, $currentUserId) {
+            $payload = [
+                'key'                => $f->key,
+                'name'               => $f->name,
+                'description'        => $f->description,
+                'enabled_globally'   => $f->enabled_globally,
+                'rollout_percentage' => $f->rollout_percentage,
+                'environment'        => $f->environment,
+            ];
+
+            if ($isAdmin) {
+                $payload['enabled_for_teams'] = $f->enabled_for_teams;
+                $payload['enabled_for_users'] = $f->enabled_for_users;
+            } else {
+                $payload['enabled_for_current_team'] = $currentTeamId
+                    && ! empty($f->enabled_for_teams)
+                    && in_array($currentTeamId, $f->enabled_for_teams, true);
+                $payload['enabled_for_current_user'] = $currentUserId
+                    && ! empty($f->enabled_for_users)
+                    && in_array($currentUserId, $f->enabled_for_users, true);
+            }
+
+            return $payload;
+        });
 
         return $this->success($flags);
     }
