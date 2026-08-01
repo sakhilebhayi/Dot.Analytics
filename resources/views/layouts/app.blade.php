@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Dot.Analytics</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('favicon-16x16.png') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('apple-touch-icon.png') }}">
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
     <script src="https://cdn.tailwindcss.com"></script>
@@ -28,8 +31,8 @@
     <aside style="position:fixed;left:0;top:0;height:100vh;width:272px;background:#131b2e;border-right:1px solid rgba(67,70,86,0.2);z-index:50;overflow-y:auto;padding:1.75rem 1rem;display:flex;flex-direction:column;">
         <div style="margin-bottom:1.75rem;padding:0 0.5rem;">
             <a href="{{ route('dashboard') }}" style="display:flex;align-items:center;gap:0.75rem;text-decoration:none;">
-                <div style="width:34px;height:34px;border-radius:8px;background:linear-gradient(135deg,#0ea5e9,#0369a1);display:flex;align-items:center;justify-content:center;">
-                    <span class="material-symbols-outlined" style="font-size:18px;color:#fff;">analytics</span>
+                <div style="width:34px;height:34px;border-radius:8px;overflow:hidden;background:#fff;display:flex;align-items:center;justify-content:center;">
+                    <img src="{{ asset('images/logo.png') }}" alt="Dot.Analytics" style="width:100%;height:100%;object-fit:contain;">
                 </div>
                 <div>
                     <div style="font-family:'Manrope',sans-serif;font-size:1rem;font-weight:800;color:#b6c4ff;">Dot.Analytics</div>

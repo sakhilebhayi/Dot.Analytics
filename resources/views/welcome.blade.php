@@ -106,21 +106,21 @@
                 {{-- Platform grid --}}
                 <div class="grid grid-cols-3 sm:grid-cols-5 gap-3 w-full max-w-3xl">
                     @foreach([
-                        ['Dot.Fleet',      'bg-blue-950',   'border-blue-800',   'text-blue-400'],
-                        ['Dot.CRM',        'bg-green-950',  'border-green-800',  'text-green-400'],
+                        ['Dot.Ehail',      'bg-blue-950',   'border-blue-800',   'text-blue-400'],
+                        ['Dot.Emall',      'bg-green-950',  'border-green-800',  'text-green-400'],
                         ['Dot.HR',         'bg-purple-950', 'border-purple-800', 'text-purple-400'],
-                        ['Dot.Hear',       'bg-pink-950',   'border-pink-800',   'text-pink-400'],
-                        ['Dot.Documents',  'bg-yellow-950', 'border-yellow-800', 'text-yellow-400'],
-                        ['Dot.Support',    'bg-orange-950', 'border-orange-800', 'text-orange-400'],
-                        ['Dot.Inventory',  'bg-teal-950',   'border-teal-800',   'text-teal-400'],
-                        ['Dot.Payments',   'bg-emerald-950','border-emerald-800','text-emerald-400'],
-                        ['Dot.Security',   'bg-red-950',    'border-red-800',    'text-red-400'],
-                        ['Dot.API',        'bg-indigo-950', 'border-indigo-800', 'text-indigo-400'],
-                        ['Dot.Flow',       'bg-cyan-950',   'border-cyan-800',   'text-cyan-400'],
-                        ['Dot.Assets',     'bg-slate-800',  'border-slate-700',  'text-slate-400'],
+                        ['Dot.Pulse',      'bg-pink-950',   'border-pink-800',   'text-pink-400'],
+                        ['Dot.Projects',   'bg-yellow-950', 'border-yellow-800', 'text-yellow-400'],
+                        ['Dot.Tasks',      'bg-orange-950', 'border-orange-800', 'text-orange-400'],
+                        ['Dot.Mines',      'bg-teal-950',   'border-teal-800',   'text-teal-400'],
+                        ['Dot.Billing',    'bg-emerald-950','border-emerald-800','text-emerald-400'],
+                        ['Dot.Central',    'bg-red-950',    'border-red-800',    'text-red-400'],
+                        ['Dot.Plug',       'bg-indigo-950', 'border-indigo-800', 'text-indigo-400'],
+                        ['Dot.Notify',     'bg-cyan-950',   'border-cyan-800',   'text-cyan-400'],
+                        ['Dot.Farms',      'bg-slate-800',  'border-slate-700',  'text-slate-400'],
                         ['Dot.Agents',     'bg-violet-950', 'border-violet-800', 'text-violet-400'],
                         ['Dot.Finance',    'bg-lime-950',   'border-lime-800',   'text-lime-400'],
-                        ['Dot.Vault',      'bg-amber-950',  'border-amber-800',  'text-amber-400'],
+                        ['Dot.Auction',    'bg-amber-950',  'border-amber-800',  'text-amber-400'],
                     ] as [$name, $bg, $border, $text])
                         <div class="border {{ $border }} {{ $bg }} rounded-xl p-3 flex items-center justify-center">
                             <span class="text-xs font-medium {{ $text }}">{{ $name }}</span>

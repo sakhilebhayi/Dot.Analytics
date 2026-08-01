@@ -4,9 +4,7 @@
     <div class="hidden lg:flex lg:w-1/2 bg-slate-950 flex-col justify-between p-12">
         {{-- Logo --}}
         <a href="/" class="flex items-center gap-2">
-            <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center shrink-0">
-                <span class="text-sm font-bold text-white">D</span>
-            </div>
+            <img src="{{ asset('images/logo.png') }}" alt="Dot.Analytics" class="w-8 h-8 object-contain shrink-0">
             <span class="font-semibold text-white tracking-tight">Dot.Analytics</span>
             <span class="text-xs text-slate-500 font-medium">EIP</span>
         </a>
@@ -24,16 +22,16 @@
             {{-- Platform dots --}}
             <div class="mt-8 grid grid-cols-5 gap-2">
                 @foreach([
-                    ['Fleet',     'bg-blue-600'],
-                    ['CRM',       'bg-green-600'],
-                    ['HR',        'bg-purple-600'],
-                    ['Hear',      'bg-pink-600'],
-                    ['Documents', 'bg-yellow-600'],
-                    ['Support',   'bg-orange-600'],
-                    ['Inventory', 'bg-teal-600'],
-                    ['Payments',  'bg-emerald-600'],
-                    ['Security',  'bg-red-600'],
-                    ['Agents',    'bg-violet-600'],
+                    ['Farms',   'bg-blue-600'],
+                    ['Emall',   'bg-green-600'],
+                    ['HR',      'bg-purple-600'],
+                    ['Pulse',   'bg-pink-600'],
+                    ['Notify',  'bg-yellow-600'],
+                    ['Ehail',   'bg-orange-600'],
+                    ['Mines',   'bg-teal-600'],
+                    ['Billing', 'bg-emerald-600'],
+                    ['Finance', 'bg-red-600'],
+                    ['Agents',  'bg-violet-600'],
                 ] as [$name, $color])
                     <div class="flex flex-col items-center gap-1">
                         <div class="w-7 h-7 rounded-lg {{ $color }} flex items-center justify-center">

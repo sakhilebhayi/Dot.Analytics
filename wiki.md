@@ -127,7 +127,7 @@ This mapping is our own proposal, not yet wired to Dot.Brain's ingestion pipelin
 - [ ] Build the `platform.dkp.json` manifest and wire the four Knowledge Pack payload types (§6) to real emission points in the codebase.
 - [ ] Implement the KPI-catalog sync job against Dot.Brain's metric registry (`brain.metrics.md`), including the drift-count alarm described in Dot.Brain's ingested view §7.
 - [ ] Decide whether the "chain view" / composite-view concept (Farms→Emall→Billing) becomes a new model (`CompositeView`?) or is expressed through existing `AnalyticsDashboard`/`DashboardWidget` — currently no schema supports cross-platform composite assemblage.
-- [ ] Clean up the duplicated `v1` route group in `routes/api.php` (two near-identical blocks currently coexist).
+- [x] Clean up the duplicated `v1` route group in `routes/api.php` — done 2026-08-01: the second, unreachable block (shadowed by the first, identically-prefixed group) was removed; no route behavior changed since Laravel matches the first-registered route.
 - [ ] Extend multi-tenancy model to the cross-tenant, floor-inheriting aggregation described in Dot.Brain's ingested view §7, if/when composite views are built.
 
 ## Change Log
@@ -135,6 +135,7 @@ This mapping is our own proposal, not yet wired to Dot.Brain's ingestion pipelin
 | Version | Date | Author | Change |
 |---|---|---|---|
 | 1.0.0 | 2026-08-01 | Analytics Platform Lead | Initial wiki, derived from the actual codebase (routes, models, migrations, services) with explicit gap analysis against Dot.Brain's ingested view |
+| 1.0.1 | 2026-08-01 | Analytics Platform Lead | Platform-loop pass: real logo wired into favicons/nav/auth pages; removed leftover `dot_projects.png` asset and the dead default-Jetstream `components/welcome.blade.php`; `composer.json` name fixed from `laravel/laravel` to `dot/analytics`; README's top-level platform roster diagram corrected to the real 20-platform Dot Ecosystem list (the README's per-engine "Primary Sources" table and `IntelligenceEngineService::PLATFORMS` still use the earlier fictitious roster — left alone, flagged as a roadmap item since remapping it touches core intelligence-engine logic); added Feature tests for reports/metrics/platform-catalog pages; no engine/knowledge-graph/DNA code touched. |
 
 ## Open Questions
 

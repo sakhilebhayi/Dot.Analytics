@@ -29,21 +29,24 @@ Every Dot platform **contributes knowledge to** Dot.Analytics. Every Dot platfor
                     Dot.Analytics
                   (Intelligence Core)
 
-    Dot.Fleet    Dot.CRM      Dot.HR       Dot.Documents
-    Dot.Hear     Dot.Support  Dot.Inventory Dot.Payments
-    Dot.Security Dot.API      Dot.Flow      Dot.Assets
-    Dot.Agents   Dot.Finance  Dot.Vault
+    Dot.Farms    Dot.Emall    Dot.Billing   Dot.Ehail
+    Dot.HR       Dot.Pulse    Dot.Notify    Dot.Mines
+    Dot.Agents   Dot.Finance  Dot.Plug      Dot.Central
+    Dot.Projects Dot.Tasks    Dot.Auction   Dot.Charts
+    Dot.Design   Dot.Dopemine Dot.Memory
 
               + Third-party systems
 ```
 
-Every platform contributes intelligence. Every platform receives intelligence. No platform is "above" the others — Dot.Analytics is the layer that connects them all.
+Every platform contributes intelligence. Every platform receives intelligence. No platform is "above" the others — Dot.Analytics is the layer that connects them all. (See the full, current roster in Dot.Brain's [`brain.platforms.md`](https://github.com/sakhilebhayi/Dot.Brain/blob/main/brain.platforms.md) registry.)
 
 ---
 
 ## The 17 Intelligence Engines
 
 Each engine consumes data from multiple Dot platforms and produces a holistic view rather than isolated reports.
+
+> **Note:** the "Primary Sources" column below still names platforms from an earlier roster (Dot.Fleet, Dot.CRM, Dot.Hear, etc.) that predates the current 20-platform Dot Ecosystem list above. `IntelligenceEngineService::PLATFORMS` in this codebase uses the same earlier naming and has not been remapped to real platform IDs (e.g. `dot-farms`, `dot-emall`, `dot-billing`) — that remap touches core intelligence-engine logic and is tracked as a roadmap item in `wiki.md` §7 rather than done here.
 
 | Engine | Primary Sources |
 |---|---|
