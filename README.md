@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="public/images/logo.png" alt="Dot.Analytics" width="220" />
+
 <h1>Dot.Analytics</h1>
 
 <p>The intelligence layer of the Dot ecosystem — not a BI tool, not a dashboard platform, but the <strong>central nervous system</strong> that continuously consumes data from every Dot platform, understands the relationships between them, and produces intelligence for the entire ecosystem.</p>
