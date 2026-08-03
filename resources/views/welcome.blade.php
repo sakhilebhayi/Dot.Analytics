@@ -14,9 +14,7 @@
     <nav class="fixed top-0 inset-x-0 z-50 border-b border-white/5 bg-slate-950/80 backdrop-blur-sm">
         <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
             <div class="flex items-center gap-2">
-                <div class="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center">
-                    <span class="text-xs font-bold text-white">D</span>
-                </div>
+                <img src="{{ asset('images/logo.png') }}" alt="Dot.Analytics" class="h-8 w-auto">
                 <span class="font-semibold text-white tracking-tight">Dot.Analytics</span>
                 <span class="text-xs text-slate-500 font-medium ml-1">EIP</span>
             </div>
@@ -34,8 +32,12 @@
     </nav>
 
     {{-- Hero --}}
-    <section class="pt-40 pb-24 px-6">
-        <div class="max-w-5xl mx-auto text-center">
+    <section class="pt-40 pb-24 px-6 relative overflow-hidden">
+        <!-- Photographic Background: real analytics-dashboard-on-laptop-screen photo by Luke Chesser (@lukechesser), unsplash.com/photos/graphs-of-performance-analytics-on-a-laptop-screen-JKUTrJ4vK00 -->
+        <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=2400&auto=format&fit=crop');"></div>
+        <div class="absolute inset-0 bg-slate-950/88"></div>
+        <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/80 to-slate-950/50"></div>
+        <div class="relative z-10 max-w-5xl mx-auto text-center">
             <div class="inline-flex items-center gap-2 bg-indigo-950/60 border border-indigo-800/40 rounded-full px-4 py-1.5 mb-8">
                 <span class="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse"></span>
                 <span class="text-xs text-indigo-300 font-medium">Enterprise Intelligence Platform</span>
@@ -259,9 +261,7 @@
     <footer class="border-t border-white/5 py-8 px-6">
         <div class="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
             <div class="flex items-center gap-2">
-                <div class="w-5 h-5 rounded-md bg-indigo-600 flex items-center justify-center">
-                    <span class="text-xs font-bold text-white">D</span>
-                </div>
+                <img src="{{ asset('images/logo.png') }}" alt="Dot.Analytics" class="h-12 w-auto">
                 <span class="text-sm text-slate-500">Dot.Analytics &mdash; Part of the Dot Ecosystem</span>
             </div>
             <p class="text-xs text-slate-600">&copy; {{ date('Y') }} SK Digital / BluPin Incorporated</p>

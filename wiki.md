@@ -1,6 +1,6 @@
 ---
 title: Dot.Analytics — Platform Wiki
-version: 1.0.0
+version: 1.1.0
 status: active
 owners: [Analytics Platform Lead]
 platform-id: dot-analytics
@@ -150,6 +150,7 @@ Dot.Brain's `os/15-MEGA-v2.md` flagged Dot.Analytics as `S=1` — the first plat
 
 | Version | Date | Author | Change |
 |---|---|---|---|
+| 1.1.0 | 2026-08-03 | Sakhile Bhayi | Redesigned `resources/views/welcome.blade.php`'s marketing surface: the nav's flat indigo square with a "D" glyph and the footer's matching small square are now the real `public/images/logo.png` lockup. The hero section (previously a plain `bg-slate-950` fill with a gradient headline, no photography) now has a real photographic background: an analytics-dashboard-on-a-laptop-screen photo by Luke Chesser (@lukechesser), unsplash.com/photos/graphs-of-performance-analytics-on-a-laptop-screen-JKUTrJ4vK00, hotlinked via Unsplash's CDN (`images.unsplash.com/photo-1551288049-bebda4e38f71`), under a dark slate gradient overlay tuned for WCAG-adequate text contrast. Verified the image URL resolves with `curl -sI` (HTTP/2 200) before committing. Left the pre-existing duplicate stock-Laravel-scaffold markup appended after this file's closing `</html>` tag untouched — it predates this pass and is out of scope for a bounded visual-only change. |
 | 1.0.0 | 2026-08-01 | Analytics Platform Lead | Initial wiki, derived from the actual codebase (routes, models, migrations, services) with explicit gap analysis against Dot.Brain's ingested view |
 | 1.0.1 | 2026-08-01 | Analytics Platform Lead | Platform-loop pass: real logo wired into favicons/nav/auth pages; removed leftover `dot_projects.png` asset and the dead default-Jetstream `components/welcome.blade.php`; `composer.json` name fixed from `laravel/laravel` to `dot/analytics`; README's top-level platform roster diagram corrected to the real 20-platform Dot Ecosystem list (the README's per-engine "Primary Sources" table and `IntelligenceEngineService::PLATFORMS` still use the earlier fictitious roster — left alone, flagged as a roadmap item since remapping it touches core intelligence-engine logic); added Feature tests for reports/metrics/platform-catalog pages; no engine/knowledge-graph/DNA code touched. |
 | 1.0.2 | 2026-08-01 | Analytics Platform Lead | Deep security pass on intelligence-engine internals (§8), the follow-up to the `S=1` caveat in Dot.Brain's `15-MEGA-v2.md`. Cross-tenant isolation across the 17-engine service, knowledge graph, Business DNA, and reports/briefings held up clean. Found and fixed one real cross-tenant leak: `GET /api/v1/feature-flags` exposed other teams'/users' flag-targeting arrays to any authenticated user (commit `fd750ef`). Knowledge-graph traversal algorithms and engine prompt logic were read but not modified. |
