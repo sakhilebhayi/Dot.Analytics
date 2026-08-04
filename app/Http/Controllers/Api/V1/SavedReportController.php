@@ -54,7 +54,7 @@ class SavedReportController extends BaseApiController
         ]);
 
         $report = AnalyticsReport::create(array_merge($validated, [
-            'team_id'     => Auth::user()->currentTeam->id,
+            'team_id'     => $this->currentTeam()->id,
             'user_id'     => Auth::id(),
             'report_type' => ! empty($validated['cron_expression']) ? 'scheduled' : 'ad_hoc',
         ]));
@@ -68,7 +68,7 @@ class SavedReportController extends BaseApiController
      */
     public function run(int $id): JsonResponse
     {
-        $team   = Auth::user()->currentTeam;
+        $team   = $this->currentTeam();
         $report = AnalyticsReport::findOrFail($id);
 
         $run = ReportRun::create([

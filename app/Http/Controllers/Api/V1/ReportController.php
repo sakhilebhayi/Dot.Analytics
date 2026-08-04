@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Api\V1;
 use App\Services\ReportGenerationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
@@ -33,7 +32,7 @@ class ReportController extends BaseApiController
             return $this->error("Unknown report type '{$type}'. Valid: " . implode(', ', self::REPORT_TYPES), 422);
         }
 
-        $team   = Auth::user()->currentTeam;
+        $team   = $this->currentTeam();
         $report = $this->reportService->generateJson($team, $type, $request->only('status', 'period', 'limit'));
 
         return $this->success($report);
@@ -49,7 +48,7 @@ class ReportController extends BaseApiController
             return $this->error("Unknown report type '{$type}'.", 422);
         }
 
-        $team = Auth::user()->currentTeam;
+        $team = $this->currentTeam();
         return $this->reportService->streamCsv($team, $type, $request->only('status', 'period', 'limit'));
     }
 
@@ -63,7 +62,7 @@ class ReportController extends BaseApiController
             return $this->error("Unknown report type '{$type}'.", 422);
         }
 
-        $team = Auth::user()->currentTeam;
+        $team = $this->currentTeam();
         $html = $this->reportService->generateHtml($team, $type, $request->only('status', 'period', 'limit'));
 
         return response($html, 200, ['Content-Type' => 'text/html']);

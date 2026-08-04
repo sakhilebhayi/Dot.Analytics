@@ -8,7 +8,6 @@ use App\Services\IntelligenceEngineService;
 use App\Services\KnowledgeGraphService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 /**
  * Intelligence API — v1
@@ -31,7 +30,7 @@ class IntelligenceController extends BaseApiController
      */
     public function engines(): JsonResponse
     {
-        $team      = Auth::user()->currentTeam;
+        $team      = $this->currentTeam();
         $connected = $team->dataSources()->where('status', 'connected')->pluck('platform')->toArray();
         $active    = $this->engineService->getActiveEngines($connected);
 
@@ -51,7 +50,7 @@ class IntelligenceController extends BaseApiController
      */
     public function run(Request $request): JsonResponse
     {
-        $team     = Auth::user()->currentTeam;
+        $team     = $this->currentTeam();
         $engines  = $request->input('engines');
 
         $dispatched = $this->runEngines->handle($team, $engines);
@@ -70,7 +69,7 @@ class IntelligenceController extends BaseApiController
      */
     public function insights(Request $request): JsonResponse
     {
-        $team    = Auth::user()->currentTeam;
+        $team    = $this->currentTeam();
         $perPage = min((int) $request->input('per_page', 20), 100);
 
         $insights = CrossPlatformInsight::when($request->input('type'),     fn ($q) => $q->where('insight_type', $request->input('type')))
@@ -89,7 +88,7 @@ class IntelligenceController extends BaseApiController
      */
     public function graph(): JsonResponse
     {
-        $team  = Auth::user()->currentTeam;
+        $team  = $this->currentTeam();
         $stats = $this->graphService->getStats($team);
 
         return $this->success($stats);
@@ -109,7 +108,7 @@ class IntelligenceController extends BaseApiController
             'max_depth'   => 'integer|min:1|max:5',
         ]);
 
-        $team  = Auth::user()->currentTeam;
+        $team  = $this->currentTeam();
         $nodes = $this->graphService->traverse(
             $team,
             $validated['entity_type'],

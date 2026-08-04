@@ -7,7 +7,6 @@ use App\Models\ComputedMetric;
 use App\Models\MetricDefinition;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 /**
  * Metrics API — v1
@@ -69,7 +68,7 @@ class MetricsController extends BaseApiController
      */
     public function aiUsage(Request $request): JsonResponse
     {
-        $team = Auth::user()->currentTeam;
+        $team = $this->currentTeam();
 
         $byProvider = AiModelUsage::selectRaw('provider, model, count(*) as calls, sum(input_tokens) as total_input, sum(output_tokens) as total_output, sum(cost_usd) as total_cost_usd, avg(latency_ms) as avg_latency_ms')
             ->groupBy('provider', 'model')

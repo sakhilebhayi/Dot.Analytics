@@ -86,4 +86,20 @@ class ReportApiTest extends TestCase
         $response->assertOk();
         $this->assertEquals(0, $response->json('data.row_count'));
     }
+
+    /**
+     * No route in this API group runs a team-context middleware that
+     * guarantees current_team_id is set. A user who belongs to no team
+     * (e.g. removed from their last team) must get a 403, not a crash on
+     * a null currentTeam dereference.
+     */
+    public function test_user_with_no_team_gets_403_not_a_crash(): void
+    {
+        $user  = User::factory()->create(['current_team_id' => null]);
+        $token = $user->createToken('test')->plainTextToken;
+
+        $response = $this->withToken($token)->getJson('/api/v1/reports/insights');
+
+        $response->assertForbidden();
+    }
 }

@@ -6,7 +6,6 @@ use App\Models\DataConnector;
 use App\Services\AiSqlService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 /**
  * AI SQL Controller — v1
@@ -37,7 +36,7 @@ class SqlController extends BaseApiController
             'schema'       => 'nullable|array',
         ]);
 
-        $team      = Auth::user()->currentTeam;
+        $team      = $this->currentTeam();
         $connector = DataConnector::findOrFail($validated['connector_id']);
 
         if (! $connector->isActive()) {
@@ -74,7 +73,7 @@ class SqlController extends BaseApiController
             'schema'       => 'nullable|array',
         ]);
 
-        $team      = Auth::user()->currentTeam;
+        $team      = $this->currentTeam();
         $connector = DataConnector::findOrFail($validated['connector_id']);
 
         $schema = $validated['schema'] ?? [];

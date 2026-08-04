@@ -7,7 +7,6 @@ use App\Models\DataSource;
 use App\Services\IntelligenceEngineService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -66,7 +65,7 @@ class PlatformController extends BaseApiController
 
         try {
             $dataSource = $this->connectAction->handle(
-                Auth::user()->currentTeam,
+                $this->currentTeam(),
                 $platform,
                 $validated['base_url'] ?? null,
             );

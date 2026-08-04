@@ -39,6 +39,10 @@ class IngestController extends BaseApiController
             return $this->error('Unauthenticated.', 401);
         }
 
+        // A Sanctum-authenticated user who belongs to no team (e.g. removed
+        // from their last team) reaches this action with currentTeam null.
+        // We only use $team for logging below, but avoid the null
+        // dereference rather than let a webhook 500 on that edge case.
         $team   = $user->currentTeam;
         $source = DataSource::where('platform', $platform)
             ->where('status', 'connected')
@@ -57,7 +61,7 @@ class IngestController extends BaseApiController
             if (! $this->validateSignature($request, $secret)) {
                 Log::warning('Webhook signature mismatch', [
                     'platform' => $platform,
-                    'team_id'  => $team->id,
+                    'team_id'  => $team?->id,
                     'ip'       => $request->ip(),
                 ]);
                 return $this->error('Invalid signature.', 401);
