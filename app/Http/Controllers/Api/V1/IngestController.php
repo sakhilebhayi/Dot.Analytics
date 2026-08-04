@@ -40,8 +40,7 @@ class IngestController extends BaseApiController
         }
 
         $team   = $user->currentTeam;
-        $source = DataSource::where('team_id', $team->id)
-            ->where('platform', $platform)
+        $source = DataSource::where('platform', $platform)
             ->where('status', 'connected')
             ->first();
 
@@ -92,10 +91,7 @@ class IngestController extends BaseApiController
      */
     public function ping(Request $request, string $platform): JsonResponse
     {
-        $team   = $request->user()->currentTeam;
-        $source = DataSource::where('team_id', $team->id)
-            ->where('platform', $platform)
-            ->first();
+        $source = DataSource::where('platform', $platform)->first();
 
         return $this->success([
             'platform'   => $platform,

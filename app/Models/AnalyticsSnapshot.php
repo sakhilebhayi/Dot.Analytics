@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasTeamScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class AnalyticsSnapshot extends Model
 {
+    use HasTeamScope;
+
     protected $fillable = [
         'team_id', 'data_source_id', 'snapshot_type', 'payload', 'captured_at',
     ];

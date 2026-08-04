@@ -38,8 +38,7 @@ class SqlController extends BaseApiController
         ]);
 
         $team      = Auth::user()->currentTeam;
-        $connector = DataConnector::where('team_id', $team->id)
-            ->findOrFail($validated['connector_id']);
+        $connector = DataConnector::findOrFail($validated['connector_id']);
 
         if (! $connector->isActive()) {
             return $this->error("Connector '{$connector->name}' is not active.", 422);
@@ -76,8 +75,7 @@ class SqlController extends BaseApiController
         ]);
 
         $team      = Auth::user()->currentTeam;
-        $connector = DataConnector::where('team_id', $team->id)
-            ->findOrFail($validated['connector_id']);
+        $connector = DataConnector::findOrFail($validated['connector_id']);
 
         $schema = $validated['schema'] ?? [];
         $sql    = $this->sqlService->generateSql($validated['question'], $schema, $team->id);

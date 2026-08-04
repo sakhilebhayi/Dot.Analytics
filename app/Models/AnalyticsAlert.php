@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasTeamScope;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class AnalyticsAlert extends Model
 {
-    use HasFactory;
+    use HasFactory, HasTeamScope;
 
     protected $table = 'analytics_alerts';
 

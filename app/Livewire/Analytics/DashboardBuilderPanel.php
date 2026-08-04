@@ -49,8 +49,7 @@ class DashboardBuilderPanel extends Component
     #[Computed]
     public function dashboards(): Collection
     {
-        return AnalyticsDashboard::where('team_id', Auth::user()->currentTeam->id)
-            ->orderBy('is_default', 'desc')
+        return AnalyticsDashboard::orderBy('is_default', 'desc')
             ->orderBy('title')
             ->get();
     }
@@ -61,8 +60,7 @@ class DashboardBuilderPanel extends Component
         if (! $this->activeDashboardId) {
             return $this->dashboards->first();
         }
-        return AnalyticsDashboard::where('team_id', Auth::user()->currentTeam->id)
-            ->find($this->activeDashboardId);
+        return AnalyticsDashboard::find($this->activeDashboardId);
     }
 
     #[Computed]
@@ -80,7 +78,7 @@ class DashboardBuilderPanel extends Component
         $this->validateOnly('newDashboardTitle');
 
         $team      = Auth::user()->currentTeam;
-        $isFirst   = ! AnalyticsDashboard::where('team_id', $team->id)->exists();
+        $isFirst   = ! AnalyticsDashboard::exists();
 
         $dashboard = AnalyticsDashboard::create([
             'team_id'    => $team->id,
@@ -102,17 +100,14 @@ class DashboardBuilderPanel extends Component
 
     public function setDefault(int $id): void
     {
-        $team = Auth::user()->currentTeam;
-        AnalyticsDashboard::where('team_id', $team->id)->update(['is_default' => false]);
-        AnalyticsDashboard::where('team_id', $team->id)->where('id', $id)->update(['is_default' => true]);
+        AnalyticsDashboard::query()->update(['is_default' => false]);
+        AnalyticsDashboard::where('id', $id)->update(['is_default' => true]);
         unset($this->dashboards);
     }
 
     public function deleteDashboard(int $id): void
     {
-        AnalyticsDashboard::where('team_id', Auth::user()->currentTeam->id)
-            ->findOrFail($id)
-            ->delete();
+        AnalyticsDashboard::findOrFail($id)->delete();
 
         if ($this->activeDashboardId === $id) {
             $this->activeDashboardId = null;
@@ -152,7 +147,7 @@ class DashboardBuilderPanel extends Component
 
     public function removeWidget(int $id): void
     {
-        DashboardWidget::whereHas('dashboard', fn ($q) => $q->where('team_id', Auth::user()->currentTeam->id))
+        DashboardWidget::whereHas('dashboard')
             ->findOrFail($id)
             ->delete();
 
@@ -168,9 +163,7 @@ class DashboardBuilderPanel extends Component
     public function updatePositions(array $orderedIds): void
     {
         foreach ($orderedIds as $position => $widgetId) {
-            DashboardWidget::whereHas('dashboard', fn ($q) =>
-                $q->where('team_id', Auth::user()->currentTeam->id)
-            )->where('id', $widgetId)->update([
+            DashboardWidget::whereHas('dashboard')->where('id', $widgetId)->update([
                 'row' => (int) floor($position / 3),
                 'col' => ($position % 3) * 4,
             ]);

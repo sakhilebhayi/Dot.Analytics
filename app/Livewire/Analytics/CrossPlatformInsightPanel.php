@@ -24,8 +24,7 @@ class CrossPlatformInsightPanel extends Component
     #[Computed]
     public function insights(): Collection
     {
-        return CrossPlatformInsight::where('team_id', Auth::user()->currentTeam->id)
-            ->whereIn('status', ['new', 'reviewed'])
+        return CrossPlatformInsight::whereIn('status', ['new', 'reviewed'])
             ->when($this->filterType,     fn ($q) => $q->where('insight_type', $this->filterType))
             ->when($this->filterSeverity, fn ($q) => $q->where('severity', $this->filterSeverity))
             ->orderByRaw("CASE severity WHEN 'critical' THEN 1 WHEN 'warning' THEN 2 ELSE 3 END")
@@ -47,17 +46,13 @@ class CrossPlatformInsightPanel extends Component
 
     public function review(int $id): void
     {
-        CrossPlatformInsight::where('team_id', Auth::user()->currentTeam->id)
-            ->findOrFail($id)
-            ->review();
+        CrossPlatformInsight::findOrFail($id)->review();
         unset($this->insights);
     }
 
     public function dismiss(int $id): void
     {
-        CrossPlatformInsight::where('team_id', Auth::user()->currentTeam->id)
-            ->findOrFail($id)
-            ->dismiss();
+        CrossPlatformInsight::findOrFail($id)->dismiss();
         unset($this->insights);
     }
 

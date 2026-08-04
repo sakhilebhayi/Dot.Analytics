@@ -15,8 +15,7 @@ class AlertsPanel extends Component
     #[Computed]
     public function alerts(): Collection
     {
-        return AnalyticsAlert::where('team_id', auth()->user()->currentTeam->id)
-            ->when($this->filterSeverity, fn ($q) => $q->where('severity', $this->filterSeverity))
+        return AnalyticsAlert::when($this->filterSeverity, fn ($q) => $q->where('severity', $this->filterSeverity))
             ->when($this->filterStatus, fn ($q) => $q->where('status', $this->filterStatus))
             ->orderByRaw("CASE severity WHEN 'critical' THEN 1 WHEN 'warning' THEN 2 ELSE 3 END")
             ->orderByDesc('triggered_at')
@@ -25,17 +24,13 @@ class AlertsPanel extends Component
 
     public function acknowledge(int $id): void
     {
-        AnalyticsAlert::where('team_id', auth()->user()->currentTeam->id)
-            ->findOrFail($id)
-            ->update(['status' => 'acknowledged']);
+        AnalyticsAlert::findOrFail($id)->update(['status' => 'acknowledged']);
         unset($this->alerts);
     }
 
     public function resolve(int $id): void
     {
-        AnalyticsAlert::where('team_id', auth()->user()->currentTeam->id)
-            ->findOrFail($id)
-            ->update(['status' => 'resolved', 'resolved_at' => now()]);
+        AnalyticsAlert::findOrFail($id)->update(['status' => 'resolved', 'resolved_at' => now()]);
         unset($this->alerts);
     }
 

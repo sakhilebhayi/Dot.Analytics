@@ -73,8 +73,7 @@ class IntelligenceController extends BaseApiController
         $team    = Auth::user()->currentTeam;
         $perPage = min((int) $request->input('per_page', 20), 100);
 
-        $insights = CrossPlatformInsight::where('team_id', $team->id)
-            ->when($request->input('type'),     fn ($q) => $q->where('insight_type', $request->input('type')))
+        $insights = CrossPlatformInsight::when($request->input('type'),     fn ($q) => $q->where('insight_type', $request->input('type')))
             ->when($request->input('severity'), fn ($q) => $q->where('severity', $request->input('severity')))
             ->when($request->input('status'),   fn ($q) => $q->where('status', $request->input('status')))
             ->orderByRaw("CASE severity WHEN 'critical' THEN 1 WHEN 'warning' THEN 2 ELSE 3 END")

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasTeamScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -21,6 +22,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class DataPipeline extends Model
 {
+    use HasTeamScope;
+
     protected $fillable = [
         'team_id', 'data_connector_id', 'name', 'description', 'pipeline_type',
         'source_config', 'transform_config', 'destination_config',

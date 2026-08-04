@@ -41,10 +41,7 @@ class MetricsController extends BaseApiController
      */
     public function index(Request $request): JsonResponse
     {
-        $team = Auth::user()->currentTeam;
-
-        $metrics = ComputedMetric::where('team_id', $team->id)
-            ->with('metricDefinition')
+        $metrics = ComputedMetric::with('metricDefinition')
             ->when($request->input('period'),      fn ($q) => $q->where('period', $request->input('period')))
             ->when($request->input('period_date'), fn ($q) => $q->where('period_date', $request->input('period_date')))
             ->when($request->input('metric_key'),  fn ($q) => $q->whereHas('metricDefinition', fn ($mq) =>
@@ -74,8 +71,7 @@ class MetricsController extends BaseApiController
     {
         $team = Auth::user()->currentTeam;
 
-        $byProvider = AiModelUsage::where('team_id', $team->id)
-            ->selectRaw('provider, model, count(*) as calls, sum(input_tokens) as total_input, sum(output_tokens) as total_output, sum(cost_usd) as total_cost_usd, avg(latency_ms) as avg_latency_ms')
+        $byProvider = AiModelUsage::selectRaw('provider, model, count(*) as calls, sum(input_tokens) as total_input, sum(output_tokens) as total_output, sum(cost_usd) as total_cost_usd, avg(latency_ms) as avg_latency_ms')
             ->groupBy('provider', 'model')
             ->orderByDesc('total_cost_usd')
             ->get();
@@ -83,7 +79,7 @@ class MetricsController extends BaseApiController
         return $this->success([
             'by_model'    => $byProvider,
             'total_cost'  => AiModelUsage::totalCostForTeam($team->id),
-            'total_calls' => AiModelUsage::where('team_id', $team->id)->count(),
+            'total_calls' => AiModelUsage::count(),
         ]);
     }
 }

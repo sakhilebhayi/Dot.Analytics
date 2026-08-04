@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasTeamScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -18,6 +19,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class IntelligenceEngineRun extends Model
 {
+    use HasTeamScope;
+
     protected $fillable = [
         'team_id', 'engine', 'status', 'platforms_consumed',
         'insights_generated', 'metrics_computed', 'started_at', 'completed_at',

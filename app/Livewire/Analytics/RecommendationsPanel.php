@@ -17,8 +17,7 @@ class RecommendationsPanel extends Component
     #[Computed]
     public function recommendations(): Collection
     {
-        return Recommendation::where('team_id', Auth::user()->currentTeam->id)
-            ->where('status', 'pending')
+        return Recommendation::where('status', 'pending')
             ->orderByRaw("CASE priority WHEN 'critical' THEN 1 WHEN 'high' THEN 2 WHEN 'medium' THEN 3 ELSE 4 END")
             ->get();
     }
@@ -74,17 +73,13 @@ PROMPT;
 
     public function action(int $id): void
     {
-        Recommendation::where('team_id', Auth::user()->currentTeam->id)
-            ->findOrFail($id)
-            ->update(['status' => 'actioned']);
+        Recommendation::findOrFail($id)->update(['status' => 'actioned']);
         unset($this->recommendations);
     }
 
     public function dismiss(int $id): void
     {
-        Recommendation::where('team_id', Auth::user()->currentTeam->id)
-            ->findOrFail($id)
-            ->update(['status' => 'dismissed']);
+        Recommendation::findOrFail($id)->update(['status' => 'dismissed']);
         unset($this->recommendations);
     }
 

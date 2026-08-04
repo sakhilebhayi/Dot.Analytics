@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasTeamScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -22,6 +23,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class DataConnector extends Model
 {
+    use HasTeamScope;
+
     protected $fillable = [
         'team_id', 'name', 'type', 'driver', 'config', 'status', 'version',
         'records_ingested', 'last_tested_at', 'last_ingested_at', 'last_error',

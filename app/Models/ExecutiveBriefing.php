@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasTeamScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -21,6 +22,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class ExecutiveBriefing extends Model
 {
+    use HasTeamScope;
+
     protected $fillable = [
         'team_id', 'period', 'period_date', 'status', 'summary',
         'highlights', 'risks', 'recommendations', 'kpis',

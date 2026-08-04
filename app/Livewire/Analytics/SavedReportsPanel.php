@@ -28,8 +28,7 @@ class SavedReportsPanel extends Component
     #[Computed]
     public function reports(): Collection
     {
-        return AnalyticsReport::where('team_id', Auth::user()->currentTeam->id)
-            ->with('latestRun')
+        return AnalyticsReport::with('latestRun')
             ->orderByDesc('created_at')
             ->get();
     }
@@ -57,7 +56,7 @@ class SavedReportsPanel extends Component
         $this->runningId = $id;
 
         $team   = Auth::user()->currentTeam;
-        $report = AnalyticsReport::where('team_id', $team->id)->findOrFail($id);
+        $report = AnalyticsReport::findOrFail($id);
 
         $run = ReportRun::create([
             'analytics_report_id' => $report->id,
@@ -83,9 +82,7 @@ class SavedReportsPanel extends Component
 
     public function delete(int $id): void
     {
-        AnalyticsReport::where('team_id', Auth::user()->currentTeam->id)
-            ->findOrFail($id)
-            ->delete();
+        AnalyticsReport::findOrFail($id)->delete();
 
         unset($this->reports);
     }

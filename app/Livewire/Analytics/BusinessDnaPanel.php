@@ -22,7 +22,7 @@ class BusinessDnaPanel extends Component
     #[Computed]
     public function profile(): ?BusinessDnaProfile
     {
-        return BusinessDnaProfile::where('team_id', Auth::user()->currentTeam->id)->first();
+        return BusinessDnaProfile::first();
     }
 
     public function compute(): void

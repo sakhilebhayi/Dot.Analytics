@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasTeamScope;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Recommendation extends Model
 {
-    use HasFactory;
+    use HasFactory, HasTeamScope;
     protected $fillable = [
         'team_id', 'engine', 'title', 'rationale', 'action_label',
         'action_url', 'priority', 'status', 'supporting_data',

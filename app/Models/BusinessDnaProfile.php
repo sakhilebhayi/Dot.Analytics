@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasTeamScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class BusinessDnaProfile extends Model
 {
+    use HasTeamScope;
+
     protected $fillable = [
         'team_id', 'industry', 'operational_patterns', 'seasonal_trends',
         'risk_tolerance', 'growth_signals', 'decision_patterns', 'customer_behavior',

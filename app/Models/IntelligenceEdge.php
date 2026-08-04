@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasTeamScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class IntelligenceEdge extends Model
 {
+    use HasTeamScope;
+
     protected $fillable = [
         'team_id', 'from_node_id', 'to_node_id', 'relationship', 'weight', 'metadata',
     ];

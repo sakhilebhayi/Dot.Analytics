@@ -30,8 +30,7 @@ class SavedReportController extends BaseApiController
      */
     public function index(): JsonResponse
     {
-        $reports = AnalyticsReport::where('team_id', Auth::user()->currentTeam->id)
-            ->with('latestRun')
+        $reports = AnalyticsReport::with('latestRun')
             ->orderByDesc('created_at')
             ->get();
 
@@ -70,7 +69,7 @@ class SavedReportController extends BaseApiController
     public function run(int $id): JsonResponse
     {
         $team   = Auth::user()->currentTeam;
-        $report = AnalyticsReport::where('team_id', $team->id)->findOrFail($id);
+        $report = AnalyticsReport::findOrFail($id);
 
         $run = ReportRun::create([
             'analytics_report_id' => $report->id,
@@ -104,8 +103,7 @@ class SavedReportController extends BaseApiController
      */
     public function runs(int $id): JsonResponse
     {
-        $team   = Auth::user()->currentTeam;
-        $report = AnalyticsReport::where('team_id', $team->id)->findOrFail($id);
+        $report = AnalyticsReport::findOrFail($id);
 
         $runs = ReportRun::where('analytics_report_id', $report->id)
             ->orderByDesc('created_at')
@@ -120,8 +118,7 @@ class SavedReportController extends BaseApiController
      */
     public function destroy(int $id): JsonResponse
     {
-        $team   = Auth::user()->currentTeam;
-        $report = AnalyticsReport::where('team_id', $team->id)->findOrFail($id);
+        $report = AnalyticsReport::findOrFail($id);
         $report->delete();
 
         return $this->success(null, 'Report deleted.');

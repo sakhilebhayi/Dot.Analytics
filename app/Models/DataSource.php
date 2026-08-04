@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasTeamScope;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -9,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class DataSource extends Model
 {
-    use HasFactory;
+    use HasFactory, HasTeamScope;
     protected $fillable = [
         'team_id', 'platform', 'display_name', 'base_url', 'status',
         'last_synced_at', 'connected_at', 'config', 'capabilities',

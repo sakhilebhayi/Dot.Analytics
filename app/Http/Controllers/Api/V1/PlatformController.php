@@ -29,8 +29,7 @@ class PlatformController extends BaseApiController
      */
     public function catalog(): JsonResponse
     {
-        $team    = Auth::user()->currentTeam;
-        $sources = DataSource::where('team_id', $team->id)->get()->keyBy('platform');
+        $sources = DataSource::all()->keyBy('platform');
 
         $catalog = collect(IntelligenceEngineService::PLATFORMS)
             ->map(fn ($def, $key) => array_merge($def, [
@@ -48,10 +47,7 @@ class PlatformController extends BaseApiController
      */
     public function connected(): JsonResponse
     {
-        $team    = Auth::user()->currentTeam;
-        $sources = DataSource::where('team_id', $team->id)
-            ->where('status', 'connected')
-            ->get();
+        $sources = DataSource::where('status', 'connected')->get();
 
         return $this->success($sources);
     }
@@ -87,11 +83,7 @@ class PlatformController extends BaseApiController
      */
     public function disconnect(string $platform): JsonResponse
     {
-        $team = Auth::user()->currentTeam;
-
-        $source = DataSource::where('team_id', $team->id)
-            ->where('platform', $platform)
-            ->first();
+        $source = DataSource::where('platform', $platform)->first();
 
         if (! $source) {
             return $this->error("Platform '{$platform}' is not connected.", 404);
@@ -109,10 +101,7 @@ class PlatformController extends BaseApiController
      */
     public function show(string $platform): JsonResponse
     {
-        $team   = Auth::user()->currentTeam;
-        $source = DataSource::where('team_id', $team->id)
-            ->where('platform', $platform)
-            ->first();
+        $source = DataSource::where('platform', $platform)->first();
 
         if (! $source) {
             return $this->error("Platform '{$platform}' not found.", 404);
