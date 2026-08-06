@@ -1,3 +1,70 @@
-# Privacy Policy
+_Last updated: 6 August 2026_
 
-Edit this file to define the privacy policy for your application.
+This Privacy Policy explains how **BluePin Inc** ("BluePin", "we", "us", "our"), the company responsible for Dot.Analytics, collects, uses, stores, and shares personal information when you use Dot.Analytics and the wider Dot Ecosystem it connects to. It is written to align with South Africa's **Protection of Personal Information Act 4 of 2013 ("POPIA")**.
+
+## 1. Who we are
+
+BluePin Inc is the responsible party for the personal information Dot.Analytics processes. Our Information Officer can be reached at [privacy@infodot.co.za](mailto:privacy@infodot.co.za) for any question, request, or concern about your personal information.
+
+## 2. What we collect
+
+- **Account information** — your name, email address, and password (stored as a salted hash, never in plain text), via your Dot Ecosystem account.
+- **Team information** — the team you belong to and its membership, since every Dot.Analytics record is scoped to a team.
+- **Connected data sources** — when your team connects another Dot Ecosystem platform as a data source, Dot.Analytics stores connection metadata (which platform, connection status, credentials needed to pull or receive data) and the snapshots that platform pushes or that we pull from it.
+- **Derived analytics** — reports, alerts, and recommendations our intelligence engines generate from your team's connected data.
+- **Technical information** — IP address, browser and device information, and session activity, collected automatically for security and to keep you signed in.
+
+## 3. Why we process your information
+
+We process personal information to:
+
+- create and maintain your account, and authenticate you when you sign in;
+- let you sign in once and move between connected Dot Ecosystem platforms without re-entering your credentials;
+- ingest the data snapshots your team's connected platforms push to Dot.Analytics, and run our intelligence engines over them to produce insights, alerts, recommendations, and reports;
+- keep Dot.Analytics secure and prevent abuse; and
+- respond when you contact us, and meet our legal obligations.
+
+## 4. AI processing
+
+Some of Dot.Analytics's intelligence engines use a large language model (Anthropic Claude) to help generate insights and recommendations from your team's connected data; where no AI provider is configured, a deterministic rule-based fallback runs instead. Data sent to our AI provider is used solely to generate the specific response requested and is governed by that provider's own data-processing terms — we do not enable model training on your data.
+
+## 5. Ecosystem single sign-on
+
+When you use another Dot Ecosystem platform to sign in to Dot.Analytics (or vice versa), a short-lived, single-use authentication token confirms who you are without exposing your password to the connected platform.
+
+## 6. Cookies
+
+Dot.Analytics uses a small number of strictly necessary cookies to keep you signed in and to protect your account and forms from cross-site attacks. See our [Cookie Policy](/cookies) for the full list and what each one does.
+
+## 7. How long we keep your information
+
+We keep your account and team data for as long as your account is active. Connected-platform snapshots and the reports/alerts/recommendations derived from them are retained for as long as your team keeps that data source connected, or until your team deletes them. If you delete your account, we remove your personal account information within a reasonable period.
+
+## 8. How we protect your information
+
+Passwords are hashed, never stored in plain text. Ecosystem sign-on tokens are short-lived and single-use. Every analytics record is scoped to your team — other teams cannot read your data. We apply reasonable technical and organisational security measures appropriate to the information we hold.
+
+## 9. Your rights under POPIA
+
+As a data subject under POPIA, you have the right to:
+
+- ask us to confirm what personal information we hold about you, and to access it;
+- ask us to correct or delete personal information that is inaccurate, out of date, incomplete, misleading, or obtained unlawfully;
+- object, on reasonable grounds, to the processing of your personal information;
+- withdraw any consent you've given us, at any time, for a specific purpose;
+- ask us not to use your information for direct marketing; and
+- lodge a complaint with the Information Regulator (South Africa) at [inforegulator.org.za](https://inforegulator.org.za) if you believe we have processed your personal information unlawfully.
+
+To exercise any of these rights, contact our Information Officer at [privacy@infodot.co.za](mailto:privacy@infodot.co.za).
+
+## 10. Children
+
+Dot.Analytics is not directed at children, and we do not knowingly collect personal information from children without the consent of a parent or guardian as required by POPIA.
+
+## 11. Changes to this policy
+
+We may update this Privacy Policy from time to time. We'll change the "Last updated" date above when we do, and for material changes we'll take reasonable steps to let you know before they take effect.
+
+## 12. Contact us
+
+Questions about this Privacy Policy can be sent to [privacy@infodot.co.za](mailto:privacy@infodot.co.za), or via our [Contact page](/contact).

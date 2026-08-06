@@ -43,12 +43,18 @@
     </style>
 </head>
 <body class="antialiased font-sans">
-    <div class="min-h-screen flex flex-col items-center justify-center px-5 py-12 sm:py-16">
-        <a href="/" class="press mb-8 flex items-center shrink-0">
+    <div class="relative min-h-screen flex flex-col items-center justify-center px-5 py-12 sm:py-16 overflow-hidden">
+        {{-- Same hero photo as welcome.blade.php (analytics dashboard, Stephen Dawson), served
+        locally rather than hotlinked — this platform's CSP img-src is 'self' data: blob: only. --}}
+        <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('{{ asset('images/hero-dashboard.jpg') }}');"></div>
+        <div class="absolute inset-0" style="background: radial-gradient(ellipse 68% 62% at 50% 40%, rgba(12,22,21,0.9) 0%, rgba(12,22,21,0.68) 45%, rgba(12,22,21,0.35) 74%, rgba(12,22,21,0.12) 100%);"></div>
+        <div class="absolute inset-0" style="background: linear-gradient(180deg, rgba(12,22,21,0.6) 0%, transparent 18%, transparent 74%, rgba(12,22,21,0.5) 100%);"></div>
+
+        <a href="/" class="press relative z-10 mb-8 flex items-center shrink-0">
             <img src="{{ asset('images/logo.png') }}" alt="Dot.Analytics" class="h-16 sm:h-20 w-auto">
         </a>
 
-        <div class="w-full flex justify-center">
+        <div class="relative z-10 w-full flex justify-center">
             {{ $slot }}
         </div>
     </div>
