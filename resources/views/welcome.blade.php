@@ -127,7 +127,9 @@
 
         <!-- Hero -->
         <section class="relative min-h-[100dvh] flex items-center overflow-hidden">
-            <div class="absolute inset-0" style="background: radial-gradient(ellipse 90% 60% at 78% 15%, rgba(43,182,183,0.14) 0%, transparent 55%), var(--ink);"></div>
+            <!-- Photo: laptop displaying an analytics dashboard, by Stephen Dawson, unsplash.com/photos/turned-on-monitoring-screen-qwtCeJ5cLYs. Served locally (not hotlinked) because this platform's CSP img-src is 'self' data: blob: only, with no external https allowance. -->
+            <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('{{ asset('images/hero-dashboard.jpg') }}');"></div>
+            <div class="absolute inset-0" style="background: linear-gradient(100deg, var(--ink) 0%, var(--ink) 28%, rgba(12,22,21,0.5) 50%, rgba(12,22,21,0.2) 74%, rgba(12,22,21,0.05) 100%);"></div>
 
             <!-- Signature: line-art nod to the real arrow mark in the Dot.Analytics logo, crossed with the knowledge graph (IntelligenceNode / IntelligenceEdge) this platform actually builds -->
             <svg class="hidden lg:block absolute right-[2%] top-1/2 -translate-y-1/2 h-[85%] w-auto pointer-events-none" viewBox="0 0 420 520" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
