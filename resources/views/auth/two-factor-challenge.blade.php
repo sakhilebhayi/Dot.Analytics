@@ -1,15 +1,15 @@
 <x-guest-layout>
     <x-authentication-card>
-        <x-slot name="logo">
-            <x-authentication-card-logo />
-        </x-slot>
-
         <div x-data="{ recovery: false }">
-            <div class="mb-4 text-sm text-gray-600 dark:text-gray-400" x-show="! recovery">
+            <div class="mb-8">
+                <h2 class="font-display font-semibold text-2xl text-[var(--paper)]">Two-factor confirmation</h2>
+            </div>
+
+            <div class="mb-4 text-sm text-[var(--mist)]" x-show="! recovery">
                 {{ __('Please confirm access to your account by entering the authentication code provided by your authenticator application.') }}
             </div>
 
-            <div class="mb-4 text-sm text-gray-600 dark:text-gray-400" x-cloak x-show="recovery">
+            <div class="mb-4 text-sm text-[var(--mist)]" x-cloak x-show="recovery">
                 {{ __('Please confirm access to your account by entering one of your emergency recovery codes.') }}
             </div>
 
@@ -29,7 +29,7 @@
                 </div>
 
                 <div class="flex items-center justify-end mt-4">
-                    <button type="button" class="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 underline cursor-pointer"
+                    <button type="button" class="text-sm text-[var(--mist)] hover:text-[var(--paper)] underline cursor-pointer"
                                     x-show="! recovery"
                                     x-on:click="
                                         recovery = true;
@@ -38,7 +38,7 @@
                         {{ __('Use a recovery code') }}
                     </button>
 
-                    <button type="button" class="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 underline cursor-pointer"
+                    <button type="button" class="text-sm text-[var(--mist)] hover:text-[var(--paper)] underline cursor-pointer"
                                     x-cloak
                                     x-show="recovery"
                                     x-on:click="
