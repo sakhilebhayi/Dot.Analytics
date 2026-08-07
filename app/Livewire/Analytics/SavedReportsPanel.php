@@ -43,6 +43,12 @@ class SavedReportsPanel extends Component
     {
         $this->validate();
 
+        if (! Auth::user()->currentTeam) {
+            $this->addError('title', 'You need a team before creating reports.');
+
+            return;
+        }
+
         AnalyticsReport::create([
             'team_id' => Auth::user()->currentTeam->id,
             'user_id' => Auth::id(),

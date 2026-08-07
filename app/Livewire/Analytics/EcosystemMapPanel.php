@@ -34,9 +34,9 @@ class EcosystemMapPanel extends Component
     #[Computed]
     public function platformCatalog(): array
     {
-        $sources = DataSource::where('team_id', Auth::user()->currentTeam->id)
-            ->get()
-            ->keyBy('platform');
+        $sources = Auth::user()->currentTeam
+            ? DataSource::where('team_id', Auth::user()->currentTeam->id)->get()->keyBy('platform')
+            : collect();
 
         $catalog = [];
         foreach (IntelligenceEngineService::PLATFORMS as $key => $platform) {
@@ -56,6 +56,10 @@ class EcosystemMapPanel extends Component
     #[Computed]
     public function activeEngines(): array
     {
+        if (! Auth::user()->currentTeam) {
+            return $this->engineService->getActiveEngines([]);
+        }
+
         $connected = DataSource::where('team_id', Auth::user()->currentTeam->id)
             ->where('status', 'connected')
             ->pluck('platform')
@@ -67,6 +71,10 @@ class EcosystemMapPanel extends Component
     #[Computed]
     public function connectedCount(): int
     {
+        if (! Auth::user()->currentTeam) {
+            return 0;
+        }
+
         return DataSource::where('team_id', Auth::user()->currentTeam->id)
             ->where('status', 'connected')
             ->count();

@@ -18,6 +18,10 @@ class ExecutiveBriefingPanel extends Component
     #[Computed]
     public function briefing(): ?ExecutiveBriefing
     {
+        if (! Auth::user()->currentTeam) {
+            return null;
+        }
+
         return ExecutiveBriefing::where('team_id', Auth::user()->currentTeam->id)
             ->where('period', $this->period)
             ->orderByDesc('period_date')

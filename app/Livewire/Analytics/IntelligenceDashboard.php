@@ -24,6 +24,10 @@ class IntelligenceDashboard extends Component
     #[Computed]
     public function connectedSources(): Collection
     {
+        if (! Auth::user()->currentTeam) {
+            return collect();
+        }
+
         return DataSource::where('team_id', Auth::user()->currentTeam->id)
             ->where('status', 'connected')
             ->get();
@@ -32,6 +36,10 @@ class IntelligenceDashboard extends Component
     #[Computed]
     public function openAlerts(): Collection
     {
+        if (! Auth::user()->currentTeam) {
+            return collect();
+        }
+
         return AnalyticsAlert::where('team_id', Auth::user()->currentTeam->id)
             ->where('status', 'open')
             ->orderBy('severity')
@@ -43,6 +51,10 @@ class IntelligenceDashboard extends Component
     #[Computed]
     public function pendingRecommendations(): Collection
     {
+        if (! Auth::user()->currentTeam) {
+            return collect();
+        }
+
         return Recommendation::where('team_id', Auth::user()->currentTeam->id)
             ->where('status', 'pending')
             ->orderByRaw("CASE priority WHEN 'critical' THEN 1 WHEN 'high' THEN 2 WHEN 'medium' THEN 3 ELSE 4 END")
@@ -53,6 +65,12 @@ class IntelligenceDashboard extends Component
     public function askIntelligence(): void
     {
         $this->validate(['intelligenceQuery' => 'required|string|min:5|max:500']);
+
+        if (! Auth::user()->currentTeam) {
+            $this->addError('intelligenceQuery', 'You need a team before asking Intelligence questions.');
+
+            return;
+        }
 
         $this->queryLoading = true;
 
