@@ -51,7 +51,7 @@
         <div class="absolute inset-0" style="background: linear-gradient(180deg, rgba(12,22,21,0.6) 0%, transparent 18%, transparent 74%, rgba(12,22,21,0.5) 100%);"></div>
 
         <a href="/" class="press relative z-10 mb-8 flex items-center shrink-0">
-            <img src="{{ asset('images/logo.png') }}" alt="Dot.Analytics" class="h-16 sm:h-20 w-auto">
+            <img src="{{ asset('images/logo-light.png') }}" alt="Dot.Analytics" class="h-16 sm:h-20 w-auto">
         </a>
 
         <div class="relative z-10 w-full flex justify-center">
