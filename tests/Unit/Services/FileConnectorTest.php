@@ -12,7 +12,7 @@ class FileConnectorTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->connector = new FileConnector();
+        $this->connector = new FileConnector;
     }
 
     public function test_get_type_returns_file(): void
@@ -33,7 +33,7 @@ class FileConnectorTest extends TestCase
         $csv = "name,age,city\nAlice,30,Cape Town\nBob,25,Johannesburg";
 
         $result = $this->connector->ingest([
-            'driver'  => 'csv',
+            'driver' => 'csv',
             'content' => $csv,
         ]);
 
@@ -48,8 +48,8 @@ class FileConnectorTest extends TestCase
         $csv = "Alice,30\nBob,25";
 
         $result = $this->connector->ingest([
-            'driver'     => 'csv',
-            'content'    => $csv,
+            'driver' => 'csv',
+            'content' => $csv,
             'has_header' => false,
         ]);
 
@@ -65,7 +65,7 @@ class FileConnectorTest extends TestCase
         ]);
 
         $result = $this->connector->ingest([
-            'driver'  => 'json',
+            'driver' => 'json',
             'content' => $json,
         ]);
 
@@ -78,8 +78,8 @@ class FileConnectorTest extends TestCase
         $json = json_encode(['data' => ['items' => [['id' => 1], ['id' => 2]]]]);
 
         $result = $this->connector->ingest([
-            'driver'       => 'json',
-            'content'      => $json,
+            'driver' => 'json',
+            'content' => $json,
             'records_path' => 'data.items',
         ]);
 
@@ -91,7 +91,7 @@ class FileConnectorTest extends TestCase
         $csv = "id,value\n1,a\n2,b\n3,c\n4,d";
 
         $result = $this->connector->ingest([
-            'driver'  => 'csv',
+            'driver' => 'csv',
             'content' => $csv,
         ], 2); // Skip first 2 records
 
@@ -126,7 +126,7 @@ class FileConnectorTest extends TestCase
         $csv = "product,price,qty\nApple,1.5,100\nBanana,0.8,200";
 
         $schema = $this->connector->getSchema([
-            'driver'  => 'csv',
+            'driver' => 'csv',
             'content' => $csv,
         ]);
 
@@ -142,7 +142,7 @@ class FileConnectorTest extends TestCase
         $tsv = "name\tscore\nAlice\t95\nBob\t87";
 
         $result = $this->connector->ingest([
-            'driver'  => 'tsv',
+            'driver' => 'tsv',
             'content' => $tsv,
         ]);
 

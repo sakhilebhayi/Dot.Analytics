@@ -13,10 +13,10 @@ use Laravel\Jetstream\HasTeams;
 use Laravel\Sanctum\HasApiTokens;
 
 /**
- * @property int         $id
- * @property string      $name
- * @property string      $email
- * @property \App\Models\Team $currentTeam
+ * @property int $id
+ * @property string $name
+ * @property string $email
+ * @property Team $currentTeam
  */
 class User extends Authenticatable
 {

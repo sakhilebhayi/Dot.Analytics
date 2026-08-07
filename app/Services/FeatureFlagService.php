@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\FeatureFlag;
 use App\Models\User;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 
 /**
@@ -63,6 +64,7 @@ class FeatureFlagService
         // Gradual rollout — deterministic by user ID so the same user always gets the same result
         if ($flag->rollout_percentage > 0) {
             $bucket = ($user->id % 100) + 1; // 1-100
+
             return $bucket <= $flag->rollout_percentage;
         }
 
@@ -99,15 +101,14 @@ class FeatureFlagService
     /**
      * Return all flags with their current state.
      */
-    public function all(): \Illuminate\Support\Collection
+    public function all(): Collection
     {
         return FeatureFlag::orderBy('key')->get();
     }
 
     private function getFlag(string $key): ?FeatureFlag
     {
-        return Cache::remember("feature_flag:{$key}", self::CACHE_TTL, fn () =>
-            FeatureFlag::where('key', $key)->first()
+        return Cache::remember("feature_flag:{$key}", self::CACHE_TTL, fn () => FeatureFlag::where('key', $key)->first()
         );
     }
 

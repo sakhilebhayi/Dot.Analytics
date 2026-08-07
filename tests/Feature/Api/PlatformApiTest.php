@@ -13,8 +13,9 @@ class PlatformApiTest extends TestCase
 
     private function authenticatedUser(): array
     {
-        $user  = User::factory()->withPersonalTeam()->create();
+        $user = User::factory()->withPersonalTeam()->create();
         $token = $user->createToken('test')->plainTextToken;
+
         return [$user, $token];
     }
 
@@ -34,18 +35,18 @@ class PlatformApiTest extends TestCase
     public function test_connected_returns_only_connected_platforms(): void
     {
         [$user, $token] = $this->authenticatedUser();
-        $team           = $user->currentTeam;
+        $team = $user->currentTeam;
 
         DataSource::factory()->create([
-            'team_id'  => $team->id,
+            'team_id' => $team->id,
             'platform' => 'dot.fleet',
-            'status'   => 'connected',
+            'status' => 'connected',
         ]);
 
         DataSource::factory()->create([
-            'team_id'  => $team->id,
+            'team_id' => $team->id,
             'platform' => 'dot.crm',
-            'status'   => 'pending',
+            'status' => 'pending',
         ]);
 
         $response = $this->withToken($token)->getJson('/api/v1/platforms/connected');
@@ -66,9 +67,9 @@ class PlatformApiTest extends TestCase
             ->assertJsonPath('success', true);
 
         $this->assertDatabaseHas('data_sources', [
-            'team_id'  => $user->currentTeam->id,
+            'team_id' => $user->currentTeam->id,
             'platform' => 'dot.fleet',
-            'status'   => 'connected',
+            'status' => 'connected',
         ]);
     }
 
@@ -84,12 +85,12 @@ class PlatformApiTest extends TestCase
     public function test_disconnect_removes_platform(): void
     {
         [$user, $token] = $this->authenticatedUser();
-        $team           = $user->currentTeam;
+        $team = $user->currentTeam;
 
         DataSource::factory()->create([
-            'team_id'  => $team->id,
+            'team_id' => $team->id,
             'platform' => 'dot.fleet',
-            'status'   => 'connected',
+            'status' => 'connected',
         ]);
 
         $response = $this->withToken($token)->deleteJson('/api/v1/platforms/dot.fleet');
@@ -97,7 +98,7 @@ class PlatformApiTest extends TestCase
         $response->assertOk()->assertJsonPath('success', true);
 
         $this->assertDatabaseMissing('data_sources', [
-            'team_id'  => $team->id,
+            'team_id' => $team->id,
             'platform' => 'dot.fleet',
         ]);
     }
@@ -114,12 +115,12 @@ class PlatformApiTest extends TestCase
     public function test_show_returns_platform_details(): void
     {
         [$user, $token] = $this->authenticatedUser();
-        $team           = $user->currentTeam;
+        $team = $user->currentTeam;
 
         DataSource::factory()->create([
-            'team_id'  => $team->id,
+            'team_id' => $team->id,
             'platform' => 'dot.crm',
-            'status'   => 'connected',
+            'status' => 'connected',
         ]);
 
         $response = $this->withToken($token)->getJson('/api/v1/platforms/dot.crm');
@@ -148,9 +149,9 @@ class PlatformApiTest extends TestCase
         [$userB, $tokenB] = $this->authenticatedUser();
 
         DataSource::factory()->create([
-            'team_id'  => $userB->currentTeam->id,
+            'team_id' => $userB->currentTeam->id,
             'platform' => 'dot.fleet',
-            'status'   => 'connected',
+            'status' => 'connected',
         ]);
 
         // User A should see no connected platforms

@@ -3,7 +3,9 @@
 namespace Tests\Unit\Actions;
 
 use App\Actions\Analytics\RunIntelligenceEnginesAction;
+use App\Jobs\Analytics\RunIntelligenceEngineJob;
 use App\Models\DataSource;
+use App\Models\Team;
 use App\Models\User;
 use App\Services\IntelligenceEngineService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -19,18 +21,18 @@ class RunIntelligenceEnginesActionTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->action = new RunIntelligenceEnginesAction(new IntelligenceEngineService());
+        $this->action = new RunIntelligenceEnginesAction(new IntelligenceEngineService);
     }
 
-    private function teamWithPlatform(string $platform): \App\Models\Team
+    private function teamWithPlatform(string $platform): Team
     {
         $user = User::factory()->withPersonalTeam()->create();
         $team = $user->currentTeam;
 
         DataSource::factory()->create([
-            'team_id'  => $team->id,
+            'team_id' => $team->id,
             'platform' => $platform,
-            'status'   => 'connected',
+            'status' => 'connected',
         ]);
 
         return $team;
@@ -48,29 +50,29 @@ class RunIntelligenceEnginesActionTest extends TestCase
     {
         Queue::fake();
 
-        $team  = $this->teamWithPlatform('dot.fleet');
+        $team = $this->teamWithPlatform('dot.fleet');
         $count = $this->action->handle($team);
 
         $this->assertGreaterThan(0, $count);
-        Queue::assertPushed(\App\Jobs\Analytics\RunIntelligenceEngineJob::class);
+        Queue::assertPushed(RunIntelligenceEngineJob::class);
     }
 
     public function test_dispatches_only_specified_engines(): void
     {
         Queue::fake();
 
-        $team  = $this->teamWithPlatform('dot.hear');
+        $team = $this->teamWithPlatform('dot.hear');
         $count = $this->action->handle($team, ['community']);
 
         $this->assertEquals(1, $count);
-        Queue::assertPushed(\App\Jobs\Analytics\RunIntelligenceEngineJob::class, 1);
+        Queue::assertPushed(RunIntelligenceEngineJob::class, 1);
     }
 
     public function test_returns_zero_for_engine_with_no_connected_platform(): void
     {
         Queue::fake();
 
-        $user  = User::factory()->withPersonalTeam()->create();
+        $user = User::factory()->withPersonalTeam()->create();
         $count = $this->action->handle($user->currentTeam, ['community']);
 
         $this->assertEquals(0, $count);

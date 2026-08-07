@@ -13,8 +13,9 @@ class SavedReportApiTest extends TestCase
 
     private function actingAsUser(): array
     {
-        $user  = User::factory()->withPersonalTeam()->create();
+        $user = User::factory()->withPersonalTeam()->create();
         $token = $user->createToken('test')->plainTextToken;
+
         return [$user, $token];
     }
 
@@ -33,12 +34,12 @@ class SavedReportApiTest extends TestCase
 
         $this->withToken($token)->postJson('/api/v1/saved-reports', [
             'title' => 'Weekly Insights',
-            'type'  => 'insights',
+            'type' => 'insights',
         ])->assertCreated();
 
         $this->assertDatabaseHas('analytics_reports', [
             'team_id' => $user->currentTeam->id,
-            'title'   => 'Weekly Insights',
+            'title' => 'Weekly Insights',
         ]);
     }
 
@@ -56,7 +57,7 @@ class SavedReportApiTest extends TestCase
 
         $this->withToken($token)->postJson('/api/v1/saved-reports', [
             'title' => 'Test',
-            'type'  => 'invalid_type',
+            'type' => 'invalid_type',
         ])->assertUnprocessable();
     }
 
@@ -67,9 +68,9 @@ class SavedReportApiTest extends TestCase
         $report = AnalyticsReport::create([
             'team_id' => $user->currentTeam->id,
             'user_id' => $user->id,
-            'title'   => 'Test Report',
-            'type'    => 'ad_hoc',
-            'config'  => ['report_type' => 'insights'],
+            'title' => 'Test Report',
+            'type' => 'ad_hoc',
+            'config' => ['report_type' => 'insights'],
         ]);
 
         $response = $this->withToken($token)->postJson("/api/v1/saved-reports/{$report->id}/run");
@@ -79,7 +80,7 @@ class SavedReportApiTest extends TestCase
 
         $this->assertDatabaseHas('report_runs', [
             'analytics_report_id' => $report->id,
-            'status'              => 'completed',
+            'status' => 'completed',
         ]);
     }
 
@@ -90,9 +91,9 @@ class SavedReportApiTest extends TestCase
         $report = AnalyticsReport::create([
             'team_id' => $user->currentTeam->id,
             'user_id' => $user->id,
-            'title'   => 'History Report',
-            'type'    => 'ad_hoc',
-            'config'  => ['report_type' => 'insights'],
+            'title' => 'History Report',
+            'type' => 'ad_hoc',
+            'config' => ['report_type' => 'insights'],
         ]);
 
         $this->withToken($token)->postJson("/api/v1/saved-reports/{$report->id}/run");
@@ -109,9 +110,9 @@ class SavedReportApiTest extends TestCase
         $report = AnalyticsReport::create([
             'team_id' => $user->currentTeam->id,
             'user_id' => $user->id,
-            'title'   => 'To Delete',
-            'type'    => 'ad_hoc',
-            'config'  => ['report_type' => 'insights'],
+            'title' => 'To Delete',
+            'type' => 'ad_hoc',
+            'config' => ['report_type' => 'insights'],
         ]);
 
         $this->withToken($token)->deleteJson("/api/v1/saved-reports/{$report->id}")
@@ -128,9 +129,9 @@ class SavedReportApiTest extends TestCase
         AnalyticsReport::create([
             'team_id' => $userB->currentTeam->id,
             'user_id' => $userB->id,
-            'title'   => "Team B Report",
-            'type'    => 'ad_hoc',
-            'config'  => [],
+            'title' => 'Team B Report',
+            'type' => 'ad_hoc',
+            'config' => [],
         ]);
 
         $this->withToken($tokenA)->getJson('/api/v1/saved-reports')

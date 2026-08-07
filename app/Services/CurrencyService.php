@@ -32,16 +32,15 @@ class CurrencyService
     /**
      * Format a monetary value for the given currency code.
      *
-     * @param float|int $amount
-     * @param string    $currency  ISO 4217 code (e.g. 'ZAR')
-     * @param bool      $compact   Use compact notation for large numbers (e.g. R1.2M)
+     * @param  string  $currency  ISO 4217 code (e.g. 'ZAR')
+     * @param  bool  $compact  Use compact notation for large numbers (e.g. R1.2M)
      */
     public function format(float|int $amount, string $currency = 'USD', bool $compact = false): string
     {
-        $meta     = self::CURRENCIES[strtoupper($currency)] ?? self::CURRENCIES['USD'];
-        $symbol   = $meta['symbol'];
+        $meta = self::CURRENCIES[strtoupper($currency)] ?? self::CURRENCIES['USD'];
+        $symbol = $meta['symbol'];
         $decimals = $meta['decimals'];
-        $before   = $meta['position'] === 'before';
+        $before = $meta['position'] === 'before';
 
         if ($compact) {
             $formatted = $this->compactFormat($amount, $decimals);
@@ -49,7 +48,7 @@ class CurrencyService
             $formatted = number_format($amount, $decimals, '.', ',');
         }
 
-        return $before ? $symbol . $formatted : $formatted . ' ' . $symbol;
+        return $before ? $symbol.$formatted : $formatted.' '.$symbol;
     }
 
     /**
@@ -80,20 +79,22 @@ class CurrencyService
         if ($from === $to) {
             return $amount;
         }
+
         return round($amount * $rate, self::CURRENCIES[strtoupper($to)]['decimals'] ?? 2);
     }
 
     private function compactFormat(float $amount, int $decimals): string
     {
         if ($amount >= 1_000_000_000) {
-            return round($amount / 1_000_000_000, 1) . 'B';
+            return round($amount / 1_000_000_000, 1).'B';
         }
         if ($amount >= 1_000_000) {
-            return round($amount / 1_000_000, 1) . 'M';
+            return round($amount / 1_000_000, 1).'M';
         }
         if ($amount >= 1_000) {
-            return round($amount / 1_000, 1) . 'K';
+            return round($amount / 1_000, 1).'K';
         }
+
         return number_format($amount, $decimals);
     }
 }

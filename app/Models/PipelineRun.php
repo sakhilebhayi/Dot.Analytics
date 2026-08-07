@@ -2,22 +2,23 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * @property int         $id
- * @property int         $data_pipeline_id
- * @property string      $status
- * @property int         $records_read
- * @property int         $records_written
- * @property int         $records_failed
- * @property array|null  $data_quality_report
- * @property array|null  $lineage
+ * @property int $id
+ * @property int $data_pipeline_id
+ * @property string $status
+ * @property int $records_read
+ * @property int $records_written
+ * @property int $records_failed
+ * @property array|null $data_quality_report
+ * @property array|null $lineage
  * @property string|null $error_message
- * @property int|null    $duration_ms
- * @property \Carbon\Carbon|null $started_at
- * @property \Carbon\Carbon|null $completed_at
+ * @property int|null $duration_ms
+ * @property Carbon|null $started_at
+ * @property Carbon|null $completed_at
  */
 class PipelineRun extends Model
 {
@@ -29,9 +30,9 @@ class PipelineRun extends Model
 
     protected $casts = [
         'data_quality_report' => 'array',
-        'lineage'             => 'array',
-        'started_at'          => 'datetime',
-        'completed_at'        => 'datetime',
+        'lineage' => 'array',
+        'started_at' => 'datetime',
+        'completed_at' => 'datetime',
     ];
 
     public function pipeline(): BelongsTo

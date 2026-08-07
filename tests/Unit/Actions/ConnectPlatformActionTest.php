@@ -19,7 +19,7 @@ class ConnectPlatformActionTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->action = new ConnectPlatformAction(new IntelligenceEngineService());
+        $this->action = new ConnectPlatformAction(new IntelligenceEngineService);
     }
 
     private function team()
@@ -29,7 +29,7 @@ class ConnectPlatformActionTest extends TestCase
 
     public function test_connect_creates_data_source_for_known_platform(): void
     {
-        $team   = $this->team();
+        $team = $this->team();
         $source = $this->action->handle($team, 'dot.fleet');
 
         $this->assertInstanceOf(DataSource::class, $source);
@@ -41,7 +41,7 @@ class ConnectPlatformActionTest extends TestCase
 
     public function test_connect_sets_capabilities_from_catalog(): void
     {
-        $team   = $this->team();
+        $team = $this->team();
         $source = $this->action->handle($team, 'dot.crm');
 
         $this->assertIsArray($source->capabilities);
@@ -50,7 +50,7 @@ class ConnectPlatformActionTest extends TestCase
 
     public function test_connect_sets_base_url_when_provided(): void
     {
-        $team   = $this->team();
+        $team = $this->team();
         $source = $this->action->handle($team, 'dot.fleet', 'https://fleet.infodot.app');
 
         $this->assertEquals('https://fleet.infodot.app', $source->base_url);
@@ -58,7 +58,7 @@ class ConnectPlatformActionTest extends TestCase
 
     public function test_connect_stores_connected_at_timestamp(): void
     {
-        $team   = $this->team();
+        $team = $this->team();
         $source = $this->action->handle($team, 'dot.hr');
 
         $this->assertNotNull($source->connected_at);
@@ -87,9 +87,9 @@ class ConnectPlatformActionTest extends TestCase
         $this->action->handle($team, 'dot.payments');
 
         $this->assertDatabaseHas('data_sources', [
-            'team_id'  => $team->id,
+            'team_id' => $team->id,
             'platform' => 'dot.payments',
-            'status'   => 'connected',
+            'status' => 'connected',
         ]);
     }
 }

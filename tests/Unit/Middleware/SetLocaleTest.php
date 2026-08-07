@@ -2,8 +2,8 @@
 
 namespace Tests\Unit\Middleware;
 
-use App\Models\User;
 use App\Http\Middleware\SetLocale;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
@@ -36,14 +36,15 @@ class SetLocaleTest extends TestCase
         $user = User::factory()->withPersonalTeam()->create();
         $user->currentTeam->update(['locale' => 'INVALID_INJECTION; system()']);
 
-        $middleware = new SetLocale();
-        $called     = false;
+        $middleware = new SetLocale;
+        $called = false;
 
         $request = Request::create('/');
         $request->setUserResolver(fn () => $user);
 
         $middleware->handle($request, function ($req) use (&$called) {
             $called = true;
+
             return response('ok');
         });
 
@@ -58,8 +59,8 @@ class SetLocaleTest extends TestCase
         $user = User::factory()->withPersonalTeam()->create();
         $user->currentTeam->update(['timezone' => '../../etc/passwd']);
 
-        $middleware = new SetLocale();
-        $request    = Request::create('/');
+        $middleware = new SetLocale;
+        $request = Request::create('/');
         $request->setUserResolver(fn () => $user);
 
         // Should not throw — falls back to UTC

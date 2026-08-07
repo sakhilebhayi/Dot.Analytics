@@ -2,8 +2,8 @@
 
 namespace Tests\Unit\Services;
 
-use App\Services\PipelineExecutionService;
 use App\Services\Connectors\ConnectorRegistry;
+use App\Services\PipelineExecutionService;
 use Tests\TestCase;
 
 class PipelineExecutionServiceTest extends TestCase
@@ -13,7 +13,7 @@ class PipelineExecutionServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->service = new PipelineExecutionService(new ConnectorRegistry());
+        $this->service = new PipelineExecutionService(new ConnectorRegistry);
     }
 
     // ─── Safe arithmetic evaluator ───────────────────────────────────────────
@@ -22,6 +22,7 @@ class PipelineExecutionServiceTest extends TestCase
     {
         $method = new \ReflectionMethod(PipelineExecutionService::class, 'evalComputed');
         $method->setAccessible(true);
+
         return $method->invoke($this->service, $expr, $record);
     }
 
@@ -89,13 +90,14 @@ class PipelineExecutionServiceTest extends TestCase
     {
         $method = new \ReflectionMethod(PipelineExecutionService::class, 'transform');
         $method->setAccessible(true);
+
         return $method->invoke($this->service, $records, $config);
     }
 
     public function test_transform_renames_fields(): void
     {
         $records = [['old_name' => 'Alice']];
-        $result  = $this->transform($records, ['field_map' => ['old_name' => 'name']]);
+        $result = $this->transform($records, ['field_map' => ['old_name' => 'name']]);
 
         $this->assertArrayHasKey('name', $result[0]);
         $this->assertArrayNotHasKey('old_name', $result[0]);
@@ -105,7 +107,7 @@ class PipelineExecutionServiceTest extends TestCase
     public function test_transform_casts_integer_type(): void
     {
         $records = [['score' => '42']];
-        $result  = $this->transform($records, ['type_cast' => ['score' => 'int']]);
+        $result = $this->transform($records, ['type_cast' => ['score' => 'int']]);
 
         $this->assertIsInt($result[0]['score']);
         $this->assertEquals(42, $result[0]['score']);
@@ -114,7 +116,7 @@ class PipelineExecutionServiceTest extends TestCase
     public function test_transform_casts_float_type(): void
     {
         $records = [['price' => '9.99']];
-        $result  = $this->transform($records, ['type_cast' => ['price' => 'float']]);
+        $result = $this->transform($records, ['type_cast' => ['price' => 'float']]);
 
         $this->assertIsFloat($result[0]['price']);
     }
@@ -122,7 +124,7 @@ class PipelineExecutionServiceTest extends TestCase
     public function test_transform_drops_fields(): void
     {
         $records = [['keep' => 'yes', 'drop' => 'no']];
-        $result  = $this->transform($records, ['drop_fields' => ['drop']]);
+        $result = $this->transform($records, ['drop_fields' => ['drop']]);
 
         $this->assertArrayHasKey('keep', $result[0]);
         $this->assertArrayNotHasKey('drop', $result[0]);
@@ -145,7 +147,7 @@ class PipelineExecutionServiceTest extends TestCase
     public function test_transform_adds_computed_field(): void
     {
         $records = [['price' => 10, 'qty' => 3]];
-        $result  = $this->transform($records, [
+        $result = $this->transform($records, [
             'computed_fields' => ['total' => '{price} * {qty}'],
         ]);
 
@@ -159,7 +161,7 @@ class PipelineExecutionServiceTest extends TestCase
         $method = new \ReflectionMethod(PipelineExecutionService::class, 'assessQuality');
         $method->setAccessible(true);
 
-        $raw    = [['a' => 1, 'b' => 2]];
+        $raw = [['a' => 1, 'b' => 2]];
         $result = $method->invoke($this->service, $raw, $raw);
 
         $this->assertEquals(100.0, $result['completeness_pct']);
@@ -171,9 +173,9 @@ class PipelineExecutionServiceTest extends TestCase
         $method = new \ReflectionMethod(PipelineExecutionService::class, 'assessQuality');
         $method->setAccessible(true);
 
-        $raw        = [['a' => 1], ['b' => 2], ['c' => 3]];
+        $raw = [['a' => 1], ['b' => 2], ['c' => 3]];
         $transformed = [['a' => 1]];
-        $result     = $method->invoke($this->service, $raw, $transformed);
+        $result = $method->invoke($this->service, $raw, $transformed);
 
         $this->assertEquals(2, $result['rejected_records']);
     }

@@ -19,9 +19,9 @@ class AnalyticsAlert extends Model
     ];
 
     protected $casts = [
-        'context'      => 'array',
+        'context' => 'array',
         'triggered_at' => 'datetime',
-        'resolved_at'  => 'datetime',
+        'resolved_at' => 'datetime',
     ];
 
     public function team(): BelongsTo

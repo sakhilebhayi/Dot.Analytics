@@ -2,14 +2,15 @@
 
 namespace App\Console\Commands;
 
-use App\Services\BusinessDnaService;
 use App\Models\Team;
+use App\Services\BusinessDnaService;
 use Illuminate\Console\Command;
 
 class RecomputeDnaCommand extends Command
 {
-    protected $signature   = 'analytics:recompute-dna
+    protected $signature = 'analytics:recompute-dna
                                 {--team= : Recompute for a specific team ID only}';
+
     protected $description = 'Recompute Business DNA profiles for all teams';
 
     public function handle(BusinessDnaService $service): int
@@ -29,6 +30,7 @@ class RecomputeDnaCommand extends Command
         }
 
         $this->info("DNA recomputed for {$teams->count()} team(s).");
+
         return self::SUCCESS;
     }
 }

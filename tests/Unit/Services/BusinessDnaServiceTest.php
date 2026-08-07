@@ -4,6 +4,7 @@ namespace Tests\Unit\Services;
 
 use App\Models\BusinessDnaProfile;
 use App\Models\DataSource;
+use App\Models\Team;
 use App\Models\User;
 use App\Services\AiModelRouter;
 use App\Services\BusinessDnaService;
@@ -21,21 +22,21 @@ class BusinessDnaServiceTest extends TestCase
     {
         parent::setUp();
         $this->service = new BusinessDnaService(
-            new IntelligenceEngineService(),
-            new AiModelRouter(),
+            new IntelligenceEngineService,
+            new AiModelRouter,
         );
     }
 
-    private function teamWithPlatforms(array $platforms = ['dot.fleet']): \App\Models\Team
+    private function teamWithPlatforms(array $platforms = ['dot.fleet']): Team
     {
         $user = User::factory()->withPersonalTeam()->create();
         $team = $user->currentTeam;
 
         foreach ($platforms as $platform) {
             DataSource::factory()->create([
-                'team_id'  => $team->id,
+                'team_id' => $team->id,
                 'platform' => $platform,
-                'status'   => 'connected',
+                'status' => 'connected',
             ]);
         }
 
@@ -44,7 +45,7 @@ class BusinessDnaServiceTest extends TestCase
 
     public function test_compute_creates_profile_for_new_team(): void
     {
-        $team    = $this->teamWithPlatforms(['dot.fleet']);
+        $team = $this->teamWithPlatforms(['dot.fleet']);
         $profile = $this->service->computeForTeam($team);
 
         $this->assertInstanceOf(BusinessDnaProfile::class, $profile);
@@ -63,7 +64,7 @@ class BusinessDnaServiceTest extends TestCase
 
     public function test_confidence_score_is_zero_with_no_platforms(): void
     {
-        $user    = User::factory()->withPersonalTeam()->create();
+        $user = User::factory()->withPersonalTeam()->create();
         $profile = $this->service->computeForTeam($user->currentTeam);
 
         $this->assertEquals(0.0, $profile->confidence_score);
@@ -71,8 +72,8 @@ class BusinessDnaServiceTest extends TestCase
 
     public function test_confidence_score_increases_with_more_platforms(): void
     {
-        $userA    = User::factory()->withPersonalTeam()->create();
-        $userB    = User::factory()->withPersonalTeam()->create();
+        $userA = User::factory()->withPersonalTeam()->create();
+        $userB = User::factory()->withPersonalTeam()->create();
 
         DataSource::factory()->create(['team_id' => $userA->currentTeam->id, 'platform' => 'dot.fleet', 'status' => 'connected']);
 
@@ -88,7 +89,7 @@ class BusinessDnaServiceTest extends TestCase
 
     public function test_profile_contains_required_pattern_keys(): void
     {
-        $team    = $this->teamWithPlatforms(['dot.fleet']);
+        $team = $this->teamWithPlatforms(['dot.fleet']);
         $profile = $this->service->computeForTeam($team);
 
         $this->assertNotNull($profile->operational_patterns);
@@ -98,7 +99,7 @@ class BusinessDnaServiceTest extends TestCase
 
     public function test_risk_tolerance_level_is_valid(): void
     {
-        $team    = $this->teamWithPlatforms(['dot.fleet']);
+        $team = $this->teamWithPlatforms(['dot.fleet']);
         $profile = $this->service->computeForTeam($team);
 
         $level = $profile->risk_tolerance['level'] ?? null;

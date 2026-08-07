@@ -7,6 +7,7 @@ use App\Services\AiModelRouter;
 use App\Services\IntelligenceEngineService;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
@@ -26,9 +27,9 @@ class RecommendationsPanel extends Component
     {
         $this->generating = true;
 
-        $team    = Auth::user()->currentTeam;
-        $router  = app(AiModelRouter::class);
-        $engine  = app(IntelligenceEngineService::class);
+        $team = Auth::user()->currentTeam;
+        $router = app(AiModelRouter::class);
+        $engine = app(IntelligenceEngineService::class);
         $context = $engine->buildEcosystemContext($team);
         $engines = implode(', ', array_keys(IntelligenceEngineService::ENGINES));
 
@@ -52,18 +53,18 @@ Return JSON array only, no markdown:
 ]
 PROMPT;
 
-        $raw   = $router->complete($prompt, 'recommendation', $team->id);
+        $raw = $router->complete($prompt, 'recommendation', $team->id);
         preg_match('/\[.*\]/s', $raw, $matches);
         $items = json_decode($matches[0] ?? '[]', true) ?? [];
 
         foreach ($items as $rec) {
             Recommendation::create([
-                'team_id'   => $team->id,
-                'engine'    => $rec['engine'] ?? 'decision',
-                'title'     => $rec['title'],
+                'team_id' => $team->id,
+                'engine' => $rec['engine'] ?? 'decision',
+                'title' => $rec['title'],
                 'rationale' => $rec['rationale'],
-                'priority'  => $rec['priority'] ?? 'medium',
-                'status'    => 'pending',
+                'priority' => $rec['priority'] ?? 'medium',
+                'status' => 'pending',
             ]);
         }
 
@@ -83,7 +84,7 @@ PROMPT;
         unset($this->recommendations);
     }
 
-    public function render(): \Illuminate\View\View
+    public function render(): View
     {
         return view('livewire.analytics.recommendations-panel');
     }

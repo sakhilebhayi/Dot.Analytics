@@ -28,6 +28,7 @@ class CrossPlatformInsightPolicy
     public function delete(User $user, CrossPlatformInsight $insight): bool
     {
         $team = $user->currentTeam;
+
         return $team?->id === $insight->team_id
             && $team->user_id === $user->id;
     }

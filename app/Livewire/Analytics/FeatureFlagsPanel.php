@@ -5,24 +5,28 @@ namespace App\Livewire\Analytics;
 use App\Models\FeatureFlag;
 use App\Services\FeatureFlagService;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
 class FeatureFlagsPanel extends Component
 {
-    public bool   $showCreate  = false;
-    public string $newKey      = '';
-    public string $newName     = '';
-    public string $newDesc     = '';
-    public string $newEnv      = 'all';
+    public bool $showCreate = false;
+
+    public string $newKey = '';
+
+    public string $newName = '';
+
+    public string $newDesc = '';
+
+    public string $newEnv = 'all';
 
     protected array $rules = [
-        'newKey'  => 'required|string|max:100|alpha_dash',
+        'newKey' => 'required|string|max:100|alpha_dash',
         'newName' => 'required|string|max:120',
         'newDesc' => 'nullable|string|max:500',
-        'newEnv'  => 'in:all,production,local',
+        'newEnv' => 'in:all,production,local',
     ];
 
     #[Computed]
@@ -37,8 +41,8 @@ class FeatureFlagsPanel extends Component
         $this->validate();
 
         FeatureFlag::create([
-            'key'         => $this->newKey,
-            'name'        => $this->newName,
+            'key' => $this->newKey,
+            'name' => $this->newName,
             'description' => $this->newDesc ?: null,
             'environment' => $this->newEnv,
         ]);
@@ -70,7 +74,7 @@ class FeatureFlagsPanel extends Component
         unset($this->flags);
     }
 
-    public function render(): \Illuminate\View\View
+    public function render(): View
     {
         return view('livewire.analytics.feature-flags-panel');
     }

@@ -12,9 +12,9 @@ use Laravel\Jetstream\Events\TeamUpdated;
 use Laravel\Jetstream\Team as JetstreamTeam;
 
 /**
- * @property int    $id
+ * @property int $id
  * @property string $name
- * @property bool   $personal_team
+ * @property bool $personal_team
  * @property string $currency
  * @property string $locale
  * @property string $timezone
@@ -82,7 +82,7 @@ class Team extends JetstreamTeam
         return $this->hasMany(AnalyticsDashboard::class);
     }
 
-    public function businessDna(): \Illuminate\Database\Eloquent\Relations\HasOne
+    public function businessDna(): HasOne
     {
         return $this->hasOne(BusinessDnaProfile::class);
     }

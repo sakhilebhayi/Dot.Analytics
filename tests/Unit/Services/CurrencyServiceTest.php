@@ -12,7 +12,7 @@ class CurrencyServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->service = new CurrencyService();
+        $this->service = new CurrencyService;
     }
 
     public function test_format_usd_prepends_dollar_sign(): void

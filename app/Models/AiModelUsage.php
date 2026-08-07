@@ -8,24 +8,25 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * @property int         $id
- * @property int         $team_id
- * @property string      $provider
- * @property string      $model
- * @property string      $capability
+ * @property int $id
+ * @property int $team_id
+ * @property string $provider
+ * @property string $model
+ * @property string $capability
  * @property string|null $engine
- * @property int         $input_tokens
- * @property int         $output_tokens
- * @property float       $cost_usd
- * @property float|null  $confidence
- * @property bool        $fallback_used
- * @property int|null    $latency_ms
+ * @property int $input_tokens
+ * @property int $output_tokens
+ * @property float $cost_usd
+ * @property float|null $confidence
+ * @property bool $fallback_used
+ * @property int|null $latency_ms
  */
 class AiModelUsage extends Model
 {
     use HasFactory, HasTeamScope;
 
     protected $table = 'ai_model_usage';
+
     protected $fillable = [
         'team_id', 'provider', 'model', 'capability', 'engine',
         'input_tokens', 'output_tokens', 'cost_usd', 'confidence',
@@ -33,8 +34,8 @@ class AiModelUsage extends Model
     ];
 
     protected $casts = [
-        'cost_usd'      => 'float',
-        'confidence'    => 'float',
+        'cost_usd' => 'float',
+        'confidence' => 'float',
         'fallback_used' => 'boolean',
     ];
 

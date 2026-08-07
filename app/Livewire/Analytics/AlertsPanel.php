@@ -4,12 +4,14 @@ namespace App\Livewire\Analytics;
 
 use App\Models\AnalyticsAlert;
 use Illuminate\Support\Collection;
+use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
 class AlertsPanel extends Component
 {
     public string $filterSeverity = '';
+
     public string $filterStatus = 'open';
 
     #[Computed]
@@ -34,7 +36,7 @@ class AlertsPanel extends Component
         unset($this->alerts);
     }
 
-    public function render(): \Illuminate\View\View
+    public function render(): View
     {
         return view('livewire.analytics.alerts-panel');
     }

@@ -3,23 +3,24 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasTeamScope;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
- * @property int         $id
- * @property int         $team_id
- * @property string      $name
- * @property string      $type
- * @property string      $driver
- * @property array       $config
- * @property string      $status
- * @property string      $version
- * @property int         $records_ingested
+ * @property int $id
+ * @property int $team_id
+ * @property string $name
+ * @property string $type
+ * @property string $driver
+ * @property array $config
+ * @property string $status
+ * @property string $version
+ * @property int $records_ingested
  * @property string|null $last_error
- * @property \Carbon\Carbon|null $last_tested_at
- * @property \Carbon\Carbon|null $last_ingested_at
+ * @property Carbon|null $last_tested_at
+ * @property Carbon|null $last_ingested_at
  */
 class DataConnector extends Model
 {
@@ -31,10 +32,10 @@ class DataConnector extends Model
     ];
 
     protected $casts = [
-        'config'            => 'encrypted:array',
-        'last_tested_at'    => 'datetime',
-        'last_ingested_at'  => 'datetime',
-        'records_ingested'  => 'integer',
+        'config' => 'encrypted:array',
+        'last_tested_at' => 'datetime',
+        'last_ingested_at' => 'datetime',
+        'records_ingested' => 'integer',
     ];
 
     public function team(): BelongsTo

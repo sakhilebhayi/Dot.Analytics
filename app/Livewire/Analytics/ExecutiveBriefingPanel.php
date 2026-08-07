@@ -5,13 +5,15 @@ namespace App\Livewire\Analytics;
 use App\Actions\Analytics\GenerateExecutiveBriefingAction;
 use App\Models\ExecutiveBriefing;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
 class ExecutiveBriefingPanel extends Component
 {
-    public string $period       = 'weekly';
-    public bool   $generating   = false;
+    public string $period = 'weekly';
+
+    public bool $generating = false;
 
     #[Computed]
     public function briefing(): ?ExecutiveBriefing
@@ -34,7 +36,7 @@ class ExecutiveBriefingPanel extends Component
         $this->generating = false;
     }
 
-    public function render(): \Illuminate\View\View
+    public function render(): View
     {
         return view('livewire.analytics.executive-briefing-panel');
     }

@@ -6,7 +6,6 @@ use App\Models\AnalyticsAlert;
 use App\Models\ComputedMetric;
 use App\Models\Team;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Collection;
 
 /**
  * Anomaly Detection Service
@@ -43,7 +42,7 @@ class AnomalyDetectionService
      */
     public function detectForTeam(Team $team): int
     {
-        $since    = Carbon::now()->subDays(self::WINDOW_DAYS);
+        $since = Carbon::now()->subDays(self::WINDOW_DAYS);
         $detected = 0;
 
         // Group recent computed metrics by their definition
@@ -59,9 +58,9 @@ class AnomalyDetectionService
                 continue; // Not enough history for reliable detection
             }
 
-            $values   = $metrics->pluck('value')->map(fn ($v) => (float) $v)->toArray();
-            $latest   = (float) $metrics->last()->value;
-            $history  = array_slice($values, 0, -1); // All except the latest point
+            $values = $metrics->pluck('value')->map(fn ($v) => (float) $v)->toArray();
+            $latest = (float) $metrics->last()->value;
+            $history = array_slice($values, 0, -1); // All except the latest point
 
             $anomaly = $this->detectAnomaly($latest, $history);
 
@@ -80,9 +79,9 @@ class AnomalyDetectionService
     /**
      * Detect whether the latest value is anomalous compared to history.
      *
-     * @param float   $value    The latest observed value
-     * @param float[] $history  Historical values (without the latest)
-     * @return array|null  Anomaly details or null if no anomaly
+     * @param  float  $value  The latest observed value
+     * @param  float[]  $history  Historical values (without the latest)
+     * @return array|null Anomaly details or null if no anomaly
      */
     public function detectAnomaly(float $value, array $history): ?array
     {
@@ -103,25 +102,25 @@ class AnomalyDetectionService
      */
     public function zScoreAnomaly(float $value, array $history): ?array
     {
-        $mean   = $this->mean($history);
+        $mean = $this->mean($history);
         $stdDev = $this->stdDev($history, $mean);
 
         if ($stdDev < 0.001) {
             return null; // No variance — skip
         }
 
-        $zScore   = abs(($value - $mean) / $stdDev);
-        $isAbove  = $value > $mean;
+        $zScore = abs(($value - $mean) / $stdDev);
+        $isAbove = $value > $mean;
 
         if ($zScore >= self::Z_SCORE_THRESHOLD) {
             return [
-                'method'    => 'z_score',
-                'z_score'   => round($zScore, 2),
+                'method' => 'z_score',
+                'z_score' => round($zScore, 2),
                 'direction' => $isAbove ? 'spike' : 'drop',
-                'mean'      => round($mean, 4),
-                'std_dev'   => round($stdDev, 4),
+                'mean' => round($mean, 4),
+                'std_dev' => round($stdDev, 4),
                 'deviation_pct' => round(abs($value - $mean) / max(abs($mean), 0.001) * 100, 1),
-                'severity'  => $zScore >= 4 ? 'critical' : 'warning',
+                'severity' => $zScore >= 4 ? 'critical' : 'warning',
             ];
         }
 
@@ -134,9 +133,9 @@ class AnomalyDetectionService
     public function iqrAnomaly(float $value, array $history): ?array
     {
         sort($history);
-        $n   = count($history);
-        $q1  = $history[(int) floor($n * 0.25)];
-        $q3  = $history[(int) floor($n * 0.75)];
+        $n = count($history);
+        $q1 = $history[(int) floor($n * 0.25)];
+        $q3 = $history[(int) floor($n * 0.75)];
         $iqr = $q3 - $q1;
 
         if ($iqr < 0.001) {
@@ -148,14 +147,15 @@ class AnomalyDetectionService
 
         if ($value < $lowerFence || $value > $upperFence) {
             $isAbove = $value > $upperFence;
+
             return [
-                'method'    => 'iqr',
+                'method' => 'iqr',
                 'direction' => $isAbove ? 'spike' : 'drop',
-                'q1'        => round($q1, 4),
-                'q3'        => round($q3, 4),
-                'iqr'       => round($iqr, 4),
-                'fence'     => $isAbove ? round($upperFence, 4) : round($lowerFence, 4),
-                'severity'  => 'warning',
+                'q1' => round($q1, 4),
+                'q3' => round($q3, 4),
+                'iqr' => round($iqr, 4),
+                'fence' => $isAbove ? round($upperFence, 4) : round($lowerFence, 4),
+                'severity' => 'warning',
             ];
         }
 
@@ -165,8 +165,8 @@ class AnomalyDetectionService
     /**
      * Compute a simple forecast for the next N periods using linear regression.
      *
-     * @param float[] $values  Ordered historical values (oldest first)
-     * @param int     $steps   Number of future steps to forecast
+     * @param  float[]  $values  Ordered historical values (oldest first)
+     * @param  int  $steps  Number of future steps to forecast
      * @return float[]
      */
     public function forecast(array $values, int $steps = 7): array
@@ -180,21 +180,21 @@ class AnomalyDetectionService
         $xMean = ($n - 1) / 2;
         $yMean = $this->mean($values);
 
-        $numerator   = 0.0;
+        $numerator = 0.0;
         $denominator = 0.0;
 
         foreach ($values as $i => $y) {
-            $x           = $i - $xMean;
-            $numerator   += $x * ($y - $yMean);
+            $x = $i - $xMean;
+            $numerator += $x * ($y - $yMean);
             $denominator += $x * $x;
         }
 
-        $slope     = $denominator > 0 ? $numerator / $denominator : 0;
+        $slope = $denominator > 0 ? $numerator / $denominator : 0;
         $intercept = $yMean - $slope * $xMean;
 
         $forecast = [];
         for ($i = 0; $i < $steps; $i++) {
-            $x          = $n + $i;   // uncentered index — intercept is at x=0
+            $x = $n + $i;   // uncentered index — intercept is at x=0
             $forecast[] = round($intercept + $slope * $x, 4);
         }
 
@@ -211,13 +211,14 @@ class AnomalyDetectionService
     public function stdDev(array $values, ?float $mean = null): float
     {
         $mean ??= $this->mean($values);
-        $n      = count($values);
+        $n = count($values);
 
         if ($n < 2) {
             return 0.0;
         }
 
         $variance = array_sum(array_map(fn ($v) => ($v - $mean) ** 2, $values)) / ($n - 1);
+
         return sqrt($variance);
     }
 
@@ -226,22 +227,22 @@ class AnomalyDetectionService
     private function createAlert(Team $team, string $label, string $metricKey, array $anomaly, float $value, array $history): void
     {
         $direction = $anomaly['direction'] === 'spike' ? 'spiked above' : 'dropped below';
-        $method    = strtoupper($anomaly['method']);
-        $pct       = $anomaly['deviation_pct'] ?? null;
+        $method = strtoupper($anomaly['method']);
+        $pct = $anomaly['deviation_pct'] ?? null;
 
         AnalyticsAlert::create([
-            'team_id'     => $team->id,
-            'title'       => "Anomaly detected: {$label}",
+            'team_id' => $team->id,
+            'title' => "Anomaly detected: {$label}",
             'description' => $pct
                 ? "{$label} {$direction} normal range by {$pct}% ({$method} detection)."
                 : "{$label} {$direction} normal range ({$method} detection).",
-            'severity'    => $anomaly['severity'],
-            'status'      => 'open',
-            'context'     => array_merge($anomaly, [
-                'metric_key'    => $metricKey,
+            'severity' => $anomaly['severity'],
+            'status' => 'open',
+            'context' => array_merge($anomaly, [
+                'metric_key' => $metricKey,
                 'detected_value' => $value,
-                'history_mean'  => round($this->mean($history), 4),
-                'source'        => 'anomaly_detection',
+                'history_mean' => round($this->mean($history), 4),
+                'source' => 'anomaly_detection',
             ]),
             'triggered_at' => Carbon::now(),
         ]);

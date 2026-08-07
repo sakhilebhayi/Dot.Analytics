@@ -11,9 +11,20 @@ namespace App\Services\Connectors;
  */
 class RestApiConnector implements ConnectorInterface
 {
-    public function getName(): string  { return 'REST API'; }
-    public function getType(): string  { return 'rest_api'; }
-    public function getSupportedDrivers(): array { return ['rest', 'http', 'json_api']; }
+    public function getName(): string
+    {
+        return 'REST API';
+    }
+
+    public function getType(): string
+    {
+        return 'rest_api';
+    }
+
+    public function getSupportedDrivers(): array
+    {
+        return ['rest', 'http', 'json_api'];
+    }
 
     public function test(array $config): array
     {
@@ -30,38 +41,38 @@ class RestApiConnector implements ConnectorInterface
 
         $start = microtime(true);
 
-        $ch = curl_init($url . ($config['health_endpoint'] ?? ''));
+        $ch = curl_init($url.($config['health_endpoint'] ?? ''));
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT        => 10,
-            CURLOPT_HTTPHEADER     => $this->buildHeaders($config),
+            CURLOPT_TIMEOUT => 10,
+            CURLOPT_HTTPHEADER => $this->buildHeaders($config),
             CURLOPT_FOLLOWLOCATION => true,
         ]);
 
         curl_exec($ch);
-        $code    = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $error   = curl_error($ch);
+        $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $error = curl_error($ch);
         curl_close($ch);
 
         $latency = (int) ((microtime(true) - $start) * 1000);
 
         return [
-            'success'    => $code >= 200 && $code < 400,
-            'message'    => $error ?: "HTTP {$code}",
+            'success' => $code >= 200 && $code < 400,
+            'message' => $error ?: "HTTP {$code}",
             'latency_ms' => $latency,
         ];
     }
 
     public function ingest(array $config, mixed $watermark = null): array
     {
-        $url        = rtrim($config['base_url'] ?? '', '/');
+        $url = rtrim($config['base_url'] ?? '', '/');
         $this->assertNotSsrf($url);
-        $endpoint   = $config['endpoint'] ?? '';
+        $endpoint = $config['endpoint'] ?? '';
         $pagination = $config['pagination'] ?? ['strategy' => 'none'];
 
         $allRecords = [];
-        $page       = $pagination['start_page'] ?? 1;
-        $cursor     = $watermark;
+        $page = $pagination['start_page'] ?? 1;
+        $cursor = $watermark;
 
         do {
             $params = $config['query_params'] ?? [];
@@ -73,13 +84,13 @@ class RestApiConnector implements ConnectorInterface
                 $params[$pagination['cursor_param'] ?? 'cursor'] = $cursor;
             }
 
-            $queryString = $params ? '?' . http_build_query($params) : '';
+            $queryString = $params ? '?'.http_build_query($params) : '';
 
-            $ch = curl_init($url . $endpoint . $queryString);
+            $ch = curl_init($url.$endpoint.$queryString);
             curl_setopt_array($ch, [
                 CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_TIMEOUT        => 30,
-                CURLOPT_HTTPHEADER     => $this->buildHeaders($config),
+                CURLOPT_TIMEOUT => 30,
+                CURLOPT_HTTPHEADER => $this->buildHeaders($config),
             ]);
 
             $body = curl_exec($ch);
@@ -90,21 +101,21 @@ class RestApiConnector implements ConnectorInterface
                 break;
             }
 
-            $data    = json_decode($body, true);
+            $data = json_decode($body, true);
             $records = data_get($data, $config['records_path'] ?? null) ?? (is_array($data) ? $data : []);
 
             $allRecords = array_merge($allRecords, $records);
 
             // Determine next page
-            $cursor   = data_get($data, $pagination['next_cursor_path'] ?? 'next_cursor');
-            $hasMore  = count($records) >= ($pagination['page_size'] ?? 100);
+            $cursor = data_get($data, $pagination['next_cursor_path'] ?? 'next_cursor');
+            $hasMore = count($records) >= ($pagination['page_size'] ?? 100);
             $page++;
 
         } while ($pagination['strategy'] !== 'none' && $hasMore && $cursor !== null && count($allRecords) < 10000);
 
         return [
-            'records'        => $allRecords,
-            'count'          => count($allRecords),
+            'records' => $allRecords,
+            'count' => count($allRecords),
             'next_watermark' => $cursor,
         ];
     }
@@ -112,12 +123,12 @@ class RestApiConnector implements ConnectorInterface
     public function getSchema(array $config): array
     {
         $sample = $this->ingest($config)['records'];
-        $first  = $sample[0] ?? [];
+        $first = $sample[0] ?? [];
 
         return [
-            'tables'  => [['name' => 'records', 'row_count' => count($sample)]],
-            'fields'  => array_map(fn ($k) => ['name' => $k, 'type' => gettype($first[$k] ?? null)], array_keys($first)),
-            'sample'  => array_slice($sample, 0, 5),
+            'tables' => [['name' => 'records', 'row_count' => count($sample)]],
+            'fields' => array_map(fn ($k) => ['name' => $k, 'type' => gettype($first[$k] ?? null)], array_keys($first)),
+            'sample' => array_slice($sample, 0, 5),
         ];
     }
 
@@ -127,11 +138,11 @@ class RestApiConnector implements ConnectorInterface
 
         $auth = $config['auth'] ?? [];
         if (($auth['type'] ?? '') === 'bearer') {
-            $headers[] = 'Authorization: Bearer ' . ($auth['token'] ?? '');
+            $headers[] = 'Authorization: Bearer '.($auth['token'] ?? '');
         } elseif (($auth['type'] ?? '') === 'api_key') {
-            $headers[] = ($auth['header'] ?? 'X-API-Key') . ': ' . ($auth['key'] ?? '');
+            $headers[] = ($auth['header'] ?? 'X-API-Key').': '.($auth['key'] ?? '');
         } elseif (($auth['type'] ?? '') === 'basic') {
-            $headers[] = 'Authorization: Basic ' . base64_encode(($auth['username'] ?? '') . ':' . ($auth['password'] ?? ''));
+            $headers[] = 'Authorization: Basic '.base64_encode(($auth['username'] ?? '').':'.($auth['password'] ?? ''));
         }
 
         return array_merge($headers, $config['extra_headers'] ?? []);
@@ -150,7 +161,7 @@ class RestApiConnector implements ConnectorInterface
         }
 
         $parsed = parse_url($url);
-        $host   = $parsed['host'] ?? '';
+        $host = $parsed['host'] ?? '';
 
         if (empty($host)) {
             throw new \InvalidArgumentException("Invalid URL: no host found in '{$url}'.");

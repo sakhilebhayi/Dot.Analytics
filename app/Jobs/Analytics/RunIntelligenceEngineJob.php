@@ -21,11 +21,12 @@ class RunIntelligenceEngineJob implements ShouldQueue
 {
     use Queueable;
 
-    public int $tries   = 3;
+    public int $tries = 3;
+
     public int $timeout = 120;
 
     public function __construct(
-        public readonly int    $teamId,
+        public readonly int $teamId,
         public readonly string $engine,
     ) {}
 
@@ -42,11 +43,11 @@ class RunIntelligenceEngineJob implements ShouldQueue
         }
 
         $run = IntelligenceEngineRun::create([
-            'team_id'            => $this->teamId,
-            'engine'             => $this->engine,
-            'status'             => 'running',
+            'team_id' => $this->teamId,
+            'engine' => $this->engine,
+            'status' => 'running',
             'platforms_consumed' => $engineDef['sources'],
-            'started_at'         => Carbon::now(),
+            'started_at' => Carbon::now(),
         ]);
 
         try {
@@ -58,11 +59,12 @@ class RunIntelligenceEngineJob implements ShouldQueue
 
             if (empty($connected)) {
                 $run->update(['status' => 'completed', 'completed_at' => Carbon::now()]);
+
                 return;
             }
 
             $insights = $this->generateInsights($team, $engineDef, $connected, $aiRouter);
-            $count    = 0;
+            $count = 0;
 
             foreach ($insights as $insightData) {
                 $insight = CrossPlatformInsight::create(array_merge(
@@ -77,9 +79,9 @@ class RunIntelligenceEngineJob implements ShouldQueue
             }
 
             $run->update([
-                'status'             => 'completed',
+                'status' => 'completed',
                 'insights_generated' => $count,
-                'completed_at'       => Carbon::now(),
+                'completed_at' => Carbon::now(),
             ]);
 
             IntelligenceEngineCompleted::dispatch(
@@ -137,12 +139,12 @@ PROMPT;
     private function fallback(array $engine, array $connected): array
     {
         return [[
-            'title'              => "Signal detected by {$engine['label']}",
-            'narrative'          => "Connected platforms (" . $this->csvList($connected) . ") are contributing data. Cross-platform correlations will surface as more historical data accumulates.",
+            'title' => "Signal detected by {$engine['label']}",
+            'narrative' => 'Connected platforms ('.$this->csvList($connected).') are contributing data. Cross-platform correlations will surface as more historical data accumulates.',
             'platforms_involved' => $connected,
-            'insight_type'       => 'correlation',
-            'confidence'         => 0.55,
-            'severity'           => 'info',
+            'insight_type' => 'correlation',
+            'confidence' => 0.55,
+            'severity' => 'info',
         ]];
     }
 

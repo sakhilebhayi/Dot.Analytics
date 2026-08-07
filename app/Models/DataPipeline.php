@@ -8,17 +8,17 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
- * @property int         $id
- * @property int         $team_id
- * @property int|null    $data_connector_id
- * @property string      $name
- * @property string      $pipeline_type
- * @property array       $source_config
- * @property array       $transform_config
- * @property array       $destination_config
- * @property string      $status
+ * @property int $id
+ * @property int $team_id
+ * @property int|null $data_connector_id
+ * @property string $name
+ * @property string $pipeline_type
+ * @property array $source_config
+ * @property array $transform_config
+ * @property array $destination_config
+ * @property string $status
  * @property string|null $schedule
- * @property bool        $is_incremental
+ * @property bool $is_incremental
  */
 class DataPipeline extends Model
 {
@@ -33,15 +33,15 @@ class DataPipeline extends Model
     /** @var array<string, mixed> */
     protected $attributes = [
         'is_incremental' => true,
-        'pipeline_type'  => 'elt',
-        'status'         => 'draft',
+        'pipeline_type' => 'elt',
+        'status' => 'draft',
     ];
 
     protected $casts = [
-        'source_config'      => 'array',
-        'transform_config'   => 'array',
+        'source_config' => 'array',
+        'transform_config' => 'array',
         'destination_config' => 'array',
-        'is_incremental'     => 'boolean',
+        'is_incremental' => 'boolean',
     ];
 
     public function team(): BelongsTo

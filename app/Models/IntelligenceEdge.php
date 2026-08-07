@@ -15,7 +15,7 @@ class IntelligenceEdge extends Model
     ];
 
     protected $casts = [
-        'weight'   => 'float',
+        'weight' => 'float',
         'metadata' => 'array',
     ];
 

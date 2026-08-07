@@ -12,9 +12,20 @@ namespace App\Services\Connectors;
  */
 class FileConnector implements ConnectorInterface
 {
-    public function getName(): string  { return 'File'; }
-    public function getType(): string  { return 'file'; }
-    public function getSupportedDrivers(): array { return ['csv', 'json', 'excel', 'xlsx', 'tsv']; }
+    public function getName(): string
+    {
+        return 'File';
+    }
+
+    public function getType(): string
+    {
+        return 'file';
+    }
+
+    public function getSupportedDrivers(): array
+    {
+        return ['csv', 'json', 'excel', 'xlsx', 'tsv'];
+    }
 
     public function test(array $config): array
     {
@@ -37,7 +48,7 @@ class FileConnector implements ConnectorInterface
 
     public function ingest(array $config, mixed $watermark = null): array
     {
-        $driver  = strtolower($config['driver'] ?? 'csv');
+        $driver = strtolower($config['driver'] ?? 'csv');
         $content = $this->getContent($config);
 
         if ($content === null) {
@@ -46,9 +57,9 @@ class FileConnector implements ConnectorInterface
 
         $records = match ($driver) {
             'csv', 'tsv' => $this->parseCsv($content, $config),
-            'json'       => $this->parseJson($content, $config),
+            'json' => $this->parseJson($content, $config),
             'excel', 'xlsx' => $this->parseExcel($content),
-            default      => [],
+            default => [],
         };
 
         // Apply watermark for incremental loads (row offset or date-based)
@@ -57,8 +68,8 @@ class FileConnector implements ConnectorInterface
         }
 
         return [
-            'records'        => $records,
-            'count'          => count($records),
+            'records' => $records,
+            'count' => count($records),
             'next_watermark' => $watermark + count($records),
         ];
     }
@@ -66,7 +77,7 @@ class FileConnector implements ConnectorInterface
     public function getSchema(array $config): array
     {
         $result = $this->ingest($config);
-        $first  = $result['records'][0] ?? [];
+        $first = $result['records'][0] ?? [];
 
         return [
             'tables' => [['name' => 'file', 'row_count' => $result['count']]],
@@ -84,9 +95,9 @@ class FileConnector implements ConnectorInterface
     {
         $delimiter = $config['delimiter'] ?? ($config['driver'] === 'tsv' ? "\t" : ',');
         $hasHeader = $config['has_header'] ?? true;
-        $rows      = [];
-        $headers   = [];
-        $lines     = explode("\n", trim($content));
+        $rows = [];
+        $headers = [];
+        $lines = explode("\n", trim($content));
 
         foreach ($lines as $i => $line) {
             if (empty(trim($line))) {
@@ -97,6 +108,7 @@ class FileConnector implements ConnectorInterface
 
             if ($hasHeader && $i === 0) {
                 $headers = array_map('trim', $fields);
+
                 continue;
             }
 
@@ -116,8 +128,8 @@ class FileConnector implements ConnectorInterface
 
     private function parseJson(string $content, array $config): array
     {
-        $data    = json_decode($content, true);
-        $path    = $config['records_path'] ?? null;
+        $data = json_decode($content, true);
+        $path = $config['records_path'] ?? null;
 
         if ($path) {
             $data = data_get($data, $path) ?? $data;
@@ -136,7 +148,7 @@ class FileConnector implements ConnectorInterface
         file_put_contents($tmpFile, $content);
 
         try {
-            $zip = new \ZipArchive();
+            $zip = new \ZipArchive;
             if ($zip->open($tmpFile) !== true) {
                 return [];
             }
@@ -159,8 +171,8 @@ class FileConnector implements ConnectorInterface
                 return [];
             }
 
-            $sheet   = new \SimpleXMLElement($sheetXml);
-            $rows    = [];
+            $sheet = new \SimpleXMLElement($sheetXml);
+            $rows = [];
             $headers = [];
 
             foreach ($sheet->sheetData->row as $rowIdx => $row) {
@@ -216,6 +228,7 @@ class FileConnector implements ConnectorInterface
             curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 30]);
             $content = curl_exec($ch);
             curl_close($ch);
+
             return $content ?: null;
         }
 

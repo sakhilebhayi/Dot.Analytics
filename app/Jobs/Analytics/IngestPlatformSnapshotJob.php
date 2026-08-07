@@ -15,12 +15,13 @@ class IngestPlatformSnapshotJob implements ShouldQueue
 {
     use Queueable;
 
-    public int $tries   = 3;
+    public int $tries = 3;
+
     public int $timeout = 30;
 
     public function __construct(
-        public readonly int    $dataSourceId,
-        public readonly array  $payload,
+        public readonly int $dataSourceId,
+        public readonly array $payload,
         public readonly string $snapshotType = 'hourly',
     ) {}
 
@@ -34,11 +35,11 @@ class IngestPlatformSnapshotJob implements ShouldQueue
         $quality = $this->assessQuality($this->payload);
 
         AnalyticsSnapshot::create([
-            'team_id'        => $source->team_id,
+            'team_id' => $source->team_id,
             'data_source_id' => $this->dataSourceId,
-            'snapshot_type'  => $this->snapshotType,
-            'payload'        => array_merge($this->payload, ['_quality' => $quality]),
-            'captured_at'    => now(),
+            'snapshot_type' => $this->snapshotType,
+            'payload' => array_merge($this->payload, ['_quality' => $quality]),
+            'captured_at' => now(),
         ]);
 
         $source->update(['last_synced_at' => now()]);
@@ -49,15 +50,15 @@ class IngestPlatformSnapshotJob implements ShouldQueue
      */
     private function assessQuality(array $payload): array
     {
-        $total    = count($payload, COUNT_RECURSIVE);
-        $nulls    = $this->countNulls($payload);
+        $total = count($payload, COUNT_RECURSIVE);
+        $nulls = $this->countNulls($payload);
         $complete = $total > 0 ? round((1 - $nulls / max($total, 1)) * 100) : 0;
 
         return [
             'completeness_pct' => $complete,
-            'total_fields'     => $total,
-            'null_fields'      => $nulls,
-            'assessed_at'      => now()->toIso8601String(),
+            'total_fields' => $total,
+            'null_fields' => $nulls,
+            'assessed_at' => now()->toIso8601String(),
         ];
     }
 
@@ -69,6 +70,7 @@ class IngestPlatformSnapshotJob implements ShouldQueue
                 $count++;
             }
         });
+
         return $count;
     }
 }

@@ -20,9 +20,9 @@ Route::get('/docs', fn () => response()->json(['spec_url' => url('api-docs/opena
 
 // ─── Basic health check (kept for backward compat) ───────────────────────────
 Route::get('/health', fn () => response()->json([
-    'status'    => 'ok',
-    'service'   => 'Dot.Analytics',
-    'version'   => 'v1',
+    'status' => 'ok',
+    'service' => 'Dot.Analytics',
+    'version' => 'v1',
     'timestamp' => now()->toIso8601String(),
 ]));
 
@@ -36,56 +36,56 @@ Route::prefix('v1')
 
         // Intelligence engines
         Route::prefix('intelligence')->group(function () {
-            Route::get('engines',         [IntelligenceController::class, 'engines']);
-            Route::get('insights',        [IntelligenceController::class, 'insights']);
-            Route::get('graph',           [IntelligenceController::class, 'graph']);
+            Route::get('engines', [IntelligenceController::class, 'engines']);
+            Route::get('insights', [IntelligenceController::class, 'insights']);
+            Route::get('graph', [IntelligenceController::class, 'graph']);
             Route::post('graph/traverse', [IntelligenceController::class, 'traverse']);
-            Route::post('run',            [IntelligenceController::class, 'run'])
+            Route::post('run', [IntelligenceController::class, 'run'])
                 ->middleware('throttle:analytics-ai');
         });
 
         // Platform catalog & connections
         Route::prefix('platforms')->group(function () {
-            Route::get('/',                   [PlatformController::class, 'catalog']);
-            Route::get('connected',           [PlatformController::class, 'connected']);
-            Route::get('{platform}',          [PlatformController::class, 'show']);
+            Route::get('/', [PlatformController::class, 'catalog']);
+            Route::get('connected', [PlatformController::class, 'connected']);
+            Route::get('{platform}', [PlatformController::class, 'show']);
             Route::post('{platform}/connect', [PlatformController::class, 'connect']);
-            Route::delete('{platform}',       [PlatformController::class, 'disconnect']);
+            Route::delete('{platform}', [PlatformController::class, 'disconnect']);
         });
 
         // Metrics
         Route::prefix('metrics')->group(function () {
-            Route::get('/',           [MetricsController::class, 'index']);
+            Route::get('/', [MetricsController::class, 'index']);
             Route::get('definitions', [MetricsController::class, 'definitions']);
-            Route::get('ai-usage',    [MetricsController::class, 'aiUsage']);
+            Route::get('ai-usage', [MetricsController::class, 'aiUsage']);
         });
 
         // Reports & export
         Route::prefix('reports')->group(function () {
-            Route::get('{type}',      [ReportController::class, 'json']);
-            Route::get('{type}/csv',  [ReportController::class, 'csv']);
+            Route::get('{type}', [ReportController::class, 'json']);
+            Route::get('{type}/csv', [ReportController::class, 'csv']);
             Route::get('{type}/html', [ReportController::class, 'html']);
         });
 
         // AI SQL — natural language to SQL
         Route::prefix('sql')->middleware('throttle:analytics-ai')->group(function () {
-            Route::post('query',    [SqlController::class, 'query']);
+            Route::post('query', [SqlController::class, 'query']);
             Route::post('generate', [SqlController::class, 'generate']);
         });
 
         // Webhook ingest — higher rate limit for platform data pushes
         Route::prefix('ingest')->middleware('throttle:analytics-ingest')->group(function () {
-            Route::post('{platform}',      [IngestController::class, 'receive']);
-            Route::get('{platform}/ping',  [IngestController::class, 'ping']);
+            Route::post('{platform}', [IngestController::class, 'receive']);
+            Route::get('{platform}/ping', [IngestController::class, 'ping']);
         });
 
         // Saved report definitions & run history
         Route::prefix('saved-reports')->group(function () {
-            Route::get('/',            [SavedReportController::class, 'index']);
-            Route::post('/',           [SavedReportController::class, 'store']);
-            Route::post('{id}/run',    [SavedReportController::class, 'run']);
-            Route::get('{id}/runs',    [SavedReportController::class, 'runs']);
-            Route::delete('{id}',      [SavedReportController::class, 'destroy']);
+            Route::get('/', [SavedReportController::class, 'index']);
+            Route::post('/', [SavedReportController::class, 'store']);
+            Route::post('{id}/run', [SavedReportController::class, 'run']);
+            Route::get('{id}/runs', [SavedReportController::class, 'runs']);
+            Route::delete('{id}', [SavedReportController::class, 'destroy']);
         });
 
         // Detailed health diagnostics (auth required for sensitive data)
@@ -93,12 +93,11 @@ Route::prefix('v1')
 
         // Feature flags — runtime feature management
         Route::prefix('feature-flags')->group(function () {
-            Route::get('/',                          [FeatureFlagController::class, 'index']);
-            Route::post('/',                         [FeatureFlagController::class, 'store']);
-            Route::get('check/{key}',                [FeatureFlagController::class, 'check']);
-            Route::patch('{key}/enable',             [FeatureFlagController::class, 'enable']);
-            Route::patch('{key}/disable',            [FeatureFlagController::class, 'disable']);
-            Route::patch('{key}/rollout',            [FeatureFlagController::class, 'rollout']);
+            Route::get('/', [FeatureFlagController::class, 'index']);
+            Route::post('/', [FeatureFlagController::class, 'store']);
+            Route::get('check/{key}', [FeatureFlagController::class, 'check']);
+            Route::patch('{key}/enable', [FeatureFlagController::class, 'enable']);
+            Route::patch('{key}/disable', [FeatureFlagController::class, 'disable']);
+            Route::patch('{key}/rollout', [FeatureFlagController::class, 'rollout']);
         });
     });
-

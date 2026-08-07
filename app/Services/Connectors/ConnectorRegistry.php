@@ -18,6 +18,7 @@ class ConnectorRegistry
     public function register(ConnectorInterface $connector): self
     {
         $this->connectors[$connector->getType()] = $connector;
+
         return $this;
     }
 
@@ -33,6 +34,7 @@ class ConnectorRegistry
                 return $connector;
             }
         }
+
         return null;
     }
 

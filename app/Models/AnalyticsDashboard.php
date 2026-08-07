@@ -20,7 +20,7 @@ class AnalyticsDashboard extends Model
 
     protected $casts = [
         'is_default' => 'boolean',
-        'layout'     => 'array',
+        'layout' => 'array',
     ];
 
     public function team(): BelongsTo

@@ -3,25 +3,26 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasTeamScope;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * Immutable audit log — no update or delete operations should ever touch this table.
  *
- * @property int         $id
- * @property int         $team_id
- * @property int|null    $user_id
- * @property string      $actor_type
+ * @property int $id
+ * @property int $team_id
+ * @property int|null $user_id
+ * @property string $actor_type
  * @property string|null $actor_id
- * @property string      $event
+ * @property string $event
  * @property string|null $auditable_type
- * @property int|null    $auditable_id
- * @property array|null  $old_values
- * @property array|null  $new_values
+ * @property int|null $auditable_id
+ * @property array|null $old_values
+ * @property array|null $new_values
  * @property string|null $ip_address
  * @property string|null $user_agent
- * @property \Carbon\Carbon $occurred_at
+ * @property Carbon $occurred_at
  */
 class AuditLog extends Model
 {
@@ -41,9 +42,9 @@ class AuditLog extends Model
     ];
 
     protected $casts = [
-        'old_values'  => 'array',
-        'new_values'  => 'array',
-        'metadata'    => 'array',
+        'old_values' => 'array',
+        'new_values' => 'array',
+        'metadata' => 'array',
         'occurred_at' => 'datetime',
     ];
 

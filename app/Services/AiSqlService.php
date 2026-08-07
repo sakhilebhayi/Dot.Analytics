@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Models\DataConnector;
 use App\Services\Connectors\ConnectorRegistry;
-use Illuminate\Support\Facades\Log;
 
 /**
  * AI SQL Service — Natural Language to SQL
@@ -30,7 +29,7 @@ class AiSqlService
     ];
 
     public function __construct(
-        private readonly AiModelRouter     $aiRouter,
+        private readonly AiModelRouter $aiRouter,
         private readonly ConnectorRegistry $connectorRegistry,
     ) {}
 
@@ -40,10 +39,10 @@ class AiSqlService
      * @return array{sql: string, results: array, row_count: int, columns: array, explanation: string}
      */
     public function query(
-        string       $question,
+        string $question,
         DataConnector $connector,
-        int           $teamId,
-        ?array        $schemaSummary = null,
+        int $teamId,
+        ?array $schemaSummary = null,
     ): array {
         $schema = $schemaSummary ?? $this->getSchema($connector);
 
@@ -54,10 +53,10 @@ class AiSqlService
         $results = $this->executeSql($sql, $connector);
 
         return [
-            'sql'         => $sql,
-            'results'     => $results,
-            'row_count'   => count($results),
-            'columns'     => $results ? array_keys($results[0]) : [],
+            'sql' => $sql,
+            'results' => $results,
+            'row_count' => count($results),
+            'columns' => $results ? array_keys($results[0]) : [],
             'explanation' => $this->explainSql($sql, $question, $teamId),
         ];
     }
@@ -105,8 +104,8 @@ PROMPT;
         }
 
         // Use a custom ingest with the SQL as the query
-        $config         = array_merge($connector->config, ['query' => $sql]);
-        $result         = $dbConnector->ingest($config);
+        $config = array_merge($connector->config, ['query' => $sql]);
+        $result = $dbConnector->ingest($config);
 
         return array_slice($result['records'], 0, 500); // Hard cap
     }
@@ -117,12 +116,14 @@ PROMPT;
     private function explainSql(string $sql, string $question, int $teamId): string
     {
         $prompt = "Explain in one sentence what this SQL query returns in response to: \"{$question}\"\n\nSQL:\n{$sql}";
+
         return $this->aiRouter->complete($prompt, 'summarisation', $teamId, null, 200);
     }
 
     private function getSchema(DataConnector $connector): array
     {
         $dbConnector = $this->connectorRegistry->forDriver($connector->driver);
+
         return $dbConnector?->getSchema($connector->config) ?? [];
     }
 
@@ -141,6 +142,7 @@ PROMPT;
                 $lines[] = "  Column: {$field['name']} ({$field['type']})";
             }
         }
+
         return implode("\n", $lines);
     }
 
@@ -154,7 +156,7 @@ PROMPT;
         $upper = strtoupper($sql);
 
         foreach (self::FORBIDDEN_KEYWORDS as $keyword) {
-            if (preg_match('/\b' . preg_quote($keyword, '/') . '\b/', $upper)) {
+            if (preg_match('/\b'.preg_quote($keyword, '/').'\b/', $upper)) {
                 throw new \InvalidArgumentException(
                     "Generated SQL contains forbidden keyword '{$keyword}'. Only SELECT queries are allowed."
                 );

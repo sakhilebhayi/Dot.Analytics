@@ -2,8 +2,8 @@
 
 namespace Tests\Unit\Services;
 
-use App\Services\AiSqlService;
 use App\Services\AiModelRouter;
+use App\Services\AiSqlService;
 use App\Services\Connectors\ConnectorRegistry;
 use Tests\TestCase;
 
@@ -15,8 +15,8 @@ class AiSqlServiceTest extends TestCase
     {
         parent::setUp();
         $this->service = new AiSqlService(
-            new AiModelRouter(),
-            new ConnectorRegistry(),
+            new AiModelRouter,
+            new ConnectorRegistry,
         );
     }
 
@@ -55,7 +55,7 @@ class AiSqlServiceTest extends TestCase
 
         $method = new \ReflectionMethod(AiSqlService::class, 'assertSafe');
         $method->setAccessible(true);
-        $method->invoke($this->service, "SHOW TABLES");
+        $method->invoke($this->service, 'SHOW TABLES');
     }
 
     public function test_assert_safe_allows_valid_select(): void

@@ -2,15 +2,16 @@
 
 namespace Tests\Unit\Models;
 
-use App\Models\AnalyticsDashboard;
+use App\Models\AiModelUsage;
 use App\Models\AnalyticsReport;
 use App\Models\AnalyticsSnapshot;
-use App\Models\AiModelUsage;
 use App\Models\ComputedMetric;
 use App\Models\DataPipeline;
 use App\Models\DataSource;
 use App\Models\MetricDefinition;
+use App\Models\PipelineRun;
 use App\Models\Recommendation;
+use App\Models\ReportRun;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -29,14 +30,14 @@ class RemainingModelsTest extends TestCase
     public function test_computed_metric_belongs_to_team(): void
     {
         $team = $this->team();
-        $def  = MetricDefinition::create(['key' => 'test.m', 'label' => 'T', 'source_platform' => 'dot.fleet', 'engine' => 'operational', 'aggregation' => 'avg']);
+        $def = MetricDefinition::create(['key' => 'test.m', 'label' => 'T', 'source_platform' => 'dot.fleet', 'engine' => 'operational', 'aggregation' => 'avg']);
 
         $metric = ComputedMetric::create([
-            'team_id'              => $team->id,
+            'team_id' => $team->id,
             'metric_definition_id' => $def->id,
-            'value'                => 42.5,
-            'period'               => 'daily',
-            'period_date'          => today()->toDateString(),
+            'value' => 42.5,
+            'period' => 'daily',
+            'period_date' => today()->toDateString(),
         ]);
 
         $this->assertEquals($team->id, $metric->team->id);
@@ -46,14 +47,14 @@ class RemainingModelsTest extends TestCase
     public function test_computed_metric_value_is_cast_to_decimal(): void
     {
         $team = $this->team();
-        $def  = MetricDefinition::create(['key' => 'test.cast', 'label' => 'Cast', 'source_platform' => 'dot.crm', 'engine' => 'customer', 'aggregation' => 'sum']);
+        $def = MetricDefinition::create(['key' => 'test.cast', 'label' => 'Cast', 'source_platform' => 'dot.crm', 'engine' => 'customer', 'aggregation' => 'sum']);
 
         $metric = ComputedMetric::create([
-            'team_id'              => $team->id,
+            'team_id' => $team->id,
             'metric_definition_id' => $def->id,
-            'value'                => '99.99',
-            'period'               => 'weekly',
-            'period_date'          => today()->toDateString(),
+            'value' => '99.99',
+            'period' => 'weekly',
+            'period_date' => today()->toDateString(),
         ]);
 
         $this->assertIsFloat((float) $metric->value);
@@ -65,10 +66,10 @@ class RemainingModelsTest extends TestCase
     {
         $team = $this->team();
         $pipe = DataPipeline::create([
-            'team_id'            => $team->id,
-            'name'               => 'Fleet Pipeline',
-            'source_config'      => [],
-            'transform_config'   => [],
+            'team_id' => $team->id,
+            'name' => 'Fleet Pipeline',
+            'source_config' => [],
+            'transform_config' => [],
             'destination_config' => [],
         ]);
 
@@ -79,10 +80,10 @@ class RemainingModelsTest extends TestCase
     {
         $team = $this->team();
         $pipe = DataPipeline::create([
-            'team_id'            => $team->id,
-            'name'               => 'No Runs',
-            'source_config'      => [],
-            'transform_config'   => [],
+            'team_id' => $team->id,
+            'name' => 'No Runs',
+            'source_config' => [],
+            'transform_config' => [],
             'destination_config' => [],
         ]);
 
@@ -93,15 +94,15 @@ class RemainingModelsTest extends TestCase
     {
         $team = $this->team();
         $pipe = DataPipeline::create([
-            'team_id'            => $team->id,
-            'name'               => 'With Runs',
-            'source_config'      => [],
-            'transform_config'   => [],
+            'team_id' => $team->id,
+            'name' => 'With Runs',
+            'source_config' => [],
+            'transform_config' => [],
             'destination_config' => [],
         ]);
 
-        $runA = \App\Models\PipelineRun::create(['data_pipeline_id' => $pipe->id, 'status' => 'completed', 'started_at' => now()->subHours(2)]);
-        $runB = \App\Models\PipelineRun::create(['data_pipeline_id' => $pipe->id, 'status' => 'completed', 'started_at' => now()]);
+        $runA = PipelineRun::create(['data_pipeline_id' => $pipe->id, 'status' => 'completed', 'started_at' => now()->subHours(2)]);
+        $runB = PipelineRun::create(['data_pipeline_id' => $pipe->id, 'status' => 'completed', 'started_at' => now()]);
 
         $this->assertEquals($runB->id, $pipe->lastRun()->id);
     }
@@ -140,15 +141,15 @@ class RemainingModelsTest extends TestCase
 
     public function test_analytics_snapshot_payload_is_array(): void
     {
-        $team   = $this->team();
+        $team = $this->team();
         $source = DataSource::factory()->create(['team_id' => $team->id]);
 
         $snap = AnalyticsSnapshot::create([
-            'team_id'        => $team->id,
+            'team_id' => $team->id,
             'data_source_id' => $source->id,
-            'snapshot_type'  => 'daily',
-            'payload'        => ['vehicles' => 10, 'idle_rate' => 0.15],
-            'captured_at'    => now(),
+            'snapshot_type' => 'daily',
+            'payload' => ['vehicles' => 10, 'idle_rate' => 0.15],
+            'captured_at' => now(),
         ]);
 
         $this->assertIsArray($snap->payload);
@@ -159,17 +160,17 @@ class RemainingModelsTest extends TestCase
 
     public function test_analytics_report_latest_run_is_has_one_latest(): void
     {
-        $team   = $this->team();
+        $team = $this->team();
         $report = AnalyticsReport::create([
             'team_id' => $team->id,
             'user_id' => $team->user_id,
-            'title'   => 'Test',
-            'type'    => 'ad_hoc',
-            'config'  => [],
+            'title' => 'Test',
+            'type' => 'ad_hoc',
+            'config' => [],
         ]);
 
-        $runA = \App\Models\ReportRun::create(['analytics_report_id' => $report->id, 'status' => 'completed']);
-        $runB = \App\Models\ReportRun::create(['analytics_report_id' => $report->id, 'status' => 'completed']);
+        $runA = ReportRun::create(['analytics_report_id' => $report->id, 'status' => 'completed']);
+        $runB = ReportRun::create(['analytics_report_id' => $report->id, 'status' => 'completed']);
 
         $this->assertEquals($runB->id, $report->latestRun->id);
     }
@@ -179,8 +180,8 @@ class RemainingModelsTest extends TestCase
     public function test_recommendation_supporting_data_is_array(): void
     {
         $team = $this->team();
-        $rec  = Recommendation::factory()->create([
-            'team_id'         => $team->id,
+        $rec = Recommendation::factory()->create([
+            'team_id' => $team->id,
             'supporting_data' => ['confidence' => 0.9, 'ai_model' => 'claude-sonnet-4-6'],
         ]);
 

@@ -19,7 +19,7 @@ class CrossPlatformIntelligenceService
 {
     public function __construct(
         private readonly IntelligenceEngineService $engineService,
-        private readonly AiModelRouter             $aiRouter,
+        private readonly AiModelRouter $aiRouter,
     ) {}
 
     /**
@@ -40,28 +40,28 @@ class CrossPlatformIntelligenceService
         }
 
         $activeEngines = $this->engineService->getActiveEngines($connected);
-        $total         = 0;
+        $total = 0;
 
         foreach ($activeEngines as $engineKey => $engine) {
             $run = IntelligenceEngineRun::create([
-                'team_id'           => $team->id,
-                'engine'            => $engineKey,
-                'status'            => 'running',
+                'team_id' => $team->id,
+                'engine' => $engineKey,
+                'status' => 'running',
                 'platforms_consumed' => $engine['connected_sources'],
-                'started_at'        => Carbon::now(),
+                'started_at' => Carbon::now(),
             ]);
 
             $insights = $this->generateInsightsForEngine($team, $engineKey, $engine);
-            $count    = count($insights);
+            $count = count($insights);
 
             foreach ($insights as $insight) {
                 CrossPlatformInsight::create(array_merge($insight, ['team_id' => $team->id]));
             }
 
             $run->update([
-                'status'             => 'completed',
+                'status' => 'completed',
                 'insights_generated' => $count,
-                'completed_at'       => Carbon::now(),
+                'completed_at' => Carbon::now(),
             ]);
 
             $total += $count;
@@ -76,7 +76,7 @@ class CrossPlatformIntelligenceService
      */
     private function generateInsightsForEngine(Team $team, string $engineKey, array $engine): array
     {
-        $context  = $this->engineService->buildEcosystemContext($team);
+        $context = $this->engineService->buildEcosystemContext($team);
         $produces = implode(', ', $engine['produces'] ?? []);
 
         $prompt = <<<PROMPT
@@ -124,64 +124,64 @@ PROMPT;
         $fallbacks = [
             'customer' => [
                 [
-                    'title'             => 'At-risk customer pattern detected',
-                    'narrative'         => 'A customer showing declining CRM engagement also has overdue invoices, increased support tickets, and a contract expiring within 60 days. Combined signals indicate high churn risk that no single platform would catch independently.',
+                    'title' => 'At-risk customer pattern detected',
+                    'narrative' => 'A customer showing declining CRM engagement also has overdue invoices, increased support tickets, and a contract expiring within 60 days. Combined signals indicate high churn risk that no single platform would catch independently.',
                     'platforms_involved' => ['dot.crm', 'dot.payments', 'dot.support', 'dot.documents'],
-                    'insight_type'      => 'risk',
-                    'confidence'        => 0.82,
-                    'severity'          => 'warning',
+                    'insight_type' => 'risk',
+                    'confidence' => 0.82,
+                    'severity' => 'warning',
                 ],
             ],
             'operational' => [
                 [
-                    'title'             => 'Productivity dip linked to staffing and equipment',
-                    'narrative'         => 'Output dropped 8% this week. Cross-referencing HR data shows three certified operators on leave, while Fleet data shows elevated idle time on key equipment. The staffing shortfall is the upstream cause of the operational slowdown.',
+                    'title' => 'Productivity dip linked to staffing and equipment',
+                    'narrative' => 'Output dropped 8% this week. Cross-referencing HR data shows three certified operators on leave, while Fleet data shows elevated idle time on key equipment. The staffing shortfall is the upstream cause of the operational slowdown.',
                     'platforms_involved' => ['dot.fleet', 'dot.hr'],
-                    'insight_type'      => 'causation',
-                    'confidence'        => 0.88,
-                    'severity'          => 'warning',
+                    'insight_type' => 'causation',
+                    'confidence' => 0.88,
+                    'severity' => 'warning',
                 ],
             ],
             'financial' => [
                 [
-                    'title'             => 'Payroll spike correlated with fleet overtime',
-                    'narrative'         => 'Overtime payroll costs are tracking 18% above budget. Fleet data shows the same drivers accumulating extra hours on routes where scheduled vehicles are under maintenance. Preventative maintenance scheduling would eliminate the cascade.',
+                    'title' => 'Payroll spike correlated with fleet overtime',
+                    'narrative' => 'Overtime payroll costs are tracking 18% above budget. Fleet data shows the same drivers accumulating extra hours on routes where scheduled vehicles are under maintenance. Preventative maintenance scheduling would eliminate the cascade.',
                     'platforms_involved' => ['dot.hr', 'dot.fleet', 'dot.finance'],
-                    'insight_type'      => 'causation',
-                    'confidence'        => 0.79,
-                    'severity'          => 'info',
+                    'insight_type' => 'causation',
+                    'confidence' => 0.79,
+                    'severity' => 'info',
                 ],
             ],
             'risk' => [
                 [
-                    'title'             => 'Supplier concentration risk emerging',
-                    'narrative'         => 'Inventory data shows 60% of critical stock sourced from one supplier. Payments data shows their invoices becoming inconsistent. Documents show their contract expires in 45 days with no renewal in progress.',
+                    'title' => 'Supplier concentration risk emerging',
+                    'narrative' => 'Inventory data shows 60% of critical stock sourced from one supplier. Payments data shows their invoices becoming inconsistent. Documents show their contract expires in 45 days with no renewal in progress.',
                     'platforms_involved' => ['dot.inventory', 'dot.payments', 'dot.documents'],
-                    'insight_type'      => 'risk',
-                    'confidence'        => 0.85,
-                    'severity'          => 'critical',
+                    'insight_type' => 'risk',
+                    'confidence' => 0.85,
+                    'severity' => 'critical',
                 ],
             ],
             'predictive' => [
                 [
-                    'title'             => 'Demand spike predicted in 30 days',
-                    'narrative'         => 'CRM pipeline shows a cluster of deals likely to close. Inventory levels are currently below the threshold needed to fulfil anticipated orders. Historical fleet data shows delivery lead times double during high-demand periods.',
+                    'title' => 'Demand spike predicted in 30 days',
+                    'narrative' => 'CRM pipeline shows a cluster of deals likely to close. Inventory levels are currently below the threshold needed to fulfil anticipated orders. Historical fleet data shows delivery lead times double during high-demand periods.',
                     'platforms_involved' => ['dot.crm', 'dot.inventory', 'dot.fleet'],
-                    'insight_type'      => 'prediction',
-                    'confidence'        => 0.74,
-                    'severity'          => 'warning',
+                    'insight_type' => 'prediction',
+                    'confidence' => 0.74,
+                    'severity' => 'warning',
                 ],
             ],
         ];
 
         return $fallbacks[$engineKey] ?? [
             [
-                'title'             => "Cross-platform signal from {$engine['label']}",
-                'narrative'         => "Connected platforms are contributing data to the {$engine['label']}. As more historical data accumulates, precise correlations will surface automatically.",
+                'title' => "Cross-platform signal from {$engine['label']}",
+                'narrative' => "Connected platforms are contributing data to the {$engine['label']}. As more historical data accumulates, precise correlations will surface automatically.",
                 'platforms_involved' => $engine['connected_sources'],
-                'insight_type'      => 'correlation',
-                'confidence'        => 0.60,
-                'severity'          => 'info',
+                'insight_type' => 'correlation',
+                'confidence' => 0.60,
+                'severity' => 'info',
             ],
         ];
     }

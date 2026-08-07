@@ -40,7 +40,7 @@ class SetLocale
         $team = $user?->currentTeam;
 
         if ($team) {
-            $locale   = $this->sanitiseLocale($team->locale ?? config('app.locale', 'en'));
+            $locale = $this->sanitiseLocale($team->locale ?? config('app.locale', 'en'));
             $timezone = $this->sanitiseTimezone($team->timezone ?? config('app.timezone', 'UTC'));
 
             App::setLocale($locale);

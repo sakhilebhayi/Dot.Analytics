@@ -5,7 +5,6 @@ namespace Tests\Feature\Livewire;
 use App\Livewire\Analytics\AlertsPanel;
 use App\Livewire\Analytics\BusinessDnaPanel;
 use App\Livewire\Analytics\CrossPlatformInsightPanel;
-use App\Livewire\Analytics\DataSourcePanel;
 use App\Livewire\Analytics\EcosystemMapPanel;
 use App\Livewire\Analytics\ExecutiveBriefingPanel;
 use App\Livewire\Analytics\IntelligenceDashboard;
@@ -69,25 +68,25 @@ class AnalyticsLivewireTest extends TestCase
             ->call('confirmConnect');
 
         $this->assertDatabaseHas('data_sources', [
-            'team_id'  => $this->team()->id,
+            'team_id' => $this->team()->id,
             'platform' => 'dot.fleet',
-            'status'   => 'connected',
+            'status' => 'connected',
         ]);
     }
 
     public function test_ecosystem_map_disconnect_removes_source(): void
     {
         DataSource::factory()->create([
-            'team_id'  => $this->team()->id,
+            'team_id' => $this->team()->id,
             'platform' => 'dot.fleet',
-            'status'   => 'connected',
+            'status' => 'connected',
         ]);
 
         Livewire::test(EcosystemMapPanel::class)
             ->call('disconnect', 'dot.fleet');
 
         $this->assertDatabaseMissing('data_sources', [
-            'team_id'  => $this->team()->id,
+            'team_id' => $this->team()->id,
             'platform' => 'dot.fleet',
         ]);
     }
@@ -102,10 +101,10 @@ class AnalyticsLivewireTest extends TestCase
     public function test_alerts_panel_shows_open_alerts(): void
     {
         AnalyticsAlert::factory()->create([
-            'team_id'      => $this->team()->id,
-            'title'        => 'Test alert',
-            'status'       => 'open',
-            'severity'     => 'warning',
+            'team_id' => $this->team()->id,
+            'title' => 'Test alert',
+            'status' => 'open',
+            'severity' => 'warning',
             'triggered_at' => now(),
         ]);
 
@@ -116,8 +115,8 @@ class AnalyticsLivewireTest extends TestCase
     public function test_alerts_panel_acknowledge_changes_status(): void
     {
         $alert = AnalyticsAlert::factory()->create([
-            'team_id'      => $this->team()->id,
-            'status'       => 'open',
+            'team_id' => $this->team()->id,
+            'status' => 'open',
             'triggered_at' => now(),
         ]);
 
@@ -125,7 +124,7 @@ class AnalyticsLivewireTest extends TestCase
             ->call('acknowledge', $alert->id);
 
         $this->assertDatabaseHas('analytics_alerts', [
-            'id'     => $alert->id,
+            'id' => $alert->id,
             'status' => 'acknowledged',
         ]);
     }
@@ -133,8 +132,8 @@ class AnalyticsLivewireTest extends TestCase
     public function test_alerts_panel_resolve_changes_status(): void
     {
         $alert = AnalyticsAlert::factory()->create([
-            'team_id'      => $this->team()->id,
-            'status'       => 'open',
+            'team_id' => $this->team()->id,
+            'status' => 'open',
             'triggered_at' => now(),
         ]);
 
@@ -142,7 +141,7 @@ class AnalyticsLivewireTest extends TestCase
             ->call('resolve', $alert->id);
 
         $this->assertDatabaseHas('analytics_alerts', [
-            'id'     => $alert->id,
+            'id' => $alert->id,
             'status' => 'resolved',
         ]);
     }
@@ -158,8 +157,8 @@ class AnalyticsLivewireTest extends TestCase
     {
         CrossPlatformInsight::factory()->create([
             'team_id' => $this->team()->id,
-            'title'   => 'Unique fleet insight',
-            'status'  => 'new',
+            'title' => 'Unique fleet insight',
+            'status' => 'new',
         ]);
 
         Livewire::test(CrossPlatformInsightPanel::class)
@@ -170,14 +169,14 @@ class AnalyticsLivewireTest extends TestCase
     {
         $insight = CrossPlatformInsight::factory()->create([
             'team_id' => $this->team()->id,
-            'status'  => 'new',
+            'status' => 'new',
         ]);
 
         Livewire::test(CrossPlatformInsightPanel::class)
             ->call('dismiss', $insight->id);
 
         $this->assertDatabaseHas('cross_platform_insights', [
-            'id'     => $insight->id,
+            'id' => $insight->id,
             'status' => 'dismissed',
         ]);
     }
@@ -186,14 +185,14 @@ class AnalyticsLivewireTest extends TestCase
     {
         $insight = CrossPlatformInsight::factory()->create([
             'team_id' => $this->team()->id,
-            'status'  => 'new',
+            'status' => 'new',
         ]);
 
         Livewire::test(CrossPlatformInsightPanel::class)
             ->call('review', $insight->id);
 
         $this->assertDatabaseHas('cross_platform_insights', [
-            'id'     => $insight->id,
+            'id' => $insight->id,
             'status' => 'reviewed',
         ]);
     }
@@ -209,8 +208,8 @@ class AnalyticsLivewireTest extends TestCase
     {
         Recommendation::factory()->create([
             'team_id' => $this->team()->id,
-            'title'   => 'Unique recommendation title',
-            'status'  => 'pending',
+            'title' => 'Unique recommendation title',
+            'status' => 'pending',
         ]);
 
         Livewire::test(RecommendationsPanel::class)
@@ -221,7 +220,7 @@ class AnalyticsLivewireTest extends TestCase
     {
         $rec = Recommendation::factory()->create([
             'team_id' => $this->team()->id,
-            'status'  => 'pending',
+            'status' => 'pending',
         ]);
 
         Livewire::test(RecommendationsPanel::class)
@@ -234,7 +233,7 @@ class AnalyticsLivewireTest extends TestCase
     {
         $rec = Recommendation::factory()->create([
             'team_id' => $this->team()->id,
-            'status'  => 'pending',
+            'status' => 'pending',
         ]);
 
         Livewire::test(RecommendationsPanel::class)

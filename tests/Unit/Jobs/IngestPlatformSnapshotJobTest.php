@@ -16,24 +16,25 @@ class IngestPlatformSnapshotJobTest extends TestCase
     private function connectedSource(): DataSource
     {
         $user = User::factory()->withPersonalTeam()->create();
+
         return DataSource::factory()->create([
-            'team_id'  => $user->currentTeam->id,
+            'team_id' => $user->currentTeam->id,
             'platform' => 'dot.fleet',
-            'status'   => 'connected',
+            'status' => 'connected',
         ]);
     }
 
     public function test_job_creates_analytics_snapshot(): void
     {
-        $source  = $this->connectedSource();
+        $source = $this->connectedSource();
         $payload = ['vehicles' => [['id' => 'V-001', 'fuel' => 45.2]]];
 
         (new IngestPlatformSnapshotJob($source->id, $payload))->handle();
 
         $this->assertDatabaseHas('analytics_snapshots', [
-            'team_id'        => $source->team_id,
+            'team_id' => $source->team_id,
             'data_source_id' => $source->id,
-            'snapshot_type'  => 'hourly',
+            'snapshot_type' => 'hourly',
         ]);
     }
 
@@ -67,11 +68,11 @@ class IngestPlatformSnapshotJobTest extends TestCase
 
     public function test_job_does_nothing_for_disconnected_source(): void
     {
-        $user   = User::factory()->withPersonalTeam()->create();
+        $user = User::factory()->withPersonalTeam()->create();
         $source = DataSource::factory()->create([
-            'team_id'  => $user->currentTeam->id,
+            'team_id' => $user->currentTeam->id,
             'platform' => 'dot.fleet',
-            'status'   => 'pending', // not connected
+            'status' => 'pending', // not connected
         ]);
 
         (new IngestPlatformSnapshotJob($source->id, ['data' => []]))->handle();

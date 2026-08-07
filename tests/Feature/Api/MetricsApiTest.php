@@ -13,8 +13,9 @@ class MetricsApiTest extends TestCase
 
     private function actingAsUser(): array
     {
-        $user  = User::factory()->withPersonalTeam()->create();
+        $user = User::factory()->withPersonalTeam()->create();
         $token = $user->createToken('test')->plainTextToken;
+
         return [$user, $token];
     }
 

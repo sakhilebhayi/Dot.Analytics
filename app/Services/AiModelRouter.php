@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Models\AiModelUsage;
-use Illuminate\Support\Carbon;
 
 /**
  * Multi-model AI router for Dot.Analytics.
@@ -28,18 +27,18 @@ class AiModelRouter
     private const MODELS = [
         'anthropic' => [
             'claude-sonnet-4-6' => ['tier' => 1, 'input_cost' => 3.00,  'output_cost' => 15.00],
-            'claude-haiku-3-5'  => ['tier' => 2, 'input_cost' => 0.25,  'output_cost' => 1.25],
+            'claude-haiku-3-5' => ['tier' => 2, 'input_cost' => 0.25,  'output_cost' => 1.25],
         ],
         'openai' => [
-            'gpt-4o'            => ['tier' => 1, 'input_cost' => 2.50,  'output_cost' => 10.00],
-            'gpt-4o-mini'       => ['tier' => 3, 'input_cost' => 0.15,  'output_cost' => 0.60],
+            'gpt-4o' => ['tier' => 1, 'input_cost' => 2.50,  'output_cost' => 10.00],
+            'gpt-4o-mini' => ['tier' => 3, 'input_cost' => 0.15,  'output_cost' => 0.60],
         ],
         'google' => [
-            'gemini-1.5-pro'    => ['tier' => 1, 'input_cost' => 1.25,  'output_cost' => 5.00],
-            'gemini-1.5-flash'  => ['tier' => 3, 'input_cost' => 0.075, 'output_cost' => 0.30],
+            'gemini-1.5-pro' => ['tier' => 1, 'input_cost' => 1.25,  'output_cost' => 5.00],
+            'gemini-1.5-flash' => ['tier' => 3, 'input_cost' => 0.075, 'output_cost' => 0.30],
         ],
         'deepseek' => [
-            'deepseek-chat'     => ['tier' => 2, 'input_cost' => 0.14,  'output_cost' => 0.28],
+            'deepseek-chat' => ['tier' => 2, 'input_cost' => 0.14,  'output_cost' => 0.28],
             'deepseek-reasoner' => ['tier' => 1, 'input_cost' => 0.55,  'output_cost' => 2.19],
         ],
     ];
@@ -49,14 +48,14 @@ class AiModelRouter
      * Premium capabilities require tier-1 models.
      */
     private const CAPABILITY_TIERS = [
-        'insight'         => 1,
-        'recommendation'  => 1,
-        'root_cause'      => 1,
-        'briefing'        => 1,
-        'query'           => 2,
-        'sql'             => 2,
-        'classification'  => 3,
-        'summarisation'   => 3,
+        'insight' => 1,
+        'recommendation' => 1,
+        'root_cause' => 1,
+        'briefing' => 1,
+        'query' => 2,
+        'sql' => 2,
+        'classification' => 3,
+        'summarisation' => 3,
     ];
 
     public function __construct()
@@ -69,21 +68,21 @@ class AiModelRouter
      * Send a prompt to the best available model for the given capability.
      * Falls back through the priority chain if a model is unavailable.
      *
-     * @param string      $prompt      The full prompt text.
-     * @param string      $capability  What kind of intelligence this is.
-     * @param int|null    $teamId      For usage tracking.
-     * @param string|null $engine      The intelligence engine name.
-     * @param int         $maxTokens   Maximum response length.
+     * @param  string  $prompt  The full prompt text.
+     * @param  string  $capability  What kind of intelligence this is.
+     * @param  int|null  $teamId  For usage tracking.
+     * @param  string|null  $engine  The intelligence engine name.
+     * @param  int  $maxTokens  Maximum response length.
      */
     public function complete(
-        string  $prompt,
-        string  $capability = 'query',
-        ?int    $teamId     = null,
-        ?string $engine     = null,
-        int     $maxTokens  = 1024,
+        string $prompt,
+        string $capability = 'query',
+        ?int $teamId = null,
+        ?string $engine = null,
+        int $maxTokens = 1024,
     ): string {
         $requiredTier = self::CAPABILITY_TIERS[$capability] ?? 2;
-        $chain        = $this->buildFallbackChain($requiredTier);
+        $chain = $this->buildFallbackChain($requiredTier);
 
         foreach ($chain as [$provider, $model]) {
             $apiKey = $this->apiKey($provider);
@@ -96,10 +95,10 @@ class AiModelRouter
             try {
                 [$response, $inputTokens, $outputTokens] = match ($provider) {
                     'anthropic' => $this->callAnthropic($apiKey, $model, $prompt, $maxTokens),
-                    'openai'    => $this->callOpenAI($apiKey, $model, $prompt, $maxTokens),
-                    'google'    => $this->callGemini($apiKey, $model, $prompt, $maxTokens),
-                    'deepseek'  => $this->callDeepSeek($apiKey, $model, $prompt, $maxTokens),
-                    default     => [null, 0, 0],
+                    'openai' => $this->callOpenAI($apiKey, $model, $prompt, $maxTokens),
+                    'google' => $this->callGemini($apiKey, $model, $prompt, $maxTokens),
+                    'deepseek' => $this->callDeepSeek($apiKey, $model, $prompt, $maxTokens),
+                    default => [null, 0, 0],
                 };
 
                 if ($response === null) {
@@ -128,16 +127,16 @@ class AiModelRouter
         $ch = curl_init('https://api.anthropic.com/v1/messages');
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_POST           => true,
-            CURLOPT_HTTPHEADER     => [
+            CURLOPT_POST => true,
+            CURLOPT_HTTPHEADER => [
                 'Content-Type: application/json',
-                'x-api-key: ' . $key,
+                'x-api-key: '.$key,
                 'anthropic-version: 2023-06-01',
             ],
             CURLOPT_POSTFIELDS => json_encode([
-                'model'      => $model,
+                'model' => $model,
                 'max_tokens' => $maxTokens,
-                'messages'   => [['role' => 'user', 'content' => $prompt]],
+                'messages' => [['role' => 'user', 'content' => $prompt]],
             ]),
         ]);
 
@@ -150,9 +149,10 @@ class AiModelRouter
         }
 
         $data = json_decode($body, true);
+
         return [
             $data['content'][0]['text'] ?? null,
-            $data['usage']['input_tokens']  ?? 0,
+            $data['usage']['input_tokens'] ?? 0,
             $data['usage']['output_tokens'] ?? 0,
         ];
     }
@@ -163,15 +163,15 @@ class AiModelRouter
         $ch = curl_init('https://api.openai.com/v1/chat/completions');
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_POST           => true,
-            CURLOPT_HTTPHEADER     => [
+            CURLOPT_POST => true,
+            CURLOPT_HTTPHEADER => [
                 'Content-Type: application/json',
-                'Authorization: Bearer ' . $key,
+                'Authorization: Bearer '.$key,
             ],
             CURLOPT_POSTFIELDS => json_encode([
-                'model'      => $model,
+                'model' => $model,
                 'max_tokens' => $maxTokens,
-                'messages'   => [['role' => 'user', 'content' => $prompt]],
+                'messages' => [['role' => 'user', 'content' => $prompt]],
             ]),
         ]);
 
@@ -184,9 +184,10 @@ class AiModelRouter
         }
 
         $data = json_decode($body, true);
+
         return [
             $data['choices'][0]['message']['content'] ?? null,
-            $data['usage']['prompt_tokens']     ?? 0,
+            $data['usage']['prompt_tokens'] ?? 0,
             $data['usage']['completion_tokens'] ?? 0,
         ];
     }
@@ -195,14 +196,14 @@ class AiModelRouter
     private function callGemini(string $key, string $model, string $prompt, int $maxTokens): array
     {
         $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$key}";
-        $ch  = curl_init($url);
+        $ch = curl_init($url);
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_POST           => true,
-            CURLOPT_HTTPHEADER     => ['Content-Type: application/json'],
-            CURLOPT_POSTFIELDS     => json_encode([
-                'contents'          => [['parts' => [['text' => $prompt]]]],
-                'generationConfig'  => ['maxOutputTokens' => $maxTokens],
+            CURLOPT_POST => true,
+            CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
+            CURLOPT_POSTFIELDS => json_encode([
+                'contents' => [['parts' => [['text' => $prompt]]]],
+                'generationConfig' => ['maxOutputTokens' => $maxTokens],
             ]),
         ]);
 
@@ -214,13 +215,13 @@ class AiModelRouter
             return [null, 0, 0];
         }
 
-        $data   = json_decode($body, true);
-        $text   = $data['candidates'][0]['content']['parts'][0]['text'] ?? null;
-        $usage  = $data['usageMetadata'] ?? [];
+        $data = json_decode($body, true);
+        $text = $data['candidates'][0]['content']['parts'][0]['text'] ?? null;
+        $usage = $data['usageMetadata'] ?? [];
 
         return [
             $text,
-            $usage['promptTokenCount']     ?? 0,
+            $usage['promptTokenCount'] ?? 0,
             $usage['candidatesTokenCount'] ?? 0,
         ];
     }
@@ -231,15 +232,15 @@ class AiModelRouter
         $ch = curl_init('https://api.deepseek.com/v1/chat/completions');
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_POST           => true,
-            CURLOPT_HTTPHEADER     => [
+            CURLOPT_POST => true,
+            CURLOPT_HTTPHEADER => [
                 'Content-Type: application/json',
-                'Authorization: Bearer ' . $key,
+                'Authorization: Bearer '.$key,
             ],
             CURLOPT_POSTFIELDS => json_encode([
-                'model'      => $model,
+                'model' => $model,
                 'max_tokens' => $maxTokens,
-                'messages'   => [['role' => 'user', 'content' => $prompt]],
+                'messages' => [['role' => 'user', 'content' => $prompt]],
             ]),
         ]);
 
@@ -252,9 +253,10 @@ class AiModelRouter
         }
 
         $data = json_decode($body, true);
+
         return [
             $data['choices'][0]['message']['content'] ?? null,
-            $data['usage']['prompt_tokens']     ?? 0,
+            $data['usage']['prompt_tokens'] ?? 0,
             $data['usage']['completion_tokens'] ?? 0,
         ];
     }
@@ -269,8 +271,8 @@ class AiModelRouter
      */
     private function buildFallbackChain(int $requiredTier): array
     {
-        $primary  = config('services.ai.primary_provider', 'anthropic');
-        $chain    = [];
+        $primary = config('services.ai.primary_provider', 'anthropic');
+        $chain = [];
 
         // Primary provider first
         foreach (self::MODELS[$primary] ?? [] as $model => $def) {
@@ -298,10 +300,10 @@ class AiModelRouter
     {
         return match ($provider) {
             'anthropic' => config('services.anthropic.key') ?: null,
-            'openai'    => config('services.openai.key') ?: null,
-            'google'    => config('services.google.ai_key') ?: null,
-            'deepseek'  => config('services.deepseek.key') ?: null,
-            default     => null,
+            'openai' => config('services.openai.key') ?: null,
+            'google' => config('services.google.ai_key') ?: null,
+            'deepseek' => config('services.deepseek.key') ?: null,
+            default => null,
         };
     }
 
@@ -311,19 +313,19 @@ class AiModelRouter
             return;
         }
 
-        $def  = self::MODELS[$provider][$model] ?? [];
+        $def = self::MODELS[$provider][$model] ?? [];
         $cost = (($def['input_cost'] ?? 0) * $input + ($def['output_cost'] ?? 0) * $output) / 1_000_000;
 
         AiModelUsage::create([
-            'team_id'       => $teamId,
-            'provider'      => $provider,
-            'model'         => $model,
-            'capability'    => $capability,
-            'engine'        => $engine,
-            'input_tokens'  => $input,
+            'team_id' => $teamId,
+            'provider' => $provider,
+            'model' => $model,
+            'capability' => $capability,
+            'engine' => $engine,
+            'input_tokens' => $input,
             'output_tokens' => $output,
-            'cost_usd'      => $cost,
-            'latency_ms'    => $latency,
+            'cost_usd' => $cost,
+            'latency_ms' => $latency,
         ]);
     }
 
@@ -332,9 +334,9 @@ class AiModelRouter
         return match ($capability) {
             'insight', 'recommendation' => '[]',
             'briefing' => json_encode([
-                'summary'         => 'Intelligence briefing unavailable — configure an AI provider key to enable.',
-                'highlights'      => [],
-                'risks'           => [],
+                'summary' => 'Intelligence briefing unavailable — configure an AI provider key to enable.',
+                'highlights' => [],
+                'risks' => [],
                 'recommendations' => [],
             ]),
             default => 'AI provider not configured. Add ANTHROPIC_API_KEY, OPENAI_API_KEY, GOOGLE_AI_KEY, or DEEPSEEK_API_KEY to .env.',

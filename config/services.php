@@ -37,22 +37,22 @@ return [
 
     'anthropic' => [
         'api_key' => env('ANTHROPIC_API_KEY', ''),
-        'model'   => env('ANTHROPIC_MODEL', 'claude-sonnet-4-6'),
-        'key'     => env('ANTHROPIC_API_KEY', ''),
+        'model' => env('ANTHROPIC_MODEL', 'claude-sonnet-4-6'),
+        'key' => env('ANTHROPIC_API_KEY', ''),
     ],
 
     'openai' => [
-        'key'   => env('OPENAI_API_KEY', ''),
+        'key' => env('OPENAI_API_KEY', ''),
         'model' => env('OPENAI_MODEL', 'gpt-4o'),
     ],
 
     'google' => [
         'ai_key' => env('GOOGLE_AI_KEY', ''),
-        'model'  => env('GOOGLE_AI_MODEL', 'gemini-1.5-pro'),
+        'model' => env('GOOGLE_AI_MODEL', 'gemini-1.5-pro'),
     ],
 
     'deepseek' => [
-        'key'   => env('DEEPSEEK_API_KEY', ''),
+        'key' => env('DEEPSEEK_API_KEY', ''),
         'model' => env('DEEPSEEK_MODEL', 'deepseek-chat'),
     ],
 

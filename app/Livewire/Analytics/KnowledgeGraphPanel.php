@@ -4,6 +4,7 @@ namespace App\Livewire\Analytics;
 
 use App\Services\KnowledgeGraphService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
@@ -17,25 +18,30 @@ use Livewire\Component;
 class KnowledgeGraphPanel extends Component
 {
     public string $entityType = 'customer';
-    public string $entityId   = '';
-    public int    $maxDepth   = 2;
-    public array  $results    = [];
-    public bool   $searching  = false;
-    public string $error      = '';
+
+    public string $entityId = '';
+
+    public int $maxDepth = 2;
+
+    public array $results = [];
+
+    public bool $searching = false;
+
+    public string $error = '';
 
     public function traverse(): void
     {
         $this->validate([
             'entityType' => 'required|string|max:50',
-            'entityId'   => 'required|string|max:100',
-            'maxDepth'   => 'integer|min:1|max:5',
+            'entityId' => 'required|string|max:100',
+            'maxDepth' => 'integer|min:1|max:5',
         ]);
 
         $this->searching = true;
-        $this->error     = '';
+        $this->error = '';
 
         $service = app(KnowledgeGraphService::class);
-        $team    = Auth::user()->currentTeam;
+        $team = Auth::user()->currentTeam;
 
         $nodes = $service->traverse($team, $this->entityType, $this->entityId, $this->maxDepth);
 
@@ -43,7 +49,7 @@ class KnowledgeGraphPanel extends Component
             $this->error = "No entity found: {$this->entityType} '{$this->entityId}'. Entities are created as platforms contribute data to the intelligence layer.";
         }
 
-        $this->results  = $nodes->values()->toArray();
+        $this->results = $nodes->values()->toArray();
         $this->searching = false;
     }
 
@@ -57,11 +63,11 @@ class KnowledgeGraphPanel extends Component
     public function clear(): void
     {
         $this->entityId = '';
-        $this->results  = [];
-        $this->error    = '';
+        $this->results = [];
+        $this->error = '';
     }
 
-    public function render(): \Illuminate\View\View
+    public function render(): View
     {
         return view('livewire.analytics.knowledge-graph-panel');
     }

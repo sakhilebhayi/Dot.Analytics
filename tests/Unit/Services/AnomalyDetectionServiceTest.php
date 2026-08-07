@@ -12,7 +12,7 @@ class AnomalyDetectionServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->service = new AnomalyDetectionService();
+        $this->service = new AnomalyDetectionService;
     }
 
     // ─── Mean and StdDev ─────────────────────────────────────────────────────
@@ -45,7 +45,7 @@ class AnomalyDetectionServiceTest extends TestCase
     public function test_z_score_detects_spike(): void
     {
         $history = [10, 10, 11, 9, 10, 10, 10, 10, 10, 10];
-        $result  = $this->service->zScoreAnomaly(100.0, $history); // Extreme spike
+        $result = $this->service->zScoreAnomaly(100.0, $history); // Extreme spike
 
         $this->assertNotNull($result);
         $this->assertEquals('z_score', $result['method']);
@@ -55,7 +55,7 @@ class AnomalyDetectionServiceTest extends TestCase
     public function test_z_score_detects_drop(): void
     {
         $history = [100, 100, 99, 101, 100, 100, 100, 100, 100];
-        $result  = $this->service->zScoreAnomaly(10.0, $history); // Extreme drop
+        $result = $this->service->zScoreAnomaly(10.0, $history); // Extreme drop
 
         $this->assertNotNull($result);
         $this->assertEquals('drop', $result['direction']);
@@ -64,7 +64,7 @@ class AnomalyDetectionServiceTest extends TestCase
     public function test_z_score_returns_null_for_normal_value(): void
     {
         $history = [10, 10, 11, 9, 10, 10, 10, 10, 10];
-        $result  = $this->service->zScoreAnomaly(10.5, $history);
+        $result = $this->service->zScoreAnomaly(10.5, $history);
 
         $this->assertNull($result);
     }
@@ -72,7 +72,7 @@ class AnomalyDetectionServiceTest extends TestCase
     public function test_z_score_returns_null_for_zero_variance(): void
     {
         $history = [5, 5, 5, 5, 5, 5, 5, 5, 5];
-        $result  = $this->service->zScoreAnomaly(5.0, $history);
+        $result = $this->service->zScoreAnomaly(5.0, $history);
 
         $this->assertNull($result);
     }
@@ -82,7 +82,7 @@ class AnomalyDetectionServiceTest extends TestCase
     public function test_iqr_detects_upper_outlier(): void
     {
         $history = [10, 11, 10, 10, 11, 10, 10, 11, 10, 10];
-        $result  = $this->service->iqrAnomaly(50.0, $history);
+        $result = $this->service->iqrAnomaly(50.0, $history);
 
         $this->assertNotNull($result);
         $this->assertEquals('iqr', $result['method']);
@@ -93,7 +93,7 @@ class AnomalyDetectionServiceTest extends TestCase
     {
         // History with enough spread for a non-zero IQR
         $history = [80, 85, 90, 95, 100, 105, 110, 115, 120];
-        $result  = $this->service->iqrAnomaly(5.0, $history);
+        $result = $this->service->iqrAnomaly(5.0, $history);
 
         $this->assertNotNull($result);
         $this->assertEquals('drop', $result['direction']);
@@ -102,7 +102,7 @@ class AnomalyDetectionServiceTest extends TestCase
     public function test_iqr_returns_null_for_normal_value(): void
     {
         $history = [10, 11, 10, 10, 11, 10, 10, 11, 10, 10];
-        $result  = $this->service->iqrAnomaly(11.0, $history);
+        $result = $this->service->iqrAnomaly(11.0, $history);
 
         $this->assertNull($result);
     }
@@ -119,7 +119,7 @@ class AnomalyDetectionServiceTest extends TestCase
     {
         // History must have some variance for z-score to work
         $history = [10, 11, 9, 10, 11, 10, 9, 11];
-        $result  = $this->service->detectAnomaly(200.0, $history);
+        $result = $this->service->detectAnomaly(200.0, $history);
 
         $this->assertNotNull($result);
     }
@@ -128,7 +128,7 @@ class AnomalyDetectionServiceTest extends TestCase
 
     public function test_forecast_returns_correct_number_of_steps(): void
     {
-        $values   = [1, 2, 3, 4, 5, 6, 7];
+        $values = [1, 2, 3, 4, 5, 6, 7];
         $forecast = $this->service->forecast($values, 3);
 
         $this->assertCount(3, $forecast);
@@ -136,7 +136,7 @@ class AnomalyDetectionServiceTest extends TestCase
 
     public function test_forecast_predicts_upward_trend(): void
     {
-        $values   = [1, 2, 3, 4, 5, 6, 7];
+        $values = [1, 2, 3, 4, 5, 6, 7];
         $forecast = $this->service->forecast($values, 3);
 
         // Linear regression on y=x+1 should predict 8, 9, 10

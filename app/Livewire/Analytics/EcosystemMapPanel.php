@@ -6,8 +6,8 @@ use App\Actions\Analytics\ConnectPlatformAction;
 use App\Actions\Analytics\DisconnectPlatformAction;
 use App\Models\DataSource;
 use App\Services\IntelligenceEngineService;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
@@ -21,7 +21,8 @@ use Livewire\Component;
 class EcosystemMapPanel extends Component
 {
     public ?string $connectingPlatform = null;
-    public string  $connectUrl         = '';
+
+    public string $connectUrl = '';
 
     private IntelligenceEngineService $engineService;
 
@@ -39,13 +40,13 @@ class EcosystemMapPanel extends Component
 
         $catalog = [];
         foreach (IntelligenceEngineService::PLATFORMS as $key => $platform) {
-            $source        = $sources->get($key);
-            $colors        = $this->engineService->getPlatformColorClasses($key);
+            $source = $sources->get($key);
+            $colors = $this->engineService->getPlatformColorClasses($key);
             $catalog[$key] = array_merge($platform, [
-                'key'     => $key,
-                'source'  => $source,
-                'status'  => $source?->status ?? 'not_connected',
-                'colors'  => $colors,
+                'key' => $key,
+                'source' => $source,
+                'status' => $source?->status ?? 'not_connected',
+                'colors' => $colors,
             ]);
         }
 
@@ -74,7 +75,7 @@ class EcosystemMapPanel extends Component
     public function startConnect(string $platform): void
     {
         $this->connectingPlatform = $platform;
-        $this->connectUrl         = '';
+        $this->connectUrl = '';
     }
 
     public function confirmConnect(): void
@@ -92,7 +93,7 @@ class EcosystemMapPanel extends Component
         );
 
         $this->connectingPlatform = null;
-        $this->connectUrl         = '';
+        $this->connectUrl = '';
         unset($this->platformCatalog, $this->activeEngines, $this->connectedCount);
     }
 
@@ -109,10 +110,10 @@ class EcosystemMapPanel extends Component
     public function cancelConnect(): void
     {
         $this->connectingPlatform = null;
-        $this->connectUrl         = '';
+        $this->connectUrl = '';
     }
 
-    public function render(): \Illuminate\View\View
+    public function render(): View
     {
         return view('livewire.analytics.ecosystem-map-panel');
     }

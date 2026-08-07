@@ -23,8 +23,8 @@ class GenerateExecutiveBriefingJobTest extends TestCase
 
         $this->assertDatabaseHas('executive_briefings', [
             'team_id' => $user->currentTeam->id,
-            'period'  => 'weekly',
-            'status'  => 'ready',
+            'period' => 'weekly',
+            'status' => 'ready',
         ]);
     }
 

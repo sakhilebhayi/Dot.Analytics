@@ -16,6 +16,6 @@ class PlatformConnected
 
     public function __construct(
         public readonly DataSource $dataSource,
-        public readonly int        $teamId,
+        public readonly int $teamId,
     ) {}
 }

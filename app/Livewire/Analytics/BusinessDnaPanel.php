@@ -5,6 +5,7 @@ namespace App\Livewire\Analytics;
 use App\Models\BusinessDnaProfile;
 use App\Services\BusinessDnaService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
@@ -36,7 +37,7 @@ class BusinessDnaPanel extends Component
         $this->computing = false;
     }
 
-    public function render(): \Illuminate\View\View
+    public function render(): View
     {
         return view('livewire.analytics.business-dna-panel');
     }

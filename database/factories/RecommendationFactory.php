@@ -16,12 +16,12 @@ class RecommendationFactory extends Factory
     public function definition(): array
     {
         return [
-            'team_id'  => Team::factory(),
-            'engine'   => $this->faker->randomElement(['operational', 'financial', 'risk', 'customer', 'decision']),
-            'title'    => $this->faker->sentence(6),
+            'team_id' => Team::factory(),
+            'engine' => $this->faker->randomElement(['operational', 'financial', 'risk', 'customer', 'decision']),
+            'title' => $this->faker->sentence(6),
             'rationale' => $this->faker->paragraph(),
             'priority' => $this->faker->randomElement(['critical', 'high', 'medium', 'low']),
-            'status'   => 'pending',
+            'status' => 'pending',
         ];
     }
 }

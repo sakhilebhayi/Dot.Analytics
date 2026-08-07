@@ -18,15 +18,15 @@ class BusinessDnaProfile extends Model
 
     protected $casts = [
         'operational_patterns' => 'array',
-        'seasonal_trends'      => 'array',
-        'risk_tolerance'       => 'array',
-        'growth_signals'       => 'array',
-        'decision_patterns'    => 'array',
-        'customer_behavior'    => 'array',
-        'bottlenecks'          => 'array',
-        'industry_benchmarks'  => 'array',
-        'confidence_score'     => 'float',
-        'last_computed_at'     => 'datetime',
+        'seasonal_trends' => 'array',
+        'risk_tolerance' => 'array',
+        'growth_signals' => 'array',
+        'decision_patterns' => 'array',
+        'customer_behavior' => 'array',
+        'bottlenecks' => 'array',
+        'industry_benchmarks' => 'array',
+        'confidence_score' => 'float',
+        'last_computed_at' => 'datetime',
     ];
 
     public function team(): BelongsTo

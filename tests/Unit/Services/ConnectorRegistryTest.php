@@ -3,9 +3,9 @@
 namespace Tests\Unit\Services;
 
 use App\Services\Connectors\ConnectorRegistry;
+use App\Services\Connectors\DatabaseConnector;
 use App\Services\Connectors\FileConnector;
 use App\Services\Connectors\RestApiConnector;
-use App\Services\Connectors\DatabaseConnector;
 use Tests\TestCase;
 
 class ConnectorRegistryTest extends TestCase
@@ -15,10 +15,10 @@ class ConnectorRegistryTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->registry = new ConnectorRegistry();
-        $this->registry->register(new FileConnector());
-        $this->registry->register(new RestApiConnector());
-        $this->registry->register(new DatabaseConnector());
+        $this->registry = new ConnectorRegistry;
+        $this->registry->register(new FileConnector);
+        $this->registry->register(new RestApiConnector);
+        $this->registry->register(new DatabaseConnector);
     }
 
     public function test_get_returns_registered_connector(): void
@@ -71,7 +71,7 @@ class ConnectorRegistryTest extends TestCase
 
     public function test_register_replaces_existing_type(): void
     {
-        $newFile = new FileConnector();
+        $newFile = new FileConnector;
         $this->registry->register($newFile);
 
         $this->assertCount(3, $this->registry->all()); // Still 3, not 4

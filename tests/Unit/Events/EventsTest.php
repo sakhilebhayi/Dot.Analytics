@@ -74,7 +74,7 @@ class EventsTest extends TestCase
 
     public function test_intelligence_engine_completed_broadcasts_on_team_channel(): void
     {
-        $event    = new IntelligenceEngineCompleted(99, 'risk', 1, 0, [], 1);
+        $event = new IntelligenceEngineCompleted(99, 'risk', 1, 0, [], 1);
         $channels = $event->broadcastOn();
 
         $this->assertCount(1, $channels);
@@ -85,9 +85,9 @@ class EventsTest extends TestCase
 
     public function test_platform_connected_carries_data_source_and_team_id(): void
     {
-        $user   = User::factory()->withPersonalTeam()->create();
+        $user = User::factory()->withPersonalTeam()->create();
         $source = DataSource::factory()->create(['team_id' => $user->currentTeam->id]);
-        $event  = new PlatformConnected($source, $user->currentTeam->id);
+        $event = new PlatformConnected($source, $user->currentTeam->id);
 
         $this->assertEquals($user->currentTeam->id, $event->teamId);
         $this->assertEquals($source->id, $event->dataSource->id);
@@ -108,9 +108,9 @@ class EventsTest extends TestCase
 
     public function test_critical_insight_discovered_carries_insight(): void
     {
-        $user    = User::factory()->withPersonalTeam()->create();
+        $user = User::factory()->withPersonalTeam()->create();
         $insight = CrossPlatformInsight::factory()->create([
-            'team_id'  => $user->currentTeam->id,
+            'team_id' => $user->currentTeam->id,
             'severity' => 'critical',
         ]);
 

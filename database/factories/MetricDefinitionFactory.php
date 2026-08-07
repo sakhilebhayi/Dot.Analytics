@@ -14,17 +14,17 @@ class MetricDefinitionFactory extends Factory
 
     public function definition(): array
     {
-        $engines   = ['business', 'financial', 'operational', 'people', 'customer', 'risk', 'predictive'];
+        $engines = ['business', 'financial', 'operational', 'people', 'customer', 'risk', 'predictive'];
         $platforms = ['dot.fleet', 'dot.crm', 'dot.hr', 'dot.payments', 'dot.support'];
 
         return [
-            'key'             => $this->faker->unique()->slug(3),
-            'label'           => $this->faker->words(3, true),
+            'key' => $this->faker->unique()->slug(3),
+            'label' => $this->faker->words(3, true),
             'source_platform' => $this->faker->randomElement($platforms),
-            'engine'          => $this->faker->randomElement($engines),
-            'aggregation'     => $this->faker->randomElement(['sum', 'avg', 'count', 'latest']),
-            'unit'            => $this->faker->randomElement(['%', 'ZAR', 'count', 'score', 'hours']),
-            'description'     => $this->faker->sentence(),
+            'engine' => $this->faker->randomElement($engines),
+            'aggregation' => $this->faker->randomElement(['sum', 'avg', 'count', 'latest']),
+            'unit' => $this->faker->randomElement(['%', 'ZAR', 'count', 'score', 'hours']),
+            'description' => $this->faker->sentence(),
         ];
     }
 }

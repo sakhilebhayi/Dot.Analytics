@@ -17,19 +17,19 @@ class DisconnectPlatformActionTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->action = new DisconnectPlatformAction();
+        $this->action = new DisconnectPlatformAction;
     }
 
     public function test_disconnect_deletes_datasource_and_returns_name(): void
     {
-        $user   = User::factory()->withPersonalTeam()->create();
-        $team   = $user->currentTeam;
+        $user = User::factory()->withPersonalTeam()->create();
+        $team = $user->currentTeam;
 
         DataSource::factory()->create([
-            'team_id'      => $team->id,
-            'platform'     => 'dot.fleet',
+            'team_id' => $team->id,
+            'platform' => 'dot.fleet',
             'display_name' => 'Dot.Fleet',
-            'status'       => 'connected',
+            'status' => 'connected',
         ]);
 
         $name = $this->action->handle($team, 'dot.fleet');

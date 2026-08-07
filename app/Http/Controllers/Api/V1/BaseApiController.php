@@ -35,7 +35,7 @@ abstract class BaseApiController extends Controller
         return response()->json([
             'success' => true,
             'message' => $message,
-            'data'    => $data,
+            'data' => $data,
         ], $status);
     }
 
@@ -44,7 +44,7 @@ abstract class BaseApiController extends Controller
         return response()->json(array_filter([
             'success' => false,
             'message' => $message,
-            'errors'  => $errors,
+            'errors' => $errors,
         ]), $status);
     }
 
@@ -52,12 +52,12 @@ abstract class BaseApiController extends Controller
     {
         return response()->json([
             'success' => true,
-            'data'    => $paginator->items(),
-            'meta'    => [
+            'data' => $paginator->items(),
+            'meta' => [
                 'current_page' => $paginator->currentPage(),
-                'last_page'    => $paginator->lastPage(),
-                'per_page'     => $paginator->perPage(),
-                'total'        => $paginator->total(),
+                'last_page' => $paginator->lastPage(),
+                'per_page' => $paginator->perPage(),
+                'total' => $paginator->total(),
             ],
         ]);
     }

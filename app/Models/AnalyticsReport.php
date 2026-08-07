@@ -6,6 +6,7 @@ use App\Models\Concerns\HasTeamScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class AnalyticsReport extends Model
 {
@@ -36,7 +37,7 @@ class AnalyticsReport extends Model
         return $this->hasMany(ReportRun::class);
     }
 
-    public function latestRun(): \Illuminate\Database\Eloquent\Relations\HasOne
+    public function latestRun(): HasOne
     {
         return $this->hasOne(ReportRun::class, 'analytics_report_id')->latestOfMany();
     }

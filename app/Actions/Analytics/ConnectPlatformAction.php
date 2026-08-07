@@ -38,8 +38,8 @@ class ConnectPlatformAction
             ['team_id' => $team->id, 'platform' => $platformKey],
             [
                 'display_name' => $catalog['label'],
-                'base_url'     => $baseUrl,
-                'status'       => 'connected',
+                'base_url' => $baseUrl,
+                'status' => 'connected',
                 'capabilities' => $catalog['contributions'],
                 'connected_at' => now(),
             ],

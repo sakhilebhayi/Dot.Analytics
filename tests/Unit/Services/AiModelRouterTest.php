@@ -9,12 +9,13 @@ use Tests\TestCase;
 class AiModelRouterTest extends TestCase
 {
     use RefreshDatabase;
+
     private AiModelRouter $router;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->router = new AiModelRouter();
+        $this->router = new AiModelRouter;
     }
 
     public function test_complete_returns_mock_response_when_no_api_keys_configured(): void

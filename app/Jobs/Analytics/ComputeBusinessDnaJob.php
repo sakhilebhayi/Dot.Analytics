@@ -12,7 +12,8 @@ class ComputeBusinessDnaJob implements ShouldQueue
 {
     use Queueable;
 
-    public int $tries   = 2;
+    public int $tries = 2;
+
     public int $timeout = 60;
 
     public function __construct(public readonly int $teamId) {}

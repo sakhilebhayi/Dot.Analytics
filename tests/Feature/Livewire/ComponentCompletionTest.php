@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Livewire;
 
+use App\Jobs\Analytics\GenerateExecutiveBriefingJob;
 use App\Livewire\Analytics\ExecutiveBriefingPanel;
 use App\Livewire\Analytics\IntelligenceDashboard;
 use App\Models\ExecutiveBriefing;
@@ -34,7 +35,7 @@ class ComponentCompletionTest extends TestCase
             ->set('period', 'weekly')
             ->call('generate');
 
-        Queue::assertPushed(\App\Jobs\Analytics\GenerateExecutiveBriefingJob::class, function ($job) {
+        Queue::assertPushed(GenerateExecutiveBriefingJob::class, function ($job) {
             return $job->period === 'weekly';
         });
     }
@@ -42,13 +43,13 @@ class ComponentCompletionTest extends TestCase
     public function test_briefing_panel_shows_ready_briefing(): void
     {
         ExecutiveBriefing::create([
-            'team_id'     => $this->user->currentTeam->id,
-            'period'      => 'weekly',
+            'team_id' => $this->user->currentTeam->id,
+            'period' => 'weekly',
             'period_date' => now()->toDateString(),
-            'status'      => 'ready',
-            'summary'     => 'All systems nominal.',
-            'highlights'  => ['Revenue up 8%'],
-            'risks'       => ['Key operator on leave'],
+            'status' => 'ready',
+            'summary' => 'All systems nominal.',
+            'highlights' => ['Revenue up 8%'],
+            'risks' => ['Key operator on leave'],
             'recommendations' => [['title' => 'Hire operator', 'rationale' => 'Reduce overtime']],
         ]);
 
@@ -60,10 +61,10 @@ class ComponentCompletionTest extends TestCase
     public function test_briefing_panel_generating_status_shows_spinner(): void
     {
         ExecutiveBriefing::create([
-            'team_id'     => $this->user->currentTeam->id,
-            'period'      => 'weekly',
+            'team_id' => $this->user->currentTeam->id,
+            'period' => 'weekly',
             'period_date' => now()->toDateString(),
-            'status'      => 'generating',
+            'status' => 'generating',
         ]);
 
         Livewire::test(ExecutiveBriefingPanel::class)

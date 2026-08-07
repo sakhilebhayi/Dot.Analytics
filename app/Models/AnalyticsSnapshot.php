@@ -15,7 +15,7 @@ class AnalyticsSnapshot extends Model
     ];
 
     protected $casts = [
-        'payload'     => 'array',
+        'payload' => 'array',
         'captured_at' => 'datetime',
     ];
 

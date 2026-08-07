@@ -43,7 +43,7 @@ class IngestController extends BaseApiController
         // from their last team) reaches this action with currentTeam null.
         // We only use $team for logging below, but avoid the null
         // dereference rather than let a webhook 500 on that edge case.
-        $team   = $user->currentTeam;
+        $team = $user->currentTeam;
         $source = DataSource::where('platform', $platform)
             ->where('status', 'connected')
             ->first();
@@ -61,9 +61,10 @@ class IngestController extends BaseApiController
             if (! $this->validateSignature($request, $secret)) {
                 Log::warning('Webhook signature mismatch', [
                     'platform' => $platform,
-                    'team_id'  => $team?->id,
-                    'ip'       => $request->ip(),
+                    'team_id' => $team?->id,
+                    'ip' => $request->ip(),
                 ]);
+
                 return $this->error('Invalid signature.', 401);
             }
         }
@@ -98,8 +99,8 @@ class IngestController extends BaseApiController
         $source = DataSource::where('platform', $platform)->first();
 
         return $this->success([
-            'platform'   => $platform,
-            'connected'  => $source?->isConnected() ?? false,
+            'platform' => $platform,
+            'connected' => $source?->isConnected() ?? false,
             'last_synced' => $source?->last_synced_at?->toIso8601String(),
         ]);
     }
@@ -107,7 +108,7 @@ class IngestController extends BaseApiController
     private function validateSignature(Request $request, string $secret): bool
     {
         $signature = $request->header('X-Analytics-Signature', '');
-        $expected  = 'sha256=' . hash_hmac('sha256', $request->getContent(), $secret);
+        $expected = 'sha256='.hash_hmac('sha256', $request->getContent(), $secret);
 
         return hash_equals($expected, $signature);
     }

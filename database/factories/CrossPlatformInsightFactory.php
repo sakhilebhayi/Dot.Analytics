@@ -18,16 +18,16 @@ class CrossPlatformInsightFactory extends Factory
         $platforms = ['dot.fleet', 'dot.crm', 'dot.hr', 'dot.payments', 'dot.support'];
 
         return [
-            'team_id'             => Team::factory(),
-            'title'               => $this->faker->sentence(6),
-            'narrative'           => $this->faker->paragraph(),
-            'platforms_involved'  => $this->faker->randomElements($platforms, 2),
-            'entities_involved'   => null,
-            'insight_type'        => $this->faker->randomElement(['correlation', 'causation', 'prediction', 'risk', 'opportunity']),
-            'confidence'          => $this->faker->randomFloat(2, 0.5, 0.99),
-            'severity'            => $this->faker->randomElement(['info', 'warning', 'critical']),
-            'status'              => 'new',
-            'supporting_metrics'  => null,
+            'team_id' => Team::factory(),
+            'title' => $this->faker->sentence(6),
+            'narrative' => $this->faker->paragraph(),
+            'platforms_involved' => $this->faker->randomElements($platforms, 2),
+            'entities_involved' => null,
+            'insight_type' => $this->faker->randomElement(['correlation', 'causation', 'prediction', 'risk', 'opportunity']),
+            'confidence' => $this->faker->randomFloat(2, 0.5, 0.99),
+            'severity' => $this->faker->randomElement(['info', 'warning', 'critical']),
+            'status' => 'new',
+            'supporting_metrics' => null,
         ];
     }
 

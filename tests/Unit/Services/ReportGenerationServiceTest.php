@@ -3,11 +3,10 @@
 namespace Tests\Unit\Services;
 
 use App\Models\CrossPlatformInsight;
-use App\Models\AnalyticsAlert;
-use App\Models\Recommendation;
 use App\Models\User;
 use App\Services\ReportGenerationService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Tests\TestCase;
 
 class ReportGenerationServiceTest extends TestCase
@@ -19,7 +18,7 @@ class ReportGenerationServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->service = new ReportGenerationService();
+        $this->service = new ReportGenerationService;
     }
 
     private function team()
@@ -29,7 +28,7 @@ class ReportGenerationServiceTest extends TestCase
 
     public function test_generate_json_returns_required_structure(): void
     {
-        $team   = $this->team();
+        $team = $this->team();
         $report = $this->service->generateJson($team, 'insights');
 
         $this->assertArrayHasKey('report_type', $report);
@@ -66,7 +65,7 @@ class ReportGenerationServiceTest extends TestCase
 
     public function test_generate_json_alerts_has_correct_columns(): void
     {
-        $team   = $this->team();
+        $team = $this->team();
         $report = $this->service->generateJson($team, 'alerts');
 
         $this->assertContains('Title', $report['columns']);
@@ -76,7 +75,7 @@ class ReportGenerationServiceTest extends TestCase
 
     public function test_generate_json_recommendations_has_correct_columns(): void
     {
-        $team   = $this->team();
+        $team = $this->team();
         $report = $this->service->generateJson($team, 'recommendations');
 
         $this->assertContains('Title', $report['columns']);
@@ -100,7 +99,7 @@ class ReportGenerationServiceTest extends TestCase
 
         CrossPlatformInsight::factory()->create([
             'team_id' => $team->id,
-            'title'   => '<script>alert("xss")</script>',
+            'title' => '<script>alert("xss")</script>',
         ]);
 
         $html = $this->service->generateHtml($team, 'insights');
@@ -111,10 +110,10 @@ class ReportGenerationServiceTest extends TestCase
 
     public function test_stream_csv_returns_streamed_response(): void
     {
-        $team     = $this->team();
+        $team = $this->team();
         $response = $this->service->streamCsv($team, 'insights');
 
-        $this->assertInstanceOf(\Symfony\Component\HttpFoundation\StreamedResponse::class, $response);
+        $this->assertInstanceOf(StreamedResponse::class, $response);
         $this->assertStringContainsString('text/csv', $response->headers->get('Content-Type'));
     }
 }

@@ -19,7 +19,7 @@ class BusinessDnaService
 {
     public function __construct(
         private readonly IntelligenceEngineService $engineService,
-        private readonly AiModelRouter             $aiRouter,
+        private readonly AiModelRouter $aiRouter,
     ) {}
 
     /**
@@ -37,15 +37,15 @@ class BusinessDnaService
 
         $profile->fill([
             'operational_patterns' => $dna['operational_patterns'],
-            'seasonal_trends'      => $dna['seasonal_trends'],
-            'risk_tolerance'       => $dna['risk_tolerance'],
-            'growth_signals'       => $dna['growth_signals'],
-            'decision_patterns'    => $dna['decision_patterns'],
-            'customer_behavior'    => $dna['customer_behavior'],
-            'bottlenecks'          => $dna['bottlenecks'],
-            'industry_benchmarks'  => $dna['industry_benchmarks'],
-            'confidence_score'     => $this->calculateConfidence($signals),
-            'last_computed_at'     => Carbon::now(),
+            'seasonal_trends' => $dna['seasonal_trends'],
+            'risk_tolerance' => $dna['risk_tolerance'],
+            'growth_signals' => $dna['growth_signals'],
+            'decision_patterns' => $dna['decision_patterns'],
+            'customer_behavior' => $dna['customer_behavior'],
+            'bottlenecks' => $dna['bottlenecks'],
+            'industry_benchmarks' => $dna['industry_benchmarks'],
+            'confidence_score' => $this->calculateConfidence($signals),
+            'last_computed_at' => Carbon::now(),
         ]);
 
         $profile->save();
@@ -65,10 +65,10 @@ class BusinessDnaService
             ->toArray();
 
         return [
-            'snapshot_count'   => $snapshotCount,
-            'platform_count'   => count($sourcePlatforms),
-            'platforms'        => $sourcePlatforms,
-            'data_age_days'    => $this->getOldestSnapshotAgeDays($team),
+            'snapshot_count' => $snapshotCount,
+            'platform_count' => count($sourcePlatforms),
+            'platforms' => $sourcePlatforms,
+            'data_age_days' => $this->getOldestSnapshotAgeDays($team),
         ];
     }
 
@@ -101,7 +101,7 @@ Return a JSON object only:
 }
 PROMPT;
 
-        $raw    = $this->aiRouter->complete($prompt, 'query', $team->id);
+        $raw = $this->aiRouter->complete($prompt, 'query', $team->id);
         $parsed = json_decode($raw, true);
 
         if (is_array($parsed) && isset($parsed['operational_patterns'])) {
@@ -123,12 +123,12 @@ PROMPT;
 
         return [
             'operational_patterns' => [
-                'summary'      => 'Baseline pattern established. More data needed for precise characterisation.',
+                'summary' => 'Baseline pattern established. More data needed for precise characterisation.',
                 'key_patterns' => [],
             ],
             'seasonal_trends' => [
                 'summary' => 'Seasonal trends will emerge after 30+ days of connected data.',
-                'peaks'   => [],
+                'peaks' => [],
                 'troughs' => [],
             ],
             'risk_tolerance' => [
@@ -136,20 +136,20 @@ PROMPT;
                 'notes' => 'Default risk profile. Will refine as decision data accumulates.',
             ],
             'growth_signals' => [
-                'summary' => 'Monitoring for growth signals across: ' . implode(', ', $platformLabels),
+                'summary' => 'Monitoring for growth signals across: '.implode(', ', $platformLabels),
                 'signals' => [],
             ],
             'decision_patterns' => [
-                'summary'    => 'Decision patterns will emerge as workflow and agent data accumulates.',
+                'summary' => 'Decision patterns will emerge as workflow and agent data accumulates.',
                 'tendencies' => [],
             ],
             'customer_behavior' => [
-                'summary'  => 'Customer behavioural profiling requires CRM and support data.',
+                'summary' => 'Customer behavioural profiling requires CRM and support data.',
                 'segments' => [],
             ],
             'bottlenecks' => [
                 'summary' => 'No bottlenecks identified yet. Connect operational platforms for detection.',
-                'areas'   => [],
+                'areas' => [],
             ],
             'industry_benchmarks' => [
                 'notes' => 'Industry benchmarks will be applied once the industry profile is set.',
@@ -163,9 +163,9 @@ PROMPT;
      */
     private function calculateConfidence(array $signals): float
     {
-        $platformScore  = min($signals['platform_count'] / 5, 1.0) * 0.4;   // max 40% from platforms
-        $snapshotScore  = min($signals['snapshot_count'] / 100, 1.0) * 0.4; // max 40% from snapshots
-        $ageScore       = min(($signals['data_age_days'] ?? 0) / 30, 1.0) * 0.2; // max 20% from age
+        $platformScore = min($signals['platform_count'] / 5, 1.0) * 0.4;   // max 40% from platforms
+        $snapshotScore = min($signals['snapshot_count'] / 100, 1.0) * 0.4; // max 40% from snapshots
+        $ageScore = min(($signals['data_age_days'] ?? 0) / 30, 1.0) * 0.2; // max 20% from age
 
         return round($platformScore + $snapshotScore + $ageScore, 2);
     }

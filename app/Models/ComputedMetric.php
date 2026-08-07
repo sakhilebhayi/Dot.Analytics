@@ -15,7 +15,7 @@ class ComputedMetric extends Model
     ];
 
     protected $casts = [
-        'value'       => 'decimal:4',
+        'value' => 'decimal:4',
         'period_date' => 'date',
     ];
 

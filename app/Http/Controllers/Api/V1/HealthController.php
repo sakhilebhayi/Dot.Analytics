@@ -26,7 +26,7 @@ class HealthController extends BaseApiController
      */
     public function detailed(): JsonResponse
     {
-        $checks   = [];
+        $checks = [];
         $degraded = false;
 
         // Database
@@ -46,12 +46,12 @@ class HealthController extends BaseApiController
 
         // Application
         $checks['application'] = [
-            'healthy'    => true,
-            'version'    => config('app.version', '1.0.0'),
-            'env'        => config('app.env'),
-            'debug'      => config('app.debug'),
+            'healthy' => true,
+            'version' => config('app.version', '1.0.0'),
+            'env' => config('app.env'),
+            'debug' => config('app.debug'),
             'php_version' => PHP_VERSION,
-            'laravel'    => app()->version(),
+            'laravel' => app()->version(),
         ];
 
         // Intelligence engines
@@ -60,9 +60,9 @@ class HealthController extends BaseApiController
         $status = $degraded ? 503 : 200;
 
         return response()->json([
-            'status'     => $degraded ? 'degraded' : 'healthy',
-            'timestamp'  => now()->toIso8601String(),
-            'checks'     => $checks,
+            'status' => $degraded ? 'degraded' : 'healthy',
+            'timestamp' => now()->toIso8601String(),
+            'checks' => $checks,
         ], $status);
     }
 
@@ -82,6 +82,7 @@ class HealthController extends BaseApiController
         try {
             DB::select('SELECT 1');
             $latency = (int) ((microtime(true) - $start) * 1000);
+
             return ['healthy' => true, 'latency_ms' => $latency, 'driver' => config('database.default')];
         } catch (\Throwable $e) {
             return ['healthy' => false, 'error' => $e->getMessage()];
@@ -92,11 +93,12 @@ class HealthController extends BaseApiController
     {
         $start = microtime(true);
         try {
-            $key = 'health_check_' . uniqid();
+            $key = 'health_check_'.uniqid();
             Cache::put($key, true, 5);
-            $ok      = Cache::get($key) === true;
+            $ok = Cache::get($key) === true;
             Cache::forget($key);
             $latency = (int) ((microtime(true) - $start) * 1000);
+
             return ['healthy' => $ok, 'latency_ms' => $latency, 'driver' => config('cache.default')];
         } catch (\Throwable $e) {
             return ['healthy' => false, 'error' => $e->getMessage()];
@@ -107,9 +109,10 @@ class HealthController extends BaseApiController
     {
         try {
             $connection = config('queue.default');
-            $size       = Queue::size();
+            $size = Queue::size();
+
             return [
-                'healthy'    => true,
+                'healthy' => true,
                 'connection' => $connection,
                 'queue_size' => $size,
             ];
@@ -122,17 +125,17 @@ class HealthController extends BaseApiController
     {
         $providers = [
             'anthropic' => ! empty(config('services.anthropic.key')),
-            'openai'    => ! empty(config('services.openai.key')),
-            'google'    => ! empty(config('services.google.ai_key')),
-            'deepseek'  => ! empty(config('services.deepseek.key')),
+            'openai' => ! empty(config('services.openai.key')),
+            'google' => ! empty(config('services.google.ai_key')),
+            'deepseek' => ! empty(config('services.deepseek.key')),
         ];
 
         $configured = array_keys(array_filter($providers));
 
         return [
-            'healthy'      => ! empty($configured),
-            'configured'   => $configured,
-            'primary'      => config('services.ai.primary_provider', 'anthropic'),
+            'healthy' => ! empty($configured),
+            'configured' => $configured,
+            'primary' => config('services.ai.primary_provider', 'anthropic'),
             'fallback_mode' => empty($configured),
         ];
     }
@@ -141,12 +144,12 @@ class HealthController extends BaseApiController
     {
         try {
             $connectedCount = DataSource::where('status', 'connected')->count();
-            $aiCallsToday   = AiModelUsage::whereDate('created_at', today())->count();
+            $aiCallsToday = AiModelUsage::whereDate('created_at', today())->count();
 
             return [
-                'healthy'             => true,
+                'healthy' => true,
                 'connected_platforms' => $connectedCount,
-                'ai_calls_today'      => $aiCallsToday,
+                'ai_calls_today' => $aiCallsToday,
             ];
         } catch (\Throwable $e) {
             return ['healthy' => false, 'error' => $e->getMessage()];

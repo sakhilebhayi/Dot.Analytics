@@ -52,9 +52,9 @@ Route::middleware([
         );
 
         return view('dashboard', [
-            'connectedCount'             => count($connectedPlatforms),
-            'activeEngineCount'          => $activeEngineCount,
-            'openAlertCount'             => AnalyticsAlert::where('team_id', $team->id)->where('status', 'open')->count(),
+            'connectedCount' => count($connectedPlatforms),
+            'activeEngineCount' => $activeEngineCount,
+            'openAlertCount' => AnalyticsAlert::where('team_id', $team->id)->where('status', 'open')->count(),
             'pendingRecommendationCount' => Recommendation::where('team_id', $team->id)->where('status', 'pending')->count(),
         ]);
     })->name('dashboard');

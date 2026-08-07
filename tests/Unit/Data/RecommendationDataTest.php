@@ -10,11 +10,11 @@ class RecommendationDataTest extends TestCase
     public function test_from_array_creates_dto(): void
     {
         $rec = RecommendationData::fromArray([
-            'title'                => 'Reduce fleet idle time',
-            'rationale'            => 'Fleet and HR data show a correlation',
-            'engine'               => 'operational',
-            'priority'             => 'high',
-            'confidence'           => 0.85,
+            'title' => 'Reduce fleet idle time',
+            'rationale' => 'Fleet and HR data show a correlation',
+            'engine' => 'operational',
+            'priority' => 'high',
+            'confidence' => 0.85,
             'platforms_referenced' => ['dot.fleet', 'dot.hr'],
         ]);
 
@@ -27,7 +27,7 @@ class RecommendationDataTest extends TestCase
     public function test_from_array_uses_defaults(): void
     {
         $rec = RecommendationData::fromArray([
-            'title'     => 'Minimal',
+            'title' => 'Minimal',
             'rationale' => 'Some reason',
         ]);
 
@@ -39,7 +39,7 @@ class RecommendationDataTest extends TestCase
 
     public function test_to_array_has_snake_case_keys(): void
     {
-        $rec   = RecommendationData::fromArray(['title' => 'T', 'rationale' => 'R']);
+        $rec = RecommendationData::fromArray(['title' => 'T', 'rationale' => 'R']);
         $array = $rec->toArray();
 
         $this->assertArrayHasKey('platforms_referenced', $array);
@@ -49,8 +49,8 @@ class RecommendationDataTest extends TestCase
 
     public function test_to_array_includes_ai_model_in_supporting_data(): void
     {
-        $rec   = RecommendationData::fromArray([
-            'title'    => 'T',
+        $rec = RecommendationData::fromArray([
+            'title' => 'T',
             'rationale' => 'R',
             'ai_model' => 'claude-sonnet-4-6',
         ]);

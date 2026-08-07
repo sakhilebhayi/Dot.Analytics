@@ -10,13 +10,13 @@ namespace App\Data;
 readonly class IntelligenceContextData
 {
     public function __construct(
-        public int    $teamId,
+        public int $teamId,
         public string $teamName,
-        public array  $connectedPlatforms,    // ['dot.fleet', 'dot.crm', ...]
-        public array  $activeEngines,          // engine keys
-        public array  $recentSnapshots,        // recent data summaries
-        public ?array $dnaProfile   = null,   // Business DNA profile summary
-        public string $period       = 'daily',
+        public array $connectedPlatforms,    // ['dot.fleet', 'dot.crm', ...]
+        public array $activeEngines,          // engine keys
+        public array $recentSnapshots,        // recent data summaries
+        public ?array $dnaProfile = null,   // Business DNA profile summary
+        public string $period = 'daily',
     ) {}
 
     /**
@@ -25,7 +25,7 @@ readonly class IntelligenceContextData
     public function toPromptString(): string
     {
         $platforms = implode(', ', $this->connectedPlatforms);
-        $engines   = implode(', ', $this->activeEngines);
+        $engines = implode(', ', $this->activeEngines);
 
         $lines = [
             "Organisation: {$this->teamName}",
@@ -35,7 +35,7 @@ readonly class IntelligenceContextData
 
         if ($this->dnaProfile) {
             $riskLevel = $this->dnaProfile['risk_tolerance']['level'] ?? 'medium';
-            $lines[]   = "Risk profile: {$riskLevel} tolerance";
+            $lines[] = "Risk profile: {$riskLevel} tolerance";
         }
 
         return implode("\n", $lines);

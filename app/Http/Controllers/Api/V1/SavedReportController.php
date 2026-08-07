@@ -46,16 +46,16 @@ class SavedReportController extends BaseApiController
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'title'           => 'required|string|max:120',
-            'type'            => 'required|string|in:' . implode(',', self::VALID_TYPES),
-            'description'     => 'nullable|string|max:500',
+            'title' => 'required|string|max:120',
+            'type' => 'required|string|in:'.implode(',', self::VALID_TYPES),
+            'description' => 'nullable|string|max:500',
             'cron_expression' => 'nullable|string|max:100',
-            'config'          => 'nullable|array',
+            'config' => 'nullable|array',
         ]);
 
         $report = AnalyticsReport::create(array_merge($validated, [
-            'team_id'     => $this->currentTeam()->id,
-            'user_id'     => Auth::id(),
+            'team_id' => $this->currentTeam()->id,
+            'user_id' => Auth::id(),
             'report_type' => ! empty($validated['cron_expression']) ? 'scheduled' : 'ad_hoc',
         ]));
 
@@ -68,13 +68,13 @@ class SavedReportController extends BaseApiController
      */
     public function run(int $id): JsonResponse
     {
-        $team   = $this->currentTeam();
+        $team = $this->currentTeam();
         $report = AnalyticsReport::findOrFail($id);
 
         $run = ReportRun::create([
             'analytics_report_id' => $report->id,
-            'status'              => 'running',
-            'started_at'          => now(),
+            'status' => 'running',
+            'started_at' => now(),
         ]);
 
         try {
@@ -85,13 +85,14 @@ class SavedReportController extends BaseApiController
             );
 
             $run->update([
-                'status'       => 'completed',
-                'output'       => $output,
+                'status' => 'completed',
+                'output' => $output,
                 'completed_at' => now(),
             ]);
         } catch (\Throwable $e) {
             $run->update(['status' => 'failed', 'completed_at' => now()]);
-            return $this->error('Report run failed: ' . $e->getMessage(), 500);
+
+            return $this->error('Report run failed: '.$e->getMessage(), 500);
         }
 
         return $this->success(['run' => $run, 'output' => $output]);

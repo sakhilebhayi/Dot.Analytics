@@ -19,7 +19,7 @@ class SsrfProtectionTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->connector = new RestApiConnector();
+        $this->connector = new RestApiConnector;
     }
 
     public function test_test_blocks_localhost(): void

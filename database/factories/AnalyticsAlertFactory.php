@@ -16,12 +16,12 @@ class AnalyticsAlertFactory extends Factory
     public function definition(): array
     {
         return [
-            'team_id'      => Team::factory(),
-            'title'        => $this->faker->sentence(5),
-            'description'  => $this->faker->sentence(),
-            'severity'     => $this->faker->randomElement(['info', 'warning', 'critical']),
-            'status'       => 'open',
-            'context'      => [],
+            'team_id' => Team::factory(),
+            'title' => $this->faker->sentence(5),
+            'description' => $this->faker->sentence(),
+            'severity' => $this->faker->randomElement(['info', 'warning', 'critical']),
+            'status' => 'open',
+            'context' => [],
             'triggered_at' => now(),
         ];
     }

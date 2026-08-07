@@ -9,15 +9,16 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class DashboardWidget extends Model
 {
     use HasFactory;
+
     protected $fillable = [
         'analytics_dashboard_id', 'widget_type', 'title', 'config', 'col', 'row', 'width', 'height',
     ];
 
     protected $casts = [
         'config' => 'array',
-        'col'    => 'integer',
-        'row'    => 'integer',
-        'width'  => 'integer',
+        'col' => 'integer',
+        'row' => 'integer',
+        'width' => 'integer',
         'height' => 'integer',
     ];
 

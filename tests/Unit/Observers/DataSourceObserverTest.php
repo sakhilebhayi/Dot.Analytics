@@ -26,9 +26,9 @@ class DataSourceObserverTest extends TestCase
 
         $team = $this->team();
         DataSource::factory()->create([
-            'team_id'  => $team->id,
+            'team_id' => $team->id,
             'platform' => 'dot.fleet',
-            'status'   => 'connected',
+            'status' => 'connected',
         ]);
 
         Event::assertDispatched(PlatformConnected::class);
@@ -40,9 +40,9 @@ class DataSourceObserverTest extends TestCase
 
         $team = $this->team();
         DataSource::factory()->create([
-            'team_id'  => $team->id,
+            'team_id' => $team->id,
             'platform' => 'dot.fleet',
-            'status'   => 'pending',
+            'status' => 'pending',
         ]);
 
         Event::assertNotDispatched(PlatformConnected::class);
@@ -52,11 +52,11 @@ class DataSourceObserverTest extends TestCase
     {
         Event::fake([PlatformConnected::class]);
 
-        $team   = $this->team();
+        $team = $this->team();
         $source = DataSource::factory()->create([
-            'team_id'  => $team->id,
+            'team_id' => $team->id,
             'platform' => 'dot.fleet',
-            'status'   => 'pending',
+            'status' => 'pending',
         ]);
 
         $source->update(['status' => 'connected']);
@@ -68,11 +68,11 @@ class DataSourceObserverTest extends TestCase
     {
         Event::fake([PlatformDisconnected::class]);
 
-        $team   = $this->team();
+        $team = $this->team();
         $source = DataSource::factory()->create([
-            'team_id'  => $team->id,
+            'team_id' => $team->id,
             'platform' => 'dot.fleet',
-            'status'   => 'connected',
+            'status' => 'connected',
         ]);
 
         $source->delete();
@@ -86,48 +86,48 @@ class DataSourceObserverTest extends TestCase
     {
         $team = $this->team();
         DataSource::factory()->create([
-            'team_id'  => $team->id,
+            'team_id' => $team->id,
             'platform' => 'dot.fleet',
-            'status'   => 'connected',
+            'status' => 'connected',
         ]);
 
         $this->assertDatabaseHas('audit_logs', [
             'team_id' => $team->id,
-            'event'   => 'platform.created',
+            'event' => 'platform.created',
         ]);
     }
 
     public function test_updating_source_writes_audit_log(): void
     {
-        $team   = $this->team();
+        $team = $this->team();
         $source = DataSource::factory()->create([
-            'team_id'  => $team->id,
+            'team_id' => $team->id,
             'platform' => 'dot.fleet',
-            'status'   => 'pending',
+            'status' => 'pending',
         ]);
 
         $source->update(['status' => 'connected']);
 
         $this->assertDatabaseHas('audit_logs', [
             'team_id' => $team->id,
-            'event'   => 'platform.updated',
+            'event' => 'platform.updated',
         ]);
     }
 
     public function test_deleting_source_writes_audit_log(): void
     {
-        $team   = $this->team();
+        $team = $this->team();
         $source = DataSource::factory()->create([
-            'team_id'  => $team->id,
+            'team_id' => $team->id,
             'platform' => 'dot.fleet',
-            'status'   => 'connected',
+            'status' => 'connected',
         ]);
 
         $source->delete();
 
         $this->assertDatabaseHas('audit_logs', [
             'team_id' => $team->id,
-            'event'   => 'platform.deleted',
+            'event' => 'platform.deleted',
         ]);
     }
 
@@ -135,7 +135,7 @@ class DataSourceObserverTest extends TestCase
     {
         $this->expectException(\RuntimeException::class);
 
-        $team   = $this->team();
+        $team = $this->team();
         DataSource::factory()->create(['team_id' => $team->id, 'platform' => 'dot.fleet', 'status' => 'connected']);
 
         $log = AuditLog::where('team_id', $team->id)->first();

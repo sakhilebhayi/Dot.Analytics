@@ -10,12 +10,12 @@ class CrossPlatformInsightDataTest extends TestCase
     public function test_from_array_creates_correct_dto(): void
     {
         $data = [
-            'title'              => 'Test insight',
-            'narrative'          => 'Detailed narrative',
+            'title' => 'Test insight',
+            'narrative' => 'Detailed narrative',
             'platforms_involved' => ['dot.fleet', 'dot.hr'],
-            'insight_type'       => 'causation',
-            'confidence'         => 0.85,
-            'severity'           => 'warning',
+            'insight_type' => 'causation',
+            'confidence' => 0.85,
+            'severity' => 'warning',
         ];
 
         $dto = CrossPlatformInsightData::fromArray($data);
@@ -30,7 +30,7 @@ class CrossPlatformInsightDataTest extends TestCase
     public function test_from_array_uses_defaults_for_missing_fields(): void
     {
         $dto = CrossPlatformInsightData::fromArray([
-            'title'     => 'Minimal',
+            'title' => 'Minimal',
             'narrative' => 'Some narrative',
         ]);
 
@@ -43,9 +43,9 @@ class CrossPlatformInsightDataTest extends TestCase
     public function test_is_critical_returns_true_for_critical_severity(): void
     {
         $dto = CrossPlatformInsightData::fromArray([
-            'title'     => 'Critical',
+            'title' => 'Critical',
             'narrative' => 'Critical narrative',
-            'severity'  => 'critical',
+            'severity' => 'critical',
         ]);
 
         $this->assertTrue($dto->isCritical());
@@ -54,9 +54,9 @@ class CrossPlatformInsightDataTest extends TestCase
     public function test_is_critical_returns_false_for_info_severity(): void
     {
         $dto = CrossPlatformInsightData::fromArray([
-            'title'     => 'Info',
+            'title' => 'Info',
             'narrative' => 'Info narrative',
-            'severity'  => 'info',
+            'severity' => 'info',
         ]);
 
         $this->assertFalse($dto->isCritical());
@@ -65,8 +65,8 @@ class CrossPlatformInsightDataTest extends TestCase
     public function test_is_high_confidence_returns_true_for_08_or_above(): void
     {
         $dto = CrossPlatformInsightData::fromArray([
-            'title'      => 'High confidence',
-            'narrative'  => '...',
+            'title' => 'High confidence',
+            'narrative' => '...',
             'confidence' => 0.9,
         ]);
 
@@ -76,8 +76,8 @@ class CrossPlatformInsightDataTest extends TestCase
     public function test_is_high_confidence_returns_false_below_08(): void
     {
         $dto = CrossPlatformInsightData::fromArray([
-            'title'      => 'Low confidence',
-            'narrative'  => '...',
+            'title' => 'Low confidence',
+            'narrative' => '...',
             'confidence' => 0.6,
         ]);
 
@@ -86,13 +86,13 @@ class CrossPlatformInsightDataTest extends TestCase
 
     public function test_to_array_returns_snake_case_keys(): void
     {
-        $dto   = CrossPlatformInsightData::fromArray([
-            'title'              => 'Test',
-            'narrative'          => 'Narrative',
+        $dto = CrossPlatformInsightData::fromArray([
+            'title' => 'Test',
+            'narrative' => 'Narrative',
             'platforms_involved' => ['dot.crm'],
-            'insight_type'       => 'risk',
-            'confidence'         => 0.75,
-            'severity'           => 'warning',
+            'insight_type' => 'risk',
+            'confidence' => 0.75,
+            'severity' => 'warning',
         ]);
         $array = $dto->toArray();
 

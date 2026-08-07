@@ -7,20 +7,26 @@ use App\Models\ReportRun;
 use App\Services\ReportGenerationService;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
 class SavedReportsPanel extends Component
 {
-    public bool   $showCreate  = false;
-    public string $title       = '';
-    public string $reportType  = 'insights';
+    public bool $showCreate = false;
+
+    public string $title = '';
+
+    public string $reportType = 'insights';
+
     public string $description = '';
-    public bool   $running     = false;
-    public ?int   $runningId   = null;
+
+    public bool $running = false;
+
+    public ?int $runningId = null;
 
     protected array $rules = [
-        'title'      => 'required|string|max:120',
+        'title' => 'required|string|max:120',
         'reportType' => 'required|in:insights,alerts,recommendations,metrics',
         'description' => 'nullable|string|max:500',
     ];
@@ -38,12 +44,12 @@ class SavedReportsPanel extends Component
         $this->validate();
 
         AnalyticsReport::create([
-            'team_id'     => Auth::user()->currentTeam->id,
-            'user_id'     => Auth::id(),
-            'title'       => $this->title,
+            'team_id' => Auth::user()->currentTeam->id,
+            'user_id' => Auth::id(),
+            'title' => $this->title,
             'description' => $this->description ?: null,
-            'type'        => 'ad_hoc',
-            'config'      => ['report_type' => $this->reportType],
+            'type' => 'ad_hoc',
+            'config' => ['report_type' => $this->reportType],
         ]);
 
         $this->reset(['title', 'description', 'showCreate']);
@@ -52,16 +58,16 @@ class SavedReportsPanel extends Component
 
     public function run(int $id): void
     {
-        $this->running   = true;
+        $this->running = true;
         $this->runningId = $id;
 
-        $team   = Auth::user()->currentTeam;
+        $team = Auth::user()->currentTeam;
         $report = AnalyticsReport::findOrFail($id);
 
         $run = ReportRun::create([
             'analytics_report_id' => $report->id,
-            'status'              => 'running',
-            'started_at'          => now(),
+            'status' => 'running',
+            'started_at' => now(),
         ]);
 
         try {
@@ -76,7 +82,7 @@ class SavedReportsPanel extends Component
         }
 
         unset($this->reports);
-        $this->running   = false;
+        $this->running = false;
         $this->runningId = null;
     }
 
@@ -87,7 +93,7 @@ class SavedReportsPanel extends Component
         unset($this->reports);
     }
 
-    public function render(): \Illuminate\View\View
+    public function render(): View
     {
         return view('livewire.analytics.saved-reports-panel');
     }

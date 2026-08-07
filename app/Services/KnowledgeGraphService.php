@@ -27,23 +27,23 @@ class KnowledgeGraphService
      * Upsert an entity node in the graph.
      */
     public function upsertNode(
-        Team   $team,
+        Team $team,
         string $entityType,
         string $entityId,
         string $label,
         string $sourcePlatform,
-        array  $attributes = [],
+        array $attributes = [],
     ): IntelligenceNode {
         return IntelligenceNode::updateOrCreate(
             [
-                'team_id'     => $team->id,
+                'team_id' => $team->id,
                 'entity_type' => $entityType,
-                'entity_id'   => $entityId,
+                'entity_id' => $entityId,
             ],
             [
-                'label'           => $label,
+                'label' => $label,
                 'source_platform' => $sourcePlatform,
-                'attributes'      => $attributes,
+                'attributes' => $attributes,
             ],
         );
     }
@@ -54,19 +54,19 @@ class KnowledgeGraphService
     public function connect(
         IntelligenceNode $from,
         IntelligenceNode $to,
-        string           $relationship,
-        float            $weight   = 1.0,
-        array            $metadata = [],
+        string $relationship,
+        float $weight = 1.0,
+        array $metadata = [],
     ): IntelligenceEdge {
         return IntelligenceEdge::updateOrCreate(
             [
-                'team_id'     => $from->team_id,
+                'team_id' => $from->team_id,
                 'from_node_id' => $from->id,
-                'to_node_id'   => $to->id,
+                'to_node_id' => $to->id,
                 'relationship' => $relationship,
             ],
             [
-                'weight'   => $weight,
+                'weight' => $weight,
                 'metadata' => $metadata,
             ],
         );
@@ -97,9 +97,9 @@ class KnowledgeGraphService
      * Used for root cause analysis.
      */
     public function findPath(
-        Team   $team,
+        Team $team,
         string $fromType, string $fromId,
-        string $toType,   string $toId,
+        string $toType, string $toId,
     ): array {
         $start = IntelligenceNode::where('team_id', $team->id)
             ->where('entity_type', $fromType)
@@ -141,11 +141,11 @@ class KnowledgeGraphService
             ->toArray();
 
         return [
-            'node_count'        => $nodeCount,
-            'edge_count'        => $edgeCount,
-            'entity_types'      => $entityTypes,
+            'node_count' => $nodeCount,
+            'edge_count' => $edgeCount,
+            'entity_types' => $entityTypes,
             'top_relationships' => $topRelationships,
-            'density'           => $nodeCount > 1 ? round($edgeCount / ($nodeCount * ($nodeCount - 1)), 4) : 0,
+            'density' => $nodeCount > 1 ? round($edgeCount / ($nodeCount * ($nodeCount - 1)), 4) : 0,
         ];
     }
 
@@ -169,10 +169,10 @@ class KnowledgeGraphService
         foreach ($node->incomingEdges as $edge) {
             if ($edge->fromNode) {
                 $chain[] = [
-                    'from_entity'  => $edge->fromNode->entity_type,
-                    'from_label'   => $edge->fromNode->label,
+                    'from_entity' => $edge->fromNode->entity_type,
+                    'from_label' => $edge->fromNode->label,
                     'relationship' => $edge->relationship,
-                    'weight'       => $edge->weight,
+                    'weight' => $edge->weight,
                 ];
             }
         }
@@ -190,7 +190,7 @@ class KnowledgeGraphService
     private function bfs(IntelligenceNode $start, int $maxDepth): Collection
     {
         $visited = collect([$start->id => $start]);
-        $queue   = [[$start, 0]];
+        $queue = [[$start, 0]];
 
         while (! empty($queue)) {
             [$node, $depth] = array_shift($queue);
@@ -221,7 +221,7 @@ class KnowledgeGraphService
     private function bfsPath(IntelligenceNode $start, IntelligenceNode $end): array
     {
         $visited = [$start->id => null];
-        $queue   = [$start];
+        $queue = [$start];
 
         while (! empty($queue)) {
             $node = array_shift($queue);
@@ -248,7 +248,7 @@ class KnowledgeGraphService
 
     private function reconstructPath(array $parents, int $startId, int $endId): array
     {
-        $path    = [];
+        $path = [];
         $current = $endId;
 
         while ($current !== null) {

@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Recommendation extends Model
 {
     use HasFactory, HasTeamScope;
+
     protected $fillable = [
         'team_id', 'engine', 'title', 'rationale', 'action_label',
         'action_url', 'priority', 'status', 'supporting_data',

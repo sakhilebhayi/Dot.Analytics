@@ -14,8 +14,9 @@ class IntelligenceApiTest extends TestCase
 
     private function actingAsUser(): array
     {
-        $user  = User::factory()->withPersonalTeam()->create();
+        $user = User::factory()->withPersonalTeam()->create();
         $token = $user->createToken('test')->plainTextToken;
+
         return [$user, $token];
     }
 
@@ -37,12 +38,12 @@ class IntelligenceApiTest extends TestCase
     public function test_run_dispatches_engines_and_returns_count(): void
     {
         [$user, $token] = $this->actingAsUser();
-        $team           = $user->currentTeam;
+        $team = $user->currentTeam;
 
         DataSource::factory()->create([
-            'team_id'  => $team->id,
+            'team_id' => $team->id,
             'platform' => 'dot.fleet',
-            'status'   => 'connected',
+            'status' => 'connected',
         ]);
 
         $response = $this->withToken($token)->postJson('/api/v1/intelligence/run');
@@ -57,12 +58,12 @@ class IntelligenceApiTest extends TestCase
     public function test_run_with_specific_engine_only_dispatches_that_engine(): void
     {
         [$user, $token] = $this->actingAsUser();
-        $team           = $user->currentTeam;
+        $team = $user->currentTeam;
 
         DataSource::factory()->create([
-            'team_id'  => $team->id,
+            'team_id' => $team->id,
             'platform' => 'dot.hear',
-            'status'   => 'connected',
+            'status' => 'connected',
         ]);
 
         $response = $this->withToken($token)->postJson('/api/v1/intelligence/run', [
@@ -76,7 +77,7 @@ class IntelligenceApiTest extends TestCase
     public function test_insights_returns_paginated_list(): void
     {
         [$user, $token] = $this->actingAsUser();
-        $team           = $user->currentTeam;
+        $team = $user->currentTeam;
 
         CrossPlatformInsight::factory()->count(5)->create(['team_id' => $team->id]);
 
@@ -91,7 +92,7 @@ class IntelligenceApiTest extends TestCase
     public function test_insights_filters_by_severity(): void
     {
         [$user, $token] = $this->actingAsUser();
-        $team           = $user->currentTeam;
+        $team = $user->currentTeam;
 
         CrossPlatformInsight::factory()->create(['team_id' => $team->id, 'severity' => 'critical']);
         CrossPlatformInsight::factory()->create(['team_id' => $team->id, 'severity' => 'info']);
@@ -131,8 +132,8 @@ class IntelligenceApiTest extends TestCase
 
         $response = $this->withToken($token)->postJson('/api/v1/intelligence/graph/traverse', [
             'entity_type' => 'customer',
-            'entity_id'   => 'C-NONEXISTENT',
-            'max_depth'   => 2,
+            'entity_id' => 'C-NONEXISTENT',
+            'max_depth' => 2,
         ]);
 
         $response->assertOk()

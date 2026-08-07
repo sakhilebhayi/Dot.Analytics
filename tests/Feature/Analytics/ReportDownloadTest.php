@@ -13,6 +13,7 @@ class ReportDownloadTest extends TestCase
     use RefreshDatabase;
 
     private User $user;
+
     private Team $team;
 
     protected function setUp(): void
@@ -28,9 +29,9 @@ class ReportDownloadTest extends TestCase
         $report = AnalyticsReport::create([
             'team_id' => $this->team->id,
             'user_id' => $this->user->id,
-            'title'   => 'Weekly Insights',
-            'type'    => 'insights',
-            'config'  => ['report_type' => 'insights'],
+            'title' => 'Weekly Insights',
+            'type' => 'insights',
+            'config' => ['report_type' => 'insights'],
         ]);
 
         $this->get("/reports/{$report->id}/download")->assertRedirect('/login');
@@ -41,9 +42,9 @@ class ReportDownloadTest extends TestCase
         $report = AnalyticsReport::create([
             'team_id' => $this->team->id,
             'user_id' => $this->user->id,
-            'title'   => 'Weekly Insights',
-            'type'    => 'insights',
-            'config'  => ['report_type' => 'insights'],
+            'title' => 'Weekly Insights',
+            'type' => 'insights',
+            'config' => ['report_type' => 'insights'],
         ]);
 
         $response = $this->actingAs($this->user)
@@ -61,9 +62,9 @@ class ReportDownloadTest extends TestCase
         $report = AnalyticsReport::create([
             'team_id' => $otherTeam->id,
             'user_id' => $otherUser->id,
-            'title'   => 'Other Team Report',
-            'type'    => 'insights',
-            'config'  => ['report_type' => 'insights'],
+            'title' => 'Other Team Report',
+            'type' => 'insights',
+            'config' => ['report_type' => 'insights'],
         ]);
 
         $this->actingAs($this->user)

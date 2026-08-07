@@ -32,18 +32,18 @@ class FeatureFlagController extends BaseApiController
      */
     public function index(): JsonResponse
     {
-        $isAdmin       = Gate::allows('manage-platforms');
+        $isAdmin = Gate::allows('manage-platforms');
         $currentTeamId = Auth::user()->currentTeam?->id;
         $currentUserId = Auth::id();
 
         $flags = $this->flagService->all()->map(function ($f) use ($isAdmin, $currentTeamId, $currentUserId) {
             $payload = [
-                'key'                => $f->key,
-                'name'               => $f->name,
-                'description'        => $f->description,
-                'enabled_globally'   => $f->enabled_globally,
+                'key' => $f->key,
+                'name' => $f->name,
+                'description' => $f->description,
+                'enabled_globally' => $f->enabled_globally,
                 'rollout_percentage' => $f->rollout_percentage,
-                'environment'        => $f->environment,
+                'environment' => $f->environment,
             ];
 
             if ($isAdmin) {
@@ -71,7 +71,7 @@ class FeatureFlagController extends BaseApiController
     public function check(string $key): JsonResponse
     {
         return $this->success([
-            'key'     => $key,
+            'key' => $key,
             'enabled' => $this->flagService->isEnabled($key, Auth::user()),
         ]);
     }
@@ -85,13 +85,13 @@ class FeatureFlagController extends BaseApiController
         Gate::authorize('manage-platforms');
 
         $validated = $request->validate([
-            'key'                => 'required|string|max:100|unique:feature_flags,key',
-            'name'               => 'required|string|max:120',
-            'description'        => 'nullable|string|max:500',
-            'enabled_globally'   => 'boolean',
-            'enabled_for_teams'  => 'nullable|array',
+            'key' => 'required|string|max:100|unique:feature_flags,key',
+            'name' => 'required|string|max:120',
+            'description' => 'nullable|string|max:500',
+            'enabled_globally' => 'boolean',
+            'enabled_for_teams' => 'nullable|array',
             'rollout_percentage' => 'numeric|min:0|max:100',
-            'environment'        => 'in:all,production,local',
+            'environment' => 'in:all,production,local',
         ]);
 
         $flag = FeatureFlag::create($validated);
@@ -106,6 +106,7 @@ class FeatureFlagController extends BaseApiController
     {
         Gate::authorize('manage-platforms');
         $this->flagService->enable($key);
+
         return $this->success(['key' => $key, 'enabled' => true]);
     }
 
@@ -116,6 +117,7 @@ class FeatureFlagController extends BaseApiController
     {
         Gate::authorize('manage-platforms');
         $this->flagService->disable($key);
+
         return $this->success(['key' => $key, 'enabled' => false]);
     }
 

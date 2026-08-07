@@ -4,6 +4,7 @@ namespace Tests\Feature\Authorization;
 
 use App\Models\DataSource;
 use App\Models\User;
+use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -37,10 +38,10 @@ class GateTest extends TestCase
     public function test_manage_platforms_denies_user_with_no_team(): void
     {
         // A user model with no currentTeam should be denied manage-platforms
-        $userWithNoTeam = new \App\Models\User();
+        $userWithNoTeam = new User;
         $userWithNoTeam->id = 9999;
 
-        $gate = app(\Illuminate\Contracts\Auth\Access\Gate::class);
+        $gate = app(Gate::class);
 
         // isTeamOwnerOrAdmin returns false when currentTeam is null
         $result = $gate->forUser($userWithNoTeam)->check('manage-platforms');
@@ -129,9 +130,9 @@ class GateTest extends TestCase
         $ownerB = $this->owner();
 
         DataSource::factory()->create([
-            'team_id'  => $ownerA->currentTeam->id,
+            'team_id' => $ownerA->currentTeam->id,
             'platform' => 'dot.fleet',
-            'status'   => 'connected',
+            'status' => 'connected',
         ]);
 
         $tokenB = $ownerB->createToken('test')->plainTextToken;
@@ -149,9 +150,9 @@ class GateTest extends TestCase
         $ownerB = $this->owner();
 
         DataSource::factory()->create([
-            'team_id'  => $ownerA->currentTeam->id,
+            'team_id' => $ownerA->currentTeam->id,
             'platform' => 'dot.fleet',
-            'status'   => 'connected',
+            'status' => 'connected',
         ]);
 
         $tokenB = $ownerB->createToken('test')->plainTextToken;

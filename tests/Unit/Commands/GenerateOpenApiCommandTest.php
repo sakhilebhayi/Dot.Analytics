@@ -49,7 +49,7 @@ class GenerateOpenApiCommandTest extends TestCase
     {
         $this->artisan('analytics:openapi')->assertExitCode(0);
 
-        $spec  = json_decode(file_get_contents(public_path('api-docs/openapi.json')), true);
+        $spec = json_decode(file_get_contents(public_path('api-docs/openapi.json')), true);
         $paths = array_keys($spec['paths']);
 
         $this->assertContains('/v1/intelligence/engines', $paths);
@@ -70,8 +70,8 @@ class GenerateOpenApiCommandTest extends TestCase
     {
         $this->artisan('analytics:openapi')->assertExitCode(0);
 
-        $spec      = json_decode(file_get_contents(public_path('api-docs/openapi.json')), true);
-        $tagNames  = array_column($spec['tags'], 'name');
+        $spec = json_decode(file_get_contents(public_path('api-docs/openapi.json')), true);
+        $tagNames = array_column($spec['tags'], 'name');
 
         $this->assertContains('Intelligence', $tagNames);
         $this->assertContains('Platforms', $tagNames);

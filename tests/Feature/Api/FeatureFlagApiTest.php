@@ -13,8 +13,9 @@ class FeatureFlagApiTest extends TestCase
 
     private function admin(): array
     {
-        $user  = User::factory()->withPersonalTeam()->create();
+        $user = User::factory()->withPersonalTeam()->create();
         $token = $user->createToken('test')->plainTextToken;
+
         return [$user, $token];
     }
 
@@ -52,7 +53,7 @@ class FeatureFlagApiTest extends TestCase
         [$user, $token] = $this->admin();
 
         $this->withToken($token)->postJson('/api/v1/feature-flags', [
-            'key'  => 'new-feature',
+            'key' => 'new-feature',
             'name' => 'New Feature',
         ])->assertCreated();
 
@@ -65,7 +66,7 @@ class FeatureFlagApiTest extends TestCase
         FeatureFlag::create(['key' => 'existing', 'name' => 'Existing']);
 
         $this->withToken($token)->postJson('/api/v1/feature-flags', [
-            'key'  => 'existing',
+            'key' => 'existing',
             'name' => 'Duplicate',
         ])->assertUnprocessable();
     }

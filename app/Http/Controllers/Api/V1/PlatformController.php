@@ -19,7 +19,7 @@ class PlatformController extends BaseApiController
 {
     public function __construct(
         private readonly IntelligenceEngineService $engineService,
-        private readonly ConnectPlatformAction     $connectAction,
+        private readonly ConnectPlatformAction $connectAction,
     ) {}
 
     /**
@@ -32,7 +32,7 @@ class PlatformController extends BaseApiController
 
         $catalog = collect(IntelligenceEngineService::PLATFORMS)
             ->map(fn ($def, $key) => array_merge($def, [
-                'key'    => $key,
+                'key' => $key,
                 'source' => $sources->get($key),
                 'status' => $sources->get($key)?->status ?? 'not_connected',
             ]));
@@ -109,7 +109,7 @@ class PlatformController extends BaseApiController
         $definition = $this->engineService->getPlatform($platform);
 
         return $this->success([
-            'source'     => $source,
+            'source' => $source,
             'definition' => $definition,
         ]);
     }

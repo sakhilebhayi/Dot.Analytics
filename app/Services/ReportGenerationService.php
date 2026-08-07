@@ -27,7 +27,7 @@ class ReportGenerationService
      */
     public function streamCsv(Team $team, string $reportType, array $options = []): StreamedResponse
     {
-        $filename = "{$reportType}_{$team->id}_" . now()->format('Ymd_His') . '.csv';
+        $filename = "{$reportType}_{$team->id}_".now()->format('Ymd_His').'.csv';
 
         return response()->streamDownload(function () use ($team, $reportType, $options) {
             $output = fopen('php://output', 'w');
@@ -51,12 +51,12 @@ class ReportGenerationService
         [$headers, $rows] = $this->getData($team, $reportType, $options);
 
         return [
-            'report_type'  => $reportType,
-            'team'         => $team->name,
+            'report_type' => $reportType,
+            'team' => $team->name,
             'generated_at' => now()->toIso8601String(),
-            'columns'      => $headers,
-            'rows'         => $rows,
-            'row_count'    => count($rows),
+            'columns' => $headers,
+            'rows' => $rows,
+            'row_count' => count($rows),
         ];
     }
 
@@ -66,12 +66,13 @@ class ReportGenerationService
     public function generateHtml(Team $team, string $reportType, array $options = []): string
     {
         [$headers, $rows] = $this->getData($team, $reportType, $options);
-        $title             = ucwords(str_replace('_', ' ', $reportType));
-        $date              = now()->format('D, d M Y H:i');
+        $title = ucwords(str_replace('_', ' ', $reportType));
+        $date = now()->format('D, d M Y H:i');
 
         $headerHtml = implode('', array_map(fn ($h) => "<th>{$h}</th>", $headers));
-        $rowsHtml   = implode('', array_map(function ($row) {
-            $cells = implode('', array_map(fn ($v) => '<td>' . e($v) . '</td>', $row));
+        $rowsHtml = implode('', array_map(function ($row) {
+            $cells = implode('', array_map(fn ($v) => '<td>'.e($v).'</td>', $row));
+
             return "<tr>{$cells}</tr>";
         }, $rows));
 
@@ -109,18 +110,18 @@ HTML;
     private function getData(Team $team, string $reportType, array $options): array
     {
         return match ($reportType) {
-            'insights'        => $this->insightsData($team, $options),
-            'alerts'          => $this->alertsData($team, $options),
+            'insights' => $this->insightsData($team, $options),
+            'alerts' => $this->alertsData($team, $options),
             'recommendations' => $this->recommendationsData($team, $options),
-            'metrics'         => $this->metricsData($team, $options),
-            default           => [['Error'], [['Unknown report type: ' . $reportType]]],
+            'metrics' => $this->metricsData($team, $options),
+            default => [['Error'], [['Unknown report type: '.$reportType]]],
         };
     }
 
     private function insightsData(Team $team, array $options): array
     {
         $headers = ['Title', 'Type', 'Severity', 'Confidence', 'Platforms', 'Status', 'Discovered At'];
-        $rows    = CrossPlatformInsight::where('team_id', $team->id)
+        $rows = CrossPlatformInsight::where('team_id', $team->id)
             ->when($options['status'] ?? null, fn ($q, $s) => $q->where('status', $s))
             ->orderByDesc('created_at')
             ->limit($options['limit'] ?? 500)
@@ -129,7 +130,7 @@ HTML;
                 $i->title,
                 $i->insight_type,
                 $i->severity,
-                round($i->confidence * 100) . '%',
+                round($i->confidence * 100).'%',
                 implode(', ', $i->platforms_involved),
                 $i->status,
                 $i->created_at->format('Y-m-d H:i'),
@@ -141,7 +142,7 @@ HTML;
     private function alertsData(Team $team, array $options): array
     {
         $headers = ['Title', 'Severity', 'Status', 'Description', 'Triggered At', 'Resolved At'];
-        $rows    = AnalyticsAlert::where('team_id', $team->id)
+        $rows = AnalyticsAlert::where('team_id', $team->id)
             ->orderByDesc('triggered_at')
             ->limit($options['limit'] ?? 500)
             ->get()
@@ -160,7 +161,7 @@ HTML;
     private function recommendationsData(Team $team, array $options): array
     {
         $headers = ['Title', 'Engine', 'Priority', 'Status', 'Rationale', 'Created At'];
-        $rows    = Recommendation::where('team_id', $team->id)
+        $rows = Recommendation::where('team_id', $team->id)
             ->orderByDesc('created_at')
             ->limit($options['limit'] ?? 500)
             ->get()
@@ -179,7 +180,7 @@ HTML;
     private function metricsData(Team $team, array $options): array
     {
         $headers = ['Metric', 'Engine', 'Platform', 'Value', 'Unit', 'Period', 'Date'];
-        $rows    = ComputedMetric::where('team_id', $team->id)
+        $rows = ComputedMetric::where('team_id', $team->id)
             ->with('metricDefinition')
             ->when($options['period'] ?? null, fn ($q, $p) => $q->where('period', $p))
             ->orderByDesc('period_date')

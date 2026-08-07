@@ -2,9 +2,6 @@
 
 namespace Tests\Unit\Commands;
 
-use App\Console\Commands\GenerateBriefingsCommand;
-use App\Console\Commands\RecomputeDnaCommand;
-use App\Console\Commands\RunIntelligenceEnginesCommand;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;

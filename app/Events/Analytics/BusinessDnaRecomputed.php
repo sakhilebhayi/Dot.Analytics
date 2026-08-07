@@ -10,7 +10,7 @@ class BusinessDnaRecomputed
     use Dispatchable, SerializesModels;
 
     public function __construct(
-        public readonly int   $teamId,
+        public readonly int $teamId,
         public readonly float $confidenceScore,
         public readonly float $previousConfidenceScore,
     ) {}

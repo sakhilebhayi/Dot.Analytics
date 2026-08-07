@@ -13,8 +13,9 @@ class SqlApiTest extends TestCase
 
     private function actingAsUser(): array
     {
-        $user  = User::factory()->withPersonalTeam()->create();
+        $user = User::factory()->withPersonalTeam()->create();
         $token = $user->createToken('test')->plainTextToken;
+
         return [$user, $token];
     }
 
@@ -24,17 +25,17 @@ class SqlApiTest extends TestCase
 
         $connector = DataConnector::create([
             'team_id' => $user->currentTeam->id,
-            'name'    => 'Test DB',
-            'type'    => 'database',
-            'driver'  => 'sqlite',
-            'config'  => ['driver' => 'sqlite', 'database' => ':memory:'],
-            'status'  => 'active',
+            'name' => 'Test DB',
+            'type' => 'database',
+            'driver' => 'sqlite',
+            'config' => ['driver' => 'sqlite', 'database' => ':memory:'],
+            'status' => 'active',
         ]);
 
         $response = $this->withToken($token)->postJson('/api/v1/sql/generate', [
-            'question'     => 'Show me all users ordered by name',
+            'question' => 'Show me all users ordered by name',
             'connector_id' => $connector->id,
-            'schema'       => ['tables' => [['name' => 'users']]],
+            'schema' => ['tables' => [['name' => 'users']]],
         ]);
 
         // With no AI key configured, the router returns a mock message.
@@ -57,15 +58,15 @@ class SqlApiTest extends TestCase
 
         $connector = DataConnector::create([
             'team_id' => $user->currentTeam->id,
-            'name'    => 'DB',
-            'type'    => 'database',
-            'driver'  => 'sqlite',
-            'config'  => [],
-            'status'  => 'active',
+            'name' => 'DB',
+            'type' => 'database',
+            'driver' => 'sqlite',
+            'config' => [],
+            'status' => 'active',
         ]);
 
         $this->withToken($token)->postJson('/api/v1/sql/generate', [
-            'question'     => 'hi',
+            'question' => 'hi',
             'connector_id' => $connector->id,
         ])->assertUnprocessable();
     }
@@ -76,15 +77,15 @@ class SqlApiTest extends TestCase
 
         $connector = DataConnector::create([
             'team_id' => $user->currentTeam->id,
-            'name'    => 'Inactive DB',
-            'type'    => 'database',
-            'driver'  => 'sqlite',
-            'config'  => [],
-            'status'  => 'inactive',
+            'name' => 'Inactive DB',
+            'type' => 'database',
+            'driver' => 'sqlite',
+            'config' => [],
+            'status' => 'inactive',
         ]);
 
         $this->withToken($token)->postJson('/api/v1/sql/query', [
-            'question'     => 'Show me all records',
+            'question' => 'Show me all records',
             'connector_id' => $connector->id,
         ])->assertUnprocessable();
     }

@@ -60,17 +60,17 @@ class DataSourceObserver
     private function audit(DataSource $dataSource, string $event, ?array $old, ?array $new): void
     {
         AuditLog::create([
-            'team_id'         => $dataSource->team_id,
-            'user_id'         => Auth::id(),
-            'actor_type'      => Auth::check() ? 'user' : 'system',
-            'actor_id'        => (string) Auth::id(),
-            'event'           => $event,
-            'auditable_type'  => DataSource::class,
-            'auditable_id'    => $dataSource->id,
-            'old_values'      => $old,
-            'new_values'      => $new,
-            'ip_address'      => request()?->ip(),
-            'user_agent'      => request()?->userAgent(),
+            'team_id' => $dataSource->team_id,
+            'user_id' => Auth::id(),
+            'actor_type' => Auth::check() ? 'user' : 'system',
+            'actor_id' => (string) Auth::id(),
+            'event' => $event,
+            'auditable_type' => DataSource::class,
+            'auditable_id' => $dataSource->id,
+            'old_values' => $old,
+            'new_values' => $new,
+            'ip_address' => request()?->ip(),
+            'user_agent' => request()?->userAgent(),
         ]);
     }
 }

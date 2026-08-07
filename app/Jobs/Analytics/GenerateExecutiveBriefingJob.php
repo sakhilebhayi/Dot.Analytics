@@ -18,12 +18,13 @@ class GenerateExecutiveBriefingJob implements ShouldQueue
 {
     use Queueable;
 
-    public int $tries   = 2;
+    public int $tries = 2;
+
     public int $timeout = 180;
 
     public function __construct(
-        public readonly int    $teamId,
-        public readonly string $period     = 'weekly',
+        public readonly int $teamId,
+        public readonly string $period = 'weekly',
         public readonly string $periodDate = '',
     ) {}
 
@@ -75,16 +76,16 @@ Generate a concise executive briefing. Return JSON only:
 PROMPT;
 
         $response = $aiRouter->complete($prompt, 'briefing', $this->teamId);
-        $parsed   = json_decode($response, true);
+        $parsed = json_decode($response, true);
 
         $briefing->update([
-            'status'             => 'ready',
-            'summary'            => $parsed['summary'] ?? 'Intelligence briefing generated.',
-            'highlights'         => $parsed['highlights'] ?? [],
-            'risks'              => $parsed['risks'] ?? [],
-            'recommendations'    => $parsed['recommendations'] ?? [],
-            'engines_consulted'  => array_keys($activeEngines),
-            'insight_count'      => $team->crossPlatformInsights()->count(),
+            'status' => 'ready',
+            'summary' => $parsed['summary'] ?? 'Intelligence briefing generated.',
+            'highlights' => $parsed['highlights'] ?? [],
+            'risks' => $parsed['risks'] ?? [],
+            'recommendations' => $parsed['recommendations'] ?? [],
+            'engines_consulted' => array_keys($activeEngines),
+            'insight_count' => $team->crossPlatformInsights()->count(),
         ]);
     }
 

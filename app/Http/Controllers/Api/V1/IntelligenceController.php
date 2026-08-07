@@ -19,8 +19,8 @@ use Illuminate\Http\Request;
 class IntelligenceController extends BaseApiController
 {
     public function __construct(
-        private readonly IntelligenceEngineService   $engineService,
-        private readonly KnowledgeGraphService       $graphService,
+        private readonly IntelligenceEngineService $engineService,
+        private readonly KnowledgeGraphService $graphService,
         private readonly RunIntelligenceEnginesAction $runEngines,
     ) {}
 
@@ -30,14 +30,14 @@ class IntelligenceController extends BaseApiController
      */
     public function engines(): JsonResponse
     {
-        $team      = $this->currentTeam();
+        $team = $this->currentTeam();
         $connected = $team->dataSources()->where('status', 'connected')->pluck('platform')->toArray();
-        $active    = $this->engineService->getActiveEngines($connected);
+        $active = $this->engineService->getActiveEngines($connected);
 
         return $this->success([
-            'engines'          => IntelligenceEngineService::ENGINES,
-            'active'           => $active,
-            'active_count'     => count($active),
+            'engines' => IntelligenceEngineService::ENGINES,
+            'active' => $active,
+            'active_count' => count($active),
             'connected_platforms' => $connected,
         ]);
     }
@@ -50,8 +50,8 @@ class IntelligenceController extends BaseApiController
      */
     public function run(Request $request): JsonResponse
     {
-        $team     = $this->currentTeam();
-        $engines  = $request->input('engines');
+        $team = $this->currentTeam();
+        $engines = $request->input('engines');
 
         $dispatched = $this->runEngines->handle($team, $engines);
 
@@ -69,12 +69,12 @@ class IntelligenceController extends BaseApiController
      */
     public function insights(Request $request): JsonResponse
     {
-        $team    = $this->currentTeam();
+        $team = $this->currentTeam();
         $perPage = min((int) $request->input('per_page', 20), 100);
 
-        $insights = CrossPlatformInsight::when($request->input('type'),     fn ($q) => $q->where('insight_type', $request->input('type')))
+        $insights = CrossPlatformInsight::when($request->input('type'), fn ($q) => $q->where('insight_type', $request->input('type')))
             ->when($request->input('severity'), fn ($q) => $q->where('severity', $request->input('severity')))
-            ->when($request->input('status'),   fn ($q) => $q->where('status', $request->input('status')))
+            ->when($request->input('status'), fn ($q) => $q->where('status', $request->input('status')))
             ->orderByRaw("CASE severity WHEN 'critical' THEN 1 WHEN 'warning' THEN 2 ELSE 3 END")
             ->orderByDesc('created_at')
             ->paginate($perPage);
@@ -88,7 +88,7 @@ class IntelligenceController extends BaseApiController
      */
     public function graph(): JsonResponse
     {
-        $team  = $this->currentTeam();
+        $team = $this->currentTeam();
         $stats = $this->graphService->getStats($team);
 
         return $this->success($stats);
@@ -104,11 +104,11 @@ class IntelligenceController extends BaseApiController
     {
         $validated = $request->validate([
             'entity_type' => 'required|string|max:50',
-            'entity_id'   => 'required|string|max:100',
-            'max_depth'   => 'integer|min:1|max:5',
+            'entity_id' => 'required|string|max:100',
+            'max_depth' => 'integer|min:1|max:5',
         ]);
 
-        $team  = $this->currentTeam();
+        $team = $this->currentTeam();
         $nodes = $this->graphService->traverse(
             $team,
             $validated['entity_type'],
@@ -117,7 +117,7 @@ class IntelligenceController extends BaseApiController
         );
 
         return $this->success([
-            'nodes'      => $nodes->values(),
+            'nodes' => $nodes->values(),
             'node_count' => $nodes->count(),
         ]);
     }

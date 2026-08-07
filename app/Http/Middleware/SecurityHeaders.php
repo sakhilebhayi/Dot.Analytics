@@ -48,7 +48,7 @@ class SecurityHeaders
             "style-src 'self' 'unsafe-inline' https://fonts.bunny.net",
             "font-src 'self' https://fonts.bunny.net",
             "img-src 'self' data: blob:",
-            "connect-src 'self' " . $this->reverbWsOrigin(),
+            "connect-src 'self' ".$this->reverbWsOrigin(),
             "frame-ancestors 'none'",
             "base-uri 'self'",
             "form-action 'self'",
@@ -73,8 +73,9 @@ class SecurityHeaders
     private function reverbWsOrigin(): string
     {
         $scheme = config('reverb.servers.reverb.options.tls', false) ? 'wss' : 'ws';
-        $host   = config('reverb.servers.reverb.host', 'localhost');
-        $port   = config('reverb.servers.reverb.port', 8080);
+        $host = config('reverb.servers.reverb.host', 'localhost');
+        $port = config('reverb.servers.reverb.port', 8080);
+
         return "{$scheme}://{$host}:{$port}";
     }
 }

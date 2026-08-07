@@ -3,20 +3,22 @@
 namespace App\Livewire\Analytics;
 
 use App\Models\AnalyticsAlert;
-use App\Models\ComputedMetric;
 use App\Models\DataSource;
 use App\Models\Recommendation;
 use App\Services\AiModelRouter;
 use App\Services\IntelligenceEngineService;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
 class IntelligenceDashboard extends Component
 {
     public string $intelligenceQuery = '';
+
     public string $queryAnswer = '';
+
     public bool $queryLoading = false;
 
     #[Computed]
@@ -54,9 +56,9 @@ class IntelligenceDashboard extends Component
 
         $this->queryLoading = true;
 
-        $team    = Auth::user()->currentTeam;
-        $router  = app(AiModelRouter::class);
-        $engine  = app(IntelligenceEngineService::class);
+        $team = Auth::user()->currentTeam;
+        $router = app(AiModelRouter::class);
+        $engine = app(IntelligenceEngineService::class);
         $context = $engine->buildEcosystemContext($team);
 
         $prompt = <<<PROMPT
@@ -68,11 +70,11 @@ You trace relationships across the entire Dot ecosystem to answer questions no s
 Question: {$this->intelligenceQuery}
 PROMPT;
 
-        $this->queryAnswer  = $router->complete($prompt, 'query', $team->id);
+        $this->queryAnswer = $router->complete($prompt, 'query', $team->id);
         $this->queryLoading = false;
     }
 
-    public function render(): \Illuminate\View\View
+    public function render(): View
     {
         return view('livewire.analytics.intelligence-dashboard');
     }

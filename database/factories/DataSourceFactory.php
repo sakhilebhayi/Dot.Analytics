@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Models\DataSource;
 use App\Models\Team;
+use App\Services\IntelligenceEngineService;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -15,17 +16,17 @@ class DataSourceFactory extends Factory
 
     public function definition(): array
     {
-        $platforms = array_keys(\App\Services\IntelligenceEngineService::PLATFORMS);
-        $platform  = $this->faker->randomElement($platforms);
-        $catalog   = \App\Services\IntelligenceEngineService::PLATFORMS[$platform];
+        $platforms = array_keys(IntelligenceEngineService::PLATFORMS);
+        $platform = $this->faker->randomElement($platforms);
+        $catalog = IntelligenceEngineService::PLATFORMS[$platform];
 
         return [
-            'team_id'      => Team::factory(),
-            'platform'     => $platform,
+            'team_id' => Team::factory(),
+            'platform' => $platform,
             'display_name' => $catalog['label'],
-            'base_url'     => null,
-            'status'       => 'pending',
-            'config'       => [],
+            'base_url' => null,
+            'status' => 'pending',
+            'config' => [],
             'capabilities' => $catalog['contributions'],
         ];
     }
@@ -33,16 +34,17 @@ class DataSourceFactory extends Factory
     public function connected(): static
     {
         return $this->state([
-            'status'       => 'connected',
+            'status' => 'connected',
             'connected_at' => now(),
         ]);
     }
 
     public function forPlatform(string $platformKey): static
     {
-        $catalog = \App\Services\IntelligenceEngineService::PLATFORMS[$platformKey] ?? [];
+        $catalog = IntelligenceEngineService::PLATFORMS[$platformKey] ?? [];
+
         return $this->state([
-            'platform'     => $platformKey,
+            'platform' => $platformKey,
             'display_name' => $catalog['label'] ?? $platformKey,
         ]);
     }

@@ -8,21 +8,22 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * @property int         $id
- * @property int         $team_id
- * @property string      $title
- * @property string      $narrative
- * @property array       $platforms_involved
- * @property array|null  $entities_involved
- * @property string      $insight_type
- * @property float       $confidence
- * @property string      $severity
- * @property string      $status
- * @property array|null  $supporting_metrics
+ * @property int $id
+ * @property int $team_id
+ * @property string $title
+ * @property string $narrative
+ * @property array $platforms_involved
+ * @property array|null $entities_involved
+ * @property string $insight_type
+ * @property float $confidence
+ * @property string $severity
+ * @property string $status
+ * @property array|null $supporting_metrics
  */
 class CrossPlatformInsight extends Model
 {
     use HasFactory, HasTeamScope;
+
     protected $fillable = [
         'team_id', 'title', 'narrative', 'platforms_involved',
         'entities_involved', 'insight_type', 'confidence', 'severity',
@@ -30,10 +31,10 @@ class CrossPlatformInsight extends Model
     ];
 
     protected $casts = [
-        'platforms_involved'  => 'array',
-        'entities_involved'   => 'array',
-        'supporting_metrics'  => 'array',
-        'confidence'          => 'float',
+        'platforms_involved' => 'array',
+        'entities_involved' => 'array',
+        'supporting_metrics' => 'array',
+        'confidence' => 'float',
     ];
 
     public function team(): BelongsTo

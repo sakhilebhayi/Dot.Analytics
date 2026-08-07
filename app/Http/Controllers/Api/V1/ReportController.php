@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Services\ReportGenerationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
@@ -29,10 +30,10 @@ class ReportController extends BaseApiController
     public function json(Request $request, string $type): JsonResponse
     {
         if (! in_array($type, self::REPORT_TYPES)) {
-            return $this->error("Unknown report type '{$type}'. Valid: " . implode(', ', self::REPORT_TYPES), 422);
+            return $this->error("Unknown report type '{$type}'. Valid: ".implode(', ', self::REPORT_TYPES), 422);
         }
 
-        $team   = $this->currentTeam();
+        $team = $this->currentTeam();
         $report = $this->reportService->generateJson($team, $type, $request->only('status', 'period', 'limit'));
 
         return $this->success($report);
@@ -49,6 +50,7 @@ class ReportController extends BaseApiController
         }
 
         $team = $this->currentTeam();
+
         return $this->reportService->streamCsv($team, $type, $request->only('status', 'period', 'limit'));
     }
 
@@ -56,7 +58,7 @@ class ReportController extends BaseApiController
      * GET /api/v1/reports/{type}/html
      * Returns a print-ready HTML report (suitable for browser print to PDF).
      */
-    public function html(Request $request, string $type): \Illuminate\Http\Response|JsonResponse
+    public function html(Request $request, string $type): Response|JsonResponse
     {
         if (! in_array($type, self::REPORT_TYPES)) {
             return $this->error("Unknown report type '{$type}'.", 422);

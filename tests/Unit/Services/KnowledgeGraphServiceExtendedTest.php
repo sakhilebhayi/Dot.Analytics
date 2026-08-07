@@ -2,10 +2,8 @@
 
 namespace Tests\Unit\Services;
 
-use App\Services\KnowledgeGraphService;
-use App\Models\IntelligenceEdge;
-use App\Models\IntelligenceNode;
 use App\Models\User;
+use App\Services\KnowledgeGraphService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -18,7 +16,7 @@ class KnowledgeGraphServiceExtendedTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->service = new KnowledgeGraphService();
+        $this->service = new KnowledgeGraphService;
     }
 
     private function team()
@@ -30,9 +28,9 @@ class KnowledgeGraphServiceExtendedTest extends TestCase
 
     public function test_find_path_returns_empty_for_disconnected_nodes(): void
     {
-        $team  = $this->team();
+        $team = $this->team();
         $nodeA = $this->service->upsertNode($team, 'customer', 'C-001', 'Customer', 'dot.crm');
-        $nodeB = $this->service->upsertNode($team, 'invoice',  'I-001', 'Invoice',  'dot.payments');
+        $nodeB = $this->service->upsertNode($team, 'invoice', 'I-001', 'Invoice', 'dot.payments');
         // No edge between them
 
         $path = $this->service->findPath($team, 'customer', 'C-001', 'invoice', 'I-001');
@@ -41,9 +39,9 @@ class KnowledgeGraphServiceExtendedTest extends TestCase
 
     public function test_find_path_returns_direct_connection(): void
     {
-        $team  = $this->team();
+        $team = $this->team();
         $nodeA = $this->service->upsertNode($team, 'customer', 'C-001', 'Customer', 'dot.crm');
-        $nodeB = $this->service->upsertNode($team, 'invoice',  'I-001', 'Invoice',  'dot.payments');
+        $nodeB = $this->service->upsertNode($team, 'invoice', 'I-001', 'Invoice', 'dot.payments');
         $this->service->connect($nodeA, $nodeB, 'has');
 
         $path = $this->service->findPath($team, 'customer', 'C-001', 'invoice', 'I-001');
@@ -73,7 +71,7 @@ class KnowledgeGraphServiceExtendedTest extends TestCase
 
     public function test_explain_entity_returns_empty_for_unknown_entity(): void
     {
-        $team        = $this->team();
+        $team = $this->team();
         $explanation = $this->service->explainEntity($team, 'customer', 'NONEXISTENT');
 
         $this->assertEmpty($explanation);
@@ -108,10 +106,10 @@ class KnowledgeGraphServiceExtendedTest extends TestCase
 
     public function test_traverse_handles_cyclic_graph_without_infinite_loop(): void
     {
-        $team  = $this->team();
+        $team = $this->team();
         $nodeA = $this->service->upsertNode($team, 'customer', 'C-001', 'A', 'dot.crm');
-        $nodeB = $this->service->upsertNode($team, 'invoice',  'I-001', 'B', 'dot.payments');
-        $nodeC = $this->service->upsertNode($team, 'ticket',   'T-001', 'C', 'dot.support');
+        $nodeB = $this->service->upsertNode($team, 'invoice', 'I-001', 'B', 'dot.payments');
+        $nodeC = $this->service->upsertNode($team, 'ticket', 'T-001', 'C', 'dot.support');
 
         $this->service->connect($nodeA, $nodeB, 'has');
         $this->service->connect($nodeB, $nodeC, 'raised');
@@ -128,9 +126,9 @@ class KnowledgeGraphServiceExtendedTest extends TestCase
 
     public function test_connect_stores_custom_weight(): void
     {
-        $team  = $this->team();
+        $team = $this->team();
         $nodeA = $this->service->upsertNode($team, 'customer', 'C-001', 'A', 'dot.crm');
-        $nodeB = $this->service->upsertNode($team, 'invoice',  'I-001', 'B', 'dot.payments');
+        $nodeB = $this->service->upsertNode($team, 'invoice', 'I-001', 'B', 'dot.payments');
 
         $edge = $this->service->connect($nodeA, $nodeB, 'has', 0.85);
 
@@ -139,9 +137,9 @@ class KnowledgeGraphServiceExtendedTest extends TestCase
 
     public function test_connect_stores_metadata(): void
     {
-        $team  = $this->team();
+        $team = $this->team();
         $nodeA = $this->service->upsertNode($team, 'customer', 'C-001', 'A', 'dot.crm');
-        $nodeB = $this->service->upsertNode($team, 'invoice',  'I-001', 'B', 'dot.payments');
+        $nodeB = $this->service->upsertNode($team, 'invoice', 'I-001', 'B', 'dot.payments');
 
         $edge = $this->service->connect($nodeA, $nodeB, 'has', 1.0, ['source' => 'pipeline']);
 
@@ -161,10 +159,10 @@ class KnowledgeGraphServiceExtendedTest extends TestCase
 
     public function test_stats_top_relationships_are_ordered_by_count(): void
     {
-        $team  = $this->team();
+        $team = $this->team();
         $nodeA = $this->service->upsertNode($team, 'customer', 'C-001', 'A', 'dot.crm');
-        $nodeB = $this->service->upsertNode($team, 'invoice',  'I-001', 'B', 'dot.payments');
-        $nodeC = $this->service->upsertNode($team, 'ticket',   'T-001', 'C', 'dot.support');
+        $nodeB = $this->service->upsertNode($team, 'invoice', 'I-001', 'B', 'dot.payments');
+        $nodeC = $this->service->upsertNode($team, 'ticket', 'T-001', 'C', 'dot.support');
 
         $this->service->connect($nodeA, $nodeB, 'owns');
         $this->service->connect($nodeB, $nodeC, 'owns');

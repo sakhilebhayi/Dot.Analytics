@@ -23,7 +23,7 @@ class MetricsController extends BaseApiController
     public function definitions(Request $request): JsonResponse
     {
         $definitions = MetricDefinition::query()
-            ->when($request->input('engine'),   fn ($q) => $q->where('engine', $request->input('engine')))
+            ->when($request->input('engine'), fn ($q) => $q->where('engine', $request->input('engine')))
             ->when($request->input('platform'), fn ($q) => $q->where('source_platform', $request->input('platform')))
             ->orderBy('engine')
             ->orderBy('label')
@@ -41,22 +41,21 @@ class MetricsController extends BaseApiController
     public function index(Request $request): JsonResponse
     {
         $metrics = ComputedMetric::with('metricDefinition')
-            ->when($request->input('period'),      fn ($q) => $q->where('period', $request->input('period')))
+            ->when($request->input('period'), fn ($q) => $q->where('period', $request->input('period')))
             ->when($request->input('period_date'), fn ($q) => $q->where('period_date', $request->input('period_date')))
-            ->when($request->input('metric_key'),  fn ($q) => $q->whereHas('metricDefinition', fn ($mq) =>
-                $mq->where('key', $request->input('metric_key'))
+            ->when($request->input('metric_key'), fn ($q) => $q->whereHas('metricDefinition', fn ($mq) => $mq->where('key', $request->input('metric_key'))
             ))
             ->orderByDesc('period_date')
             ->limit(200)
             ->get()
             ->map(fn ($m) => [
-                'key'    => $m->metricDefinition?->key,
-                'label'  => $m->metricDefinition?->label,
+                'key' => $m->metricDefinition?->key,
+                'label' => $m->metricDefinition?->label,
                 'engine' => $m->metricDefinition?->engine,
-                'unit'   => $m->metricDefinition?->unit,
-                'value'  => $m->value,
+                'unit' => $m->metricDefinition?->unit,
+                'value' => $m->value,
                 'period' => $m->period,
-                'date'   => $m->period_date,
+                'date' => $m->period_date,
             ]);
 
         return $this->success($metrics);
@@ -76,8 +75,8 @@ class MetricsController extends BaseApiController
             ->get();
 
         return $this->success([
-            'by_model'    => $byProvider,
-            'total_cost'  => AiModelUsage::totalCostForTeam($team->id),
+            'by_model' => $byProvider,
+            'total_cost' => AiModelUsage::totalCostForTeam($team->id),
             'total_calls' => AiModelUsage::count(),
         ]);
     }

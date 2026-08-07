@@ -41,6 +41,7 @@ class DataSourcePolicy
         if (! $team || $team->id !== $teamId) {
             return false;
         }
+
         return $team->user_id === $user->id
             || $team->users()->where('user_id', $user->id)->wherePivot('role', 'admin')->exists();
     }

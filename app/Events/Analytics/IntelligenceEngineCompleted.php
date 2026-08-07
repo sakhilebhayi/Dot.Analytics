@@ -17,12 +17,12 @@ class IntelligenceEngineCompleted implements ShouldBroadcast
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public function __construct(
-        public readonly int    $teamId,
+        public readonly int $teamId,
         public readonly string $engine,
-        public readonly int    $insightsGenerated,
-        public readonly int    $metricsComputed,
-        public readonly array  $platformsConsumed,
-        public readonly int    $runId,
+        public readonly int $insightsGenerated,
+        public readonly int $metricsComputed,
+        public readonly array $platformsConsumed,
+        public readonly int $runId,
     ) {}
 
     public function broadcastOn(): array
@@ -38,10 +38,10 @@ class IntelligenceEngineCompleted implements ShouldBroadcast
     public function broadcastWith(): array
     {
         return [
-            'engine'             => $this->engine,
+            'engine' => $this->engine,
             'insights_generated' => $this->insightsGenerated,
             'platforms_consumed' => $this->platformsConsumed,
-            'run_id'             => $this->runId,
+            'run_id' => $this->runId,
         ];
     }
 }

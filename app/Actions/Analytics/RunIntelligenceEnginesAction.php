@@ -2,9 +2,9 @@
 
 namespace App\Actions\Analytics;
 
+use App\Jobs\Analytics\RunIntelligenceEngineJob;
 use App\Models\Team;
 use App\Services\IntelligenceEngineService;
-use App\Jobs\Analytics\RunIntelligenceEngineJob;
 
 /**
  * Dispatches all applicable intelligence engine jobs for a team.
@@ -37,7 +37,7 @@ class RunIntelligenceEnginesAction
         }
 
         $dispatched = 0;
-        $delay      = 0;
+        $delay = 0;
 
         foreach (array_keys($activeEngines) as $engineKey) {
             RunIntelligenceEngineJob::dispatch($team->id, $engineKey)

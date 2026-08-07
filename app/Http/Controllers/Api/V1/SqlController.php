@@ -31,12 +31,12 @@ class SqlController extends BaseApiController
     public function query(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'question'     => 'required|string|min:5|max:500',
+            'question' => 'required|string|min:5|max:500',
             'connector_id' => 'required|integer|exists:data_connectors,id',
-            'schema'       => 'nullable|array',
+            'schema' => 'nullable|array',
         ]);
 
-        $team      = $this->currentTeam();
+        $team = $this->currentTeam();
         $connector = DataConnector::findOrFail($validated['connector_id']);
 
         if (! $connector->isActive()) {
@@ -45,9 +45,9 @@ class SqlController extends BaseApiController
 
         try {
             $result = $this->sqlService->query(
-                question:      $validated['question'],
-                connector:     $connector,
-                teamId:        $team->id,
+                question: $validated['question'],
+                connector: $connector,
+                teamId: $team->id,
                 schemaSummary: $validated['schema'] ?? null,
             );
 
@@ -55,7 +55,7 @@ class SqlController extends BaseApiController
         } catch (\InvalidArgumentException $e) {
             return $this->error($e->getMessage(), 422);
         } catch (\Throwable $e) {
-            return $this->error('Query execution failed: ' . $e->getMessage(), 500);
+            return $this->error('Query execution failed: '.$e->getMessage(), 500);
         }
     }
 
@@ -68,16 +68,16 @@ class SqlController extends BaseApiController
     public function generate(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'question'     => 'required|string|min:5|max:500',
+            'question' => 'required|string|min:5|max:500',
             'connector_id' => 'required|integer|exists:data_connectors,id',
-            'schema'       => 'nullable|array',
+            'schema' => 'nullable|array',
         ]);
 
-        $team      = $this->currentTeam();
+        $team = $this->currentTeam();
         $connector = DataConnector::findOrFail($validated['connector_id']);
 
         $schema = $validated['schema'] ?? [];
-        $sql    = $this->sqlService->generateSql($validated['question'], $schema, $team->id);
+        $sql = $this->sqlService->generateSql($validated['question'], $schema, $team->id);
 
         return $this->success(['sql' => $sql, 'question' => $validated['question']]);
     }

@@ -12,8 +12,8 @@ class ReportRun extends Model
     ];
 
     protected $casts = [
-        'output'       => 'array',
-        'started_at'   => 'datetime',
+        'output' => 'array',
+        'started_at' => 'datetime',
         'completed_at' => 'datetime',
     ];
 

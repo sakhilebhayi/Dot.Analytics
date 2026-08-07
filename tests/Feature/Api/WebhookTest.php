@@ -13,18 +13,19 @@ class WebhookTest extends TestCase
 
     private function actingAsUser(): array
     {
-        $user  = User::factory()->withPersonalTeam()->create();
+        $user = User::factory()->withPersonalTeam()->create();
         $token = $user->createToken('test')->plainTextToken;
+
         return [$user, $token];
     }
 
     private function connectedSource(int $teamId, string $platform = 'dot.fleet', array $config = []): DataSource
     {
         return DataSource::factory()->create([
-            'team_id'  => $teamId,
+            'team_id' => $teamId,
             'platform' => $platform,
-            'status'   => 'connected',
-            'config'   => $config,
+            'status' => 'connected',
+            'config' => $config,
         ]);
     }
 
@@ -78,12 +79,12 @@ class WebhookTest extends TestCase
     public function test_receive_accepts_valid_hmac_signature(): void
     {
         [$user, $token] = $this->actingAsUser();
-        $secret         = 'my-webhook-secret';
+        $secret = 'my-webhook-secret';
         $this->connectedSource($user->currentTeam->id, 'dot.fleet', ['webhook_secret' => $secret]);
 
-        $payload   = ['vehicles' => [['id' => 'V-001']]];
-        $body      = json_encode($payload);
-        $signature = 'sha256=' . hash_hmac('sha256', $body, $secret);
+        $payload = ['vehicles' => [['id' => 'V-001']]];
+        $body = json_encode($payload);
+        $signature = 'sha256='.hash_hmac('sha256', $body, $secret);
 
         $response = $this->withToken($token)
             ->withHeaders(['X-Analytics-Signature' => $signature])
@@ -95,7 +96,7 @@ class WebhookTest extends TestCase
     public function test_ping_returns_connection_status(): void
     {
         [$user, $token] = $this->actingAsUser();
-        $source         = $this->connectedSource($user->currentTeam->id);
+        $source = $this->connectedSource($user->currentTeam->id);
 
         $response = $this->withToken($token)->getJson('/api/v1/ingest/dot.fleet/ping');
 

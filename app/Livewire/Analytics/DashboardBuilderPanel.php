@@ -6,6 +6,7 @@ use App\Models\AnalyticsDashboard;
 use App\Models\DashboardWidget;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
@@ -21,29 +22,33 @@ use Livewire\Component;
  */
 class DashboardBuilderPanel extends Component
 {
-    public ?int    $activeDashboardId = null;
-    public string  $newDashboardTitle = '';
-    public bool    $showNewDashboard  = false;
+    public ?int $activeDashboardId = null;
+
+    public string $newDashboardTitle = '';
+
+    public bool $showNewDashboard = false;
 
     // Widget form state
-    public string  $widgetType   = 'metric_card';
-    public string  $widgetTitle  = '';
-    public bool    $showAddWidget = false;
+    public string $widgetType = 'metric_card';
+
+    public string $widgetTitle = '';
+
+    public bool $showAddWidget = false;
 
     public const WIDGET_TYPES = [
-        'metric_card'        => 'Metric Card',
-        'chart'              => 'Chart',
-        'alert_feed'         => 'Alert Feed',
+        'metric_card' => 'Metric Card',
+        'chart' => 'Chart',
+        'alert_feed' => 'Alert Feed',
         'recommendation_feed' => 'Recommendation Feed',
-        'insight_feed'       => 'Cross-Platform Insights',
-        'dna_snapshot'       => 'Business DNA Snapshot',
-        'briefing_summary'   => 'Executive Briefing Summary',
+        'insight_feed' => 'Cross-Platform Insights',
+        'dna_snapshot' => 'Business DNA Snapshot',
+        'briefing_summary' => 'Executive Briefing Summary',
     ];
 
     protected array $rules = [
         'newDashboardTitle' => 'required|string|max:120',
-        'widgetType'        => 'required|string',
-        'widgetTitle'       => 'nullable|string|max:120',
+        'widgetType' => 'required|string',
+        'widgetTitle' => 'nullable|string|max:120',
     ];
 
     #[Computed]
@@ -60,6 +65,7 @@ class DashboardBuilderPanel extends Component
         if (! $this->activeDashboardId) {
             return $this->dashboards->first();
         }
+
         return AnalyticsDashboard::find($this->activeDashboardId);
     }
 
@@ -77,13 +83,13 @@ class DashboardBuilderPanel extends Component
     {
         $this->validateOnly('newDashboardTitle');
 
-        $team      = Auth::user()->currentTeam;
-        $isFirst   = ! AnalyticsDashboard::exists();
+        $team = Auth::user()->currentTeam;
+        $isFirst = ! AnalyticsDashboard::exists();
 
         $dashboard = AnalyticsDashboard::create([
-            'team_id'    => $team->id,
-            'user_id'    => Auth::id(),
-            'title'      => $this->newDashboardTitle,
+            'team_id' => $team->id,
+            'user_id' => Auth::id(),
+            'title' => $this->newDashboardTitle,
             'is_default' => $isFirst,
         ]);
 
@@ -127,18 +133,18 @@ class DashboardBuilderPanel extends Component
 
         // Place widget in next available grid position
         $existingCount = DashboardWidget::where('analytics_dashboard_id', $dashboard->id)->count();
-        $col           = ($existingCount * 4) % 12;
-        $row           = (int) floor(($existingCount * 4) / 12);
+        $col = ($existingCount * 4) % 12;
+        $row = (int) floor(($existingCount * 4) / 12);
 
         DashboardWidget::create([
             'analytics_dashboard_id' => $dashboard->id,
-            'widget_type'            => $this->widgetType,
-            'title'                  => $this->widgetTitle ?: self::WIDGET_TYPES[$this->widgetType] ?? $this->widgetType,
-            'col'                    => $col,
-            'row'                    => $row,
-            'width'                  => 4,
-            'height'                 => 2,
-            'config'                 => ['type' => $this->widgetType],
+            'widget_type' => $this->widgetType,
+            'title' => $this->widgetTitle ?: self::WIDGET_TYPES[$this->widgetType] ?? $this->widgetType,
+            'col' => $col,
+            'row' => $row,
+            'width' => 4,
+            'height' => 2,
+            'config' => ['type' => $this->widgetType],
         ]);
 
         $this->reset(['widgetType', 'widgetTitle', 'showAddWidget']);
@@ -158,7 +164,7 @@ class DashboardBuilderPanel extends Component
      * Persist widget positions after drag-and-drop reorder.
      * Called from Alpine.js with the new order as an array of IDs.
      *
-     * @param array<int, int> $orderedIds
+     * @param  array<int, int>  $orderedIds
      */
     public function updatePositions(array $orderedIds): void
     {
@@ -172,7 +178,7 @@ class DashboardBuilderPanel extends Component
         unset($this->widgets);
     }
 
-    public function render(): \Illuminate\View\View
+    public function render(): View
     {
         return view('livewire.analytics.dashboard-builder-panel');
     }

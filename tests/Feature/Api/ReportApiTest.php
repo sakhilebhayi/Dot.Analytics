@@ -13,8 +13,9 @@ class ReportApiTest extends TestCase
 
     private function actingAsUser(): array
     {
-        $user  = User::factory()->withPersonalTeam()->create();
+        $user = User::factory()->withPersonalTeam()->create();
         $token = $user->createToken('test')->plainTextToken;
+
         return [$user, $token];
     }
 
@@ -40,7 +41,7 @@ class ReportApiTest extends TestCase
         [$user, $token] = $this->actingAsUser();
 
         $response = $this->withToken($token)->get('/api/v1/reports/insights/csv', [
-            'Authorization' => 'Bearer ' . $token,
+            'Authorization' => 'Bearer '.$token,
         ]);
 
         // Should be a streamed response
@@ -52,7 +53,7 @@ class ReportApiTest extends TestCase
         [$user, $token] = $this->actingAsUser();
 
         $response = $this->withToken($token)->get('/api/v1/reports/alerts/html', [
-            'Authorization' => 'Bearer ' . $token,
+            'Authorization' => 'Bearer '.$token,
         ]);
 
         $response->assertOk();
@@ -95,7 +96,7 @@ class ReportApiTest extends TestCase
      */
     public function test_user_with_no_team_gets_403_not_a_crash(): void
     {
-        $user  = User::factory()->create(['current_team_id' => null]);
+        $user = User::factory()->create(['current_team_id' => null]);
         $token = $user->createToken('test')->plainTextToken;
 
         $response = $this->withToken($token)->getJson('/api/v1/reports/insights');

@@ -19,8 +19,8 @@ class StructuredLogger
 {
     public function __construct(
         private readonly string $service,
-        private readonly ?int   $teamId  = null,
-        private readonly ?int   $userId  = null,
+        private readonly ?int $teamId = null,
+        private readonly ?int $userId = null,
     ) {}
 
     public function info(string $event, array $context = []): void
@@ -39,10 +39,10 @@ class StructuredLogger
 
         if ($exception) {
             $enriched['exception'] = [
-                'class'   => get_class($exception),
+                'class' => get_class($exception),
                 'message' => $exception->getMessage(),
-                'file'    => $exception->getFile(),
-                'line'    => $exception->getLine(),
+                'file' => $exception->getFile(),
+                'line' => $exception->getLine(),
             ];
         }
 
@@ -55,9 +55,9 @@ class StructuredLogger
 
         if ($exception) {
             $enriched['exception'] = [
-                'class'   => get_class($exception),
+                'class' => get_class($exception),
                 'message' => $exception->getMessage(),
-                'trace'   => $exception->getTraceAsString(),
+                'trace' => $exception->getTraceAsString(),
             ];
         }
 
@@ -80,12 +80,12 @@ class StructuredLogger
     public function aiCall(string $provider, string $model, int $inputTokens, int $outputTokens, int $latencyMs, float $costUsd): void
     {
         $this->info('ai.model.call', [
-            'provider'      => $provider,
-            'model'         => $model,
-            'input_tokens'  => $inputTokens,
+            'provider' => $provider,
+            'model' => $model,
+            'input_tokens' => $inputTokens,
             'output_tokens' => $outputTokens,
-            'latency_ms'    => $latencyMs,
-            'cost_usd'      => $costUsd,
+            'latency_ms' => $latencyMs,
+            'cost_usd' => $costUsd,
         ]);
     }
 
@@ -102,11 +102,11 @@ class StructuredLogger
     private function enrich(array $context): array
     {
         return array_merge([
-            'service'    => $this->service,
-            'team_id'    => $this->teamId,
-            'user_id'    => $this->userId,
+            'service' => $this->service,
+            'team_id' => $this->teamId,
+            'user_id' => $this->userId,
             'request_id' => request()->header('X-Request-ID') ?? request()->header('X-Correlation-ID'),
-            'timestamp'  => now()->toIso8601String(),
+            'timestamp' => now()->toIso8601String(),
         ], $context);
     }
 }

@@ -2,6 +2,8 @@
 
 namespace Tests\Unit\Services;
 
+use App\Models\DataSource;
+use App\Models\User;
 use App\Services\IntelligenceEngineService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -9,12 +11,13 @@ use Tests\TestCase;
 class IntelligenceEngineServiceTest extends TestCase
 {
     use RefreshDatabase;
+
     private IntelligenceEngineService $service;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->service = new IntelligenceEngineService();
+        $this->service = new IntelligenceEngineService;
     }
 
     public function test_platform_catalog_contains_all_fifteen_platforms(): void
@@ -129,13 +132,13 @@ class IntelligenceEngineServiceTest extends TestCase
 
     public function test_build_ecosystem_context_includes_platform_names(): void
     {
-        $user = \App\Models\User::factory()->withPersonalTeam()->create();
+        $user = User::factory()->withPersonalTeam()->create();
         $team = $user->currentTeam;
 
-        \App\Models\DataSource::factory()->create([
-            'team_id'  => $team->id,
+        DataSource::factory()->create([
+            'team_id' => $team->id,
             'platform' => 'dot.fleet',
-            'status'   => 'connected',
+            'status' => 'connected',
         ]);
 
         $context = $this->service->buildEcosystemContext($team);
@@ -146,7 +149,7 @@ class IntelligenceEngineServiceTest extends TestCase
 
     public function test_build_ecosystem_context_handles_no_connected_platforms(): void
     {
-        $user    = \App\Models\User::factory()->withPersonalTeam()->create();
+        $user = User::factory()->withPersonalTeam()->create();
         $context = $this->service->buildEcosystemContext($user->currentTeam);
 
         $this->assertStringContainsString('No platforms', $context);

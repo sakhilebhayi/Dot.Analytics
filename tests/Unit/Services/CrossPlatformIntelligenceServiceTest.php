@@ -7,6 +7,7 @@ use App\Events\Analytics\IntelligenceEngineCompleted;
 use App\Models\CrossPlatformInsight;
 use App\Models\DataSource;
 use App\Models\IntelligenceEngineRun;
+use App\Models\Team;
 use App\Models\User;
 use App\Services\AiModelRouter;
 use App\Services\CrossPlatformIntelligenceService;
@@ -25,21 +26,21 @@ class CrossPlatformIntelligenceServiceTest extends TestCase
     {
         parent::setUp();
         $this->service = new CrossPlatformIntelligenceService(
-            new IntelligenceEngineService(),
-            new AiModelRouter(),
+            new IntelligenceEngineService,
+            new AiModelRouter,
         );
     }
 
-    private function teamWithPlatforms(array $platforms): \App\Models\Team
+    private function teamWithPlatforms(array $platforms): Team
     {
         $user = User::factory()->withPersonalTeam()->create();
         $team = $user->currentTeam;
 
         foreach ($platforms as $platform) {
             DataSource::factory()->create([
-                'team_id'  => $team->id,
+                'team_id' => $team->id,
                 'platform' => $platform,
-                'status'   => 'connected',
+                'status' => 'connected',
             ]);
         }
 
@@ -50,7 +51,7 @@ class CrossPlatformIntelligenceServiceTest extends TestCase
 
     public function test_run_for_team_returns_zero_when_no_platforms(): void
     {
-        $user  = User::factory()->withPersonalTeam()->create();
+        $user = User::factory()->withPersonalTeam()->create();
         $count = $this->service->runForTeam($user->currentTeam);
 
         $this->assertEquals(0, $count);
@@ -64,8 +65,8 @@ class CrossPlatformIntelligenceServiceTest extends TestCase
 
         $this->assertDatabaseHas('intelligence_engine_runs', [
             'team_id' => $team->id,
-            'engine'  => 'community',
-            'status'  => 'completed',
+            'engine' => 'community',
+            'status' => 'completed',
         ]);
     }
 
@@ -98,13 +99,13 @@ class CrossPlatformIntelligenceServiceTest extends TestCase
         // Run engines directly (bypassing queue so listeners fire synchronously)
         $this->service->runForTeam($team);
 
-        $criticalInsights = \App\Models\CrossPlatformInsight::where('team_id', $team->id)
+        $criticalInsights = CrossPlatformInsight::where('team_id', $team->id)
             ->where('severity', 'critical')
             ->count();
 
         // If any critical insights were created, the event was dispatched.
         // The risk engine fallback always produces critical insights for these platforms.
-        $riskActive = \App\Models\IntelligenceEngineRun::where('team_id', $team->id)
+        $riskActive = IntelligenceEngineRun::where('team_id', $team->id)
             ->where('engine', 'risk')
             ->exists();
 
@@ -125,20 +126,20 @@ class CrossPlatformIntelligenceServiceTest extends TestCase
 
         $this->assertDatabaseMissing('intelligence_engine_runs', [
             'team_id' => $team->id,
-            'status'  => 'failed',
+            'status' => 'failed',
         ]);
     }
 
     public function test_run_for_team_with_multiple_platforms_activates_more_engines(): void
     {
         $singlePlatformTeam = $this->teamWithPlatforms(['dot.hear']);
-        $multiPlatformTeam  = $this->teamWithPlatforms(['dot.fleet', 'dot.crm', 'dot.hr', 'dot.payments', 'dot.hear']);
+        $multiPlatformTeam = $this->teamWithPlatforms(['dot.fleet', 'dot.crm', 'dot.hr', 'dot.payments', 'dot.hear']);
 
         $this->service->runForTeam($singlePlatformTeam);
         $this->service->runForTeam($multiPlatformTeam);
 
         $singleCount = IntelligenceEngineRun::where('team_id', $singlePlatformTeam->id)->count();
-        $multiCount  = IntelligenceEngineRun::where('team_id', $multiPlatformTeam->id)->count();
+        $multiCount = IntelligenceEngineRun::where('team_id', $multiPlatformTeam->id)->count();
 
         $this->assertGreaterThan($singleCount, $multiCount);
     }

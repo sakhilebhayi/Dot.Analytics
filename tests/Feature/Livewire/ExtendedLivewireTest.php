@@ -8,8 +8,8 @@ use App\Livewire\Analytics\KnowledgeGraphPanel;
 use App\Livewire\Analytics\RecommendationsPanel;
 use App\Livewire\Analytics\SavedReportsPanel;
 use App\Models\AnalyticsDashboard;
-use App\Models\CrossPlatformInsight;
-use App\Models\DataSource;
+use App\Models\AnalyticsReport;
+use App\Models\DashboardWidget;
 use App\Models\FeatureFlag;
 use App\Models\Recommendation;
 use App\Models\User;
@@ -51,7 +51,7 @@ class ExtendedLivewireTest extends TestCase
 
         $this->assertDatabaseHas('analytics_reports', [
             'team_id' => $this->team()->id,
-            'title'   => 'My Weekly Report',
+            'title' => 'My Weekly Report',
         ]);
     }
 
@@ -65,12 +65,12 @@ class ExtendedLivewireTest extends TestCase
 
     public function test_saved_reports_panel_delete_removes_report(): void
     {
-        $report = \App\Models\AnalyticsReport::create([
+        $report = AnalyticsReport::create([
             'team_id' => $this->team()->id,
             'user_id' => $this->user->id,
-            'title'   => 'To Delete',
-            'type'    => 'ad_hoc',
-            'config'  => ['report_type' => 'insights'],
+            'title' => 'To Delete',
+            'type' => 'ad_hoc',
+            'config' => ['report_type' => 'insights'],
         ]);
 
         Livewire::test(SavedReportsPanel::class)->call('delete', $report->id);
@@ -80,19 +80,19 @@ class ExtendedLivewireTest extends TestCase
 
     public function test_saved_reports_panel_run_creates_report_run(): void
     {
-        $report = \App\Models\AnalyticsReport::create([
+        $report = AnalyticsReport::create([
             'team_id' => $this->team()->id,
             'user_id' => $this->user->id,
-            'title'   => 'Run Me',
-            'type'    => 'ad_hoc',
-            'config'  => ['report_type' => 'insights'],
+            'title' => 'Run Me',
+            'type' => 'ad_hoc',
+            'config' => ['report_type' => 'insights'],
         ]);
 
         Livewire::test(SavedReportsPanel::class)->call('run', $report->id);
 
         $this->assertDatabaseHas('report_runs', [
             'analytics_report_id' => $report->id,
-            'status'              => 'completed',
+            'status' => 'completed',
         ]);
     }
 
@@ -206,8 +206,8 @@ class ExtendedLivewireTest extends TestCase
     {
         Recommendation::factory()->create([
             'team_id' => $this->team()->id,
-            'title'   => 'Actioned Rec',
-            'status'  => 'actioned',
+            'title' => 'Actioned Rec',
+            'status' => 'actioned',
         ]);
 
         Livewire::test(RecommendationsPanel::class)
@@ -218,8 +218,8 @@ class ExtendedLivewireTest extends TestCase
     {
         Recommendation::factory()->create([
             'team_id' => $this->team()->id,
-            'title'   => 'Dismissed Rec',
-            'status'  => 'dismissed',
+            'title' => 'Dismissed Rec',
+            'status' => 'dismissed',
         ]);
 
         Livewire::test(RecommendationsPanel::class)
@@ -241,7 +241,7 @@ class ExtendedLivewireTest extends TestCase
 
         $this->assertDatabaseHas('analytics_dashboards', [
             'team_id' => $this->team()->id,
-            'title'   => 'Fleet Overview',
+            'title' => 'Fleet Overview',
         ]);
     }
 
@@ -252,7 +252,7 @@ class ExtendedLivewireTest extends TestCase
             ->call('createDashboard');
 
         $this->assertDatabaseHas('analytics_dashboards', [
-            'team_id'    => $this->team()->id,
+            'team_id' => $this->team()->id,
             'is_default' => true,
         ]);
     }
@@ -268,9 +268,9 @@ class ExtendedLivewireTest extends TestCase
     public function test_dashboard_builder_add_widget(): void
     {
         $dashboard = AnalyticsDashboard::create([
-            'team_id'    => $this->team()->id,
-            'user_id'    => $this->user->id,
-            'title'      => 'Test',
+            'team_id' => $this->team()->id,
+            'user_id' => $this->user->id,
+            'title' => 'Test',
             'is_default' => true,
         ]);
 
@@ -281,26 +281,26 @@ class ExtendedLivewireTest extends TestCase
 
         $this->assertDatabaseHas('dashboard_widgets', [
             'analytics_dashboard_id' => $dashboard->id,
-            'widget_type'            => 'metric_card',
+            'widget_type' => 'metric_card',
         ]);
     }
 
     public function test_dashboard_builder_remove_widget(): void
     {
         $dashboard = AnalyticsDashboard::create([
-            'team_id'    => $this->team()->id,
-            'user_id'    => $this->user->id,
-            'title'      => 'Test',
+            'team_id' => $this->team()->id,
+            'user_id' => $this->user->id,
+            'title' => 'Test',
             'is_default' => true,
         ]);
 
-        $widget = \App\Models\DashboardWidget::create([
+        $widget = DashboardWidget::create([
             'analytics_dashboard_id' => $dashboard->id,
-            'widget_type'            => 'chart',
-            'col'                    => 0,
-            'row'                    => 0,
-            'width'                  => 4,
-            'height'                 => 2,
+            'widget_type' => 'chart',
+            'col' => 0,
+            'row' => 0,
+            'width' => 4,
+            'height' => 2,
         ]);
 
         Livewire::test(DashboardBuilderPanel::class)
@@ -313,9 +313,9 @@ class ExtendedLivewireTest extends TestCase
     public function test_dashboard_builder_delete_dashboard(): void
     {
         $dashboard = AnalyticsDashboard::create([
-            'team_id'    => $this->team()->id,
-            'user_id'    => $this->user->id,
-            'title'      => 'Delete Me',
+            'team_id' => $this->team()->id,
+            'user_id' => $this->user->id,
+            'title' => 'Delete Me',
             'is_default' => false,
         ]);
 

@@ -10,11 +10,11 @@ class IntelligenceContextDataTest extends TestCase
     public function test_constructs_with_required_fields(): void
     {
         $data = new IntelligenceContextData(
-            teamId:             1,
-            teamName:           'Acme Corp',
+            teamId: 1,
+            teamName: 'Acme Corp',
             connectedPlatforms: ['dot.fleet', 'dot.crm'],
-            activeEngines:      ['operational', 'customer'],
-            recentSnapshots:    [],
+            activeEngines: ['operational', 'customer'],
+            recentSnapshots: [],
         );
 
         $this->assertEquals(1, $data->teamId);
@@ -48,7 +48,7 @@ class IntelligenceContextDataTest extends TestCase
 
     public function test_to_prompt_string_includes_team_name(): void
     {
-        $data   = new IntelligenceContextData(1, 'Acme Mining', ['dot.fleet'], ['operational'], []);
+        $data = new IntelligenceContextData(1, 'Acme Mining', ['dot.fleet'], ['operational'], []);
         $prompt = $data->toPromptString();
 
         $this->assertStringContainsString('Acme Mining', $prompt);
@@ -56,7 +56,7 @@ class IntelligenceContextDataTest extends TestCase
 
     public function test_to_prompt_string_includes_platform_count(): void
     {
-        $data   = new IntelligenceContextData(1, 'Corp', ['dot.fleet', 'dot.crm'], [], []);
+        $data = new IntelligenceContextData(1, 'Corp', ['dot.fleet', 'dot.crm'], [], []);
         $prompt = $data->toPromptString();
 
         $this->assertStringContainsString('2', $prompt);
@@ -64,7 +64,7 @@ class IntelligenceContextDataTest extends TestCase
 
     public function test_to_prompt_string_includes_engine_info_when_available(): void
     {
-        $data   = new IntelligenceContextData(1, 'Corp', ['dot.fleet'], ['operational', 'asset'], []);
+        $data = new IntelligenceContextData(1, 'Corp', ['dot.fleet'], ['operational', 'asset'], []);
         $prompt = $data->toPromptString();
 
         $this->assertStringContainsString('2', $prompt); // engine count

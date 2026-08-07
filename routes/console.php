@@ -45,4 +45,3 @@ Schedule::command(RecomputeDnaCommand::class)
     ->withoutOverlapping()
     ->onOneServer()
     ->description('Recompute Business DNA profiles');
-

@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class MetricDefinition extends Model
 {
     use HasFactory;
+
     protected $fillable = [
         'key', 'label', 'source_platform', 'engine', 'aggregation', 'unit', 'description',
     ];

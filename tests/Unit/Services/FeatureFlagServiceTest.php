@@ -17,7 +17,7 @@ class FeatureFlagServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->service = new FeatureFlagService();
+        $this->service = new FeatureFlagService;
     }
 
     private function user(): User
@@ -48,8 +48,8 @@ class FeatureFlagServiceTest extends TestCase
     {
         $user = $this->user();
         FeatureFlag::create([
-            'key'               => 'user-flag',
-            'name'              => 'User Flag',
+            'key' => 'user-flag',
+            'name' => 'User Flag',
             'enabled_for_users' => [$user->id],
         ]);
 
@@ -61,8 +61,8 @@ class FeatureFlagServiceTest extends TestCase
         $userA = $this->user();
         $userB = $this->user();
         FeatureFlag::create([
-            'key'               => 'user-flag',
-            'name'              => 'User Flag',
+            'key' => 'user-flag',
+            'name' => 'User Flag',
             'enabled_for_users' => [$userA->id],
         ]);
 
@@ -73,8 +73,8 @@ class FeatureFlagServiceTest extends TestCase
     {
         $user = $this->user();
         FeatureFlag::create([
-            'key'               => 'team-flag',
-            'name'              => 'Team Flag',
+            'key' => 'team-flag',
+            'name' => 'Team Flag',
             'enabled_for_teams' => [$user->currentTeam->id],
         ]);
 
@@ -88,8 +88,8 @@ class FeatureFlagServiceTest extends TestCase
         $bucket = ($user->id % 100) + 1;
 
         FeatureFlag::create([
-            'key'                => 'rollout',
-            'name'               => 'Rollout',
+            'key' => 'rollout',
+            'name' => 'Rollout',
             'rollout_percentage' => $bucket <= 50 ? 100 : 0, // fully on or off based on bucket
         ]);
 
@@ -143,10 +143,10 @@ class FeatureFlagServiceTest extends TestCase
     public function test_environment_scoping_blocks_wrong_env(): void
     {
         FeatureFlag::create([
-            'key'             => 'prod-only',
-            'name'            => 'Prod Only',
+            'key' => 'prod-only',
+            'name' => 'Prod Only',
             'enabled_globally' => true,
-            'environment'     => 'production',
+            'environment' => 'production',
         ]);
 
         // In testing env, production-only flag should be disabled
