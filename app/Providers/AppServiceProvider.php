@@ -100,6 +100,9 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('view-audit-logs', fn ($user) => $this->isTeamOwnerOrAdmin($user)
         );
 
+        Gate::define('manage-recommendations', fn ($user) => $this->isTeamOwnerOrAdmin($user)
+        );
+
         Gate::define('view-intelligence', fn ($user) =>
             // All authenticated team members can view intelligence
             $user->currentTeam !== null

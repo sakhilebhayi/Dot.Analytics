@@ -7,6 +7,7 @@ use App\Services\AiModelRouter;
 use App\Services\IntelligenceEngineService;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
@@ -74,12 +75,16 @@ PROMPT;
 
     public function action(int $id): void
     {
+        Gate::authorize('manage-recommendations');
+
         Recommendation::findOrFail($id)->update(['status' => 'actioned']);
         unset($this->recommendations);
     }
 
     public function dismiss(int $id): void
     {
+        Gate::authorize('manage-recommendations');
+
         Recommendation::findOrFail($id)->update(['status' => 'dismissed']);
         unset($this->recommendations);
     }

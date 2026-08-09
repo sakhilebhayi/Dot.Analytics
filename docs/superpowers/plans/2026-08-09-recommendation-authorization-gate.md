@@ -4,7 +4,7 @@
 
 **Goal:** Close the missing-authorization gap on `RecommendationsPanel::action()`/`::dismiss()` by reusing this codebase's existing team-owner-or-admin gate pattern, and scope the underlying lookup to the acting user's own team.
 
-**Architecture:** One new named Laravel Gate (`manage-recommendations`) defined in `AppServiceProvider::boot()`, reusing the private `isTeamOwnerOrAdmin()` helper already used by five other gates in that file. `RecommendationsPanel`'s two mutating methods call `Gate::authorize('manage-recommendations')` as their first line (matching `FeatureFlagsPanel`'s exact convention) and scope their `Recommendation` lookup to `Auth::user()->currentTeam->id`.
+**Architecture:** One new named Laravel Gate (`manage-recommendations`) defined in `AppServiceProvider::boot()`, reusing the private `isTeamOwnerOrAdmin()` helper already used by five other gates in that file. `RecommendationsPanel`'s two mutating methods call `Gate::authorize('manage-recommendations')` as their first line (matching `FeatureFlagsPanel`'s exact convention). Cross-tenant scoping needs no new code: `Recommendation` already carries the `HasTeamScope` trait, whose global scope keys every query to `Auth::user()->currentTeam->id` — discovered mid-implementation and corrected in the spec; see that document's Context-section correction note.
 
 **Tech Stack:** Laravel 13, Livewire, PHPUnit, Jetstream teams (owner via `Team::user_id`, `admin` pivot role via `team_user.role`).
 
@@ -12,8 +12,8 @@
 
 - Reuse `AppServiceProvider`'s existing private `isTeamOwnerOrAdmin(User $user): bool` helper verbatim — do not duplicate its logic.
 - Gate name: exactly `manage-recommendations`, following the existing kebab-case verb-noun convention (`manage-platforms`, `manage-connectors`).
-- `Gate::authorize()` (not `Gate::allows()`/`abort_unless()`) — matches `FeatureFlagsPanel`'s exact convention, so a denial throws `Illuminate\Auth\Access\AuthorizationException` → Livewire surfaces it as a 403.
-- Scope the `Recommendation` lookup to `Auth::user()->currentTeam->id` before `findOrFail()`, so a cross-tenant id 404s (`ModelNotFoundException`) rather than succeeding.
+- `Gate::authorize()` (not `Gate::allows()`/`abort_unless()`) — matches `FeatureFlagsPanel`'s exact convention, so a denial throws `Illuminate\Auth\Access\AuthorizationException` → Livewire's test harness surfaces it as an assertable 403.
+- Do **not** add an explicit `->where('team_id', ...)` scope to the lookup — `Recommendation`'s own `HasTeamScope` trait already applies that globally; an explicit repeat would be redundant with the trait's own stated design goal (see spec correction note).
 - No blade view changes — buttons stay visible to all viewers, matching `FeatureFlagsPanel`'s own convention where the backend gate is the real boundary.
 - No new role/permission concept, no migration, no change to `Recommendation`'s schema or `generate()` method.
 - Per this repo's own `.github/instructions/laravel-boost.instructions.md`-equivalent rule (`CLAUDE.md`'s Laravel Boost guidelines, "Verification Scripts" section): do not create verification scripts or use `tinker` when tests cover the functionality and prove it works.
@@ -32,7 +32,7 @@
 - Consumes: `AppServiceProvider::isTeamOwnerOrAdmin(User $user): bool` (existing, private, called only from within `Gate::define()` closures in the same class — no external interface needed).
 - Produces: Gate name `manage-recommendations`, resolvable via `Gate::authorize('manage-recommendations')`, `$user->can('manage-recommendations')`, or `Gate::allows('manage-recommendations')` anywhere in the app.
 
-- [ ] **Step 1: Write the failing Livewire authorization tests**
+- [x] **Step 1: Write the failing Livewire authorization tests**
 
 Create `tests/Feature/Livewire/RecommendationsPanelAuthorizationTest.php`:
 
@@ -44,6 +44,7 @@ namespace Tests\Feature\Livewire;
 use App\Livewire\Analytics\RecommendationsPanel;
 use App\Models\Recommendation;
 use App\Models\User;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -116,37 +117,69 @@ class RecommendationsPanelAuthorizationTest extends TestCase
             'status' => 'pending',
         ]);
 
+        // Recommendation::HasTeamScope already applies a global scope keyed
+        // on Auth::user()->currentTeam->id, so this lookup finds 0 rows for
+        // otherOwner's team and Eloquent throws directly -- Livewire's test
+        // call() does not convert this into an assertable HTTP response the
+        // way it does for AuthorizationException, so the exception is
+        // asserted directly.
+        $this->expectException(ModelNotFoundException::class);
+
         Livewire::actingAs($otherOwner)
             ->test(RecommendationsPanel::class)
-            ->call('action', $recommendation->id)
-            ->assertStatus(404);
+            ->call('action', $recommendation->id);
+    }
+
+    public function test_a_different_teams_owner_leaves_this_teams_recommendation_untouched(): void
+    {
+        $owner = User::factory()->withPersonalTeam()->create();
+        $otherOwner = User::factory()->withPersonalTeam()->create();
+
+        $recommendation = Recommendation::factory()->create([
+            'team_id' => $owner->currentTeam->id,
+            'status' => 'pending',
+        ]);
+
+        try {
+            Livewire::actingAs($otherOwner)
+                ->test(RecommendationsPanel::class)
+                ->call('action', $recommendation->id);
+        } catch (ModelNotFoundException) {
+            // Expected -- see test_a_different_teams_owner_cannot_action_this_teams_recommendation.
+        }
 
         $this->assertSame('pending', $recommendation->fresh()->status);
     }
 }
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail as expected**
+**Deviation from the original plan draft, discovered while writing this
+step:** the plan originally asserted `->assertStatus(404)` for the
+cross-tenant case in a single test, and expected it to already fail
+pre-implementation as an ordinary assertion failure. Actually running it
+(see Step 2) showed it fails as an **uncaught `ModelNotFoundException`**
+instead, both before and after the gate is added — because
+`Recommendation`'s `HasTeamScope` global scope already prevents the
+cross-tenant read regardless of this fix. The test was split into two
+(exception-shape test + untouched-status test) to assert this correctly;
+see the spec's Context-section correction for the full explanation.
+
+- [x] **Step 2: Run the tests and observe actual behavior**
 
 Run: `php artisan test --compact tests/Feature/Livewire/RecommendationsPanelAuthorizationTest.php`
 
-Before any implementation change, `action()`/`dismiss()` have no gate and no
-team scope, so:
-- `test_team_owner_can_action_a_pending_recommendation` and
-  `test_team_admin_can_dismiss_a_pending_recommendation` already PASS (there
-  is nothing yet stopping either from succeeding).
-- `test_non_admin_team_member_is_forbidden` FAILS —
-  `assertForbidden()` fails because the call currently succeeds (200/OK
-  Livewire response, status flips to `actioned`) instead of 403.
-- `test_a_different_teams_owner_cannot_action_this_teams_recommendation`
-  FAILS — `assertStatus(404)` fails for the same reason (the unscoped
-  `findOrFail($id)` finds the other team's row and updates it).
+Actual result before any implementation change: 2 passed
+(`test_team_owner_can_action_a_pending_recommendation`,
+`test_team_admin_can_dismiss_a_pending_recommendation` — nothing yet stops
+either from succeeding), 1 failed
+(`test_non_admin_team_member_is_forbidden` — `assertForbidden()` fails
+because the call currently succeeds instead of returning 403), 1 errored
+(`test_a_different_teams_owner_cannot_action_this_teams_recommendation` —
+uncaught `ModelNotFoundException`, from `HasTeamScope`'s global scope, which
+was already active before this fix). This is what actually ran; it
+motivated splitting the cross-tenant test as described above.
 
-Expected: 2 passed, 2 failed. Confirm the 2 failures are exactly those two
-tests before proceeding — if a different test fails, stop and investigate
-before implementing.
-
-- [ ] **Step 3: Add the `manage-recommendations` gate**
+- [x] **Step 3: Add the `manage-recommendations` gate**
 
 In `app/Providers/AppServiceProvider.php`, inside `boot()`, immediately after
 the existing `Gate::define('view-audit-logs', ...)` block and before the
@@ -157,7 +190,7 @@ Gate::define('manage-recommendations', fn ($user) => $this->isTeamOwnerOrAdmin($
 );
 ```
 
-- [ ] **Step 4: Gate and scope `RecommendationsPanel`'s mutating methods**
+- [x] **Step 4: Gate `RecommendationsPanel`'s mutating methods**
 
 In `app/Livewire/Analytics/RecommendationsPanel.php`, add the import:
 
@@ -172,10 +205,7 @@ public function action(int $id): void
 {
     Gate::authorize('manage-recommendations');
 
-    Recommendation::where('team_id', Auth::user()->currentTeam->id)
-        ->findOrFail($id)
-        ->update(['status' => 'actioned']);
-
+    Recommendation::findOrFail($id)->update(['status' => 'actioned']);
     unset($this->recommendations);
 }
 
@@ -183,23 +213,24 @@ public function dismiss(int $id): void
 {
     Gate::authorize('manage-recommendations');
 
-    Recommendation::where('team_id', Auth::user()->currentTeam->id)
-        ->findOrFail($id)
-        ->update(['status' => 'dismissed']);
-
+    Recommendation::findOrFail($id)->update(['status' => 'dismissed']);
     unset($this->recommendations);
 }
 ```
 
-- [ ] **Step 5: Run the tests to verify they pass**
+**No explicit team-scope `where()` clause** — see Global Constraints and the
+spec's correction note: `HasTeamScope`'s global scope already does this.
+
+- [x] **Step 5: Run the tests to verify they pass**
 
 Run: `php artisan test --compact tests/Feature/Livewire/RecommendationsPanelAuthorizationTest.php`
-Expected: PASS, 4 tests, 0 failures.
+Actual: PASS, 5 tests (one more than the original 4-test draft, per the
+Step 1 deviation), 0 failures.
 
-- [ ] **Step 6: Run Pint**
+- [x] **Step 6: Run Pint**
 
 Run: `vendor/bin/pint --dirty --format agent`
-Expected: reports `passed` or auto-fixes formatting on the two touched files.
+Actual: `passed`.
 
 - [ ] **Step 7: Commit**
 
@@ -211,13 +242,20 @@ git commit -m "$(cat <<'EOF'
 fix: gate RecommendationsPanel action/dismiss behind team owner/admin
 
 action()/dismiss() previously had no authorization check at all --
-any authenticated user on any team could flip another team's
-recommendation to actioned/dismissed by guessing its id. Every other
-mutating method in this codebase (FeatureFlagsPanel, DataSourcePolicy,
+any authenticated team member, regardless of role, could flip their
+own team's recommendation to actioned/dismissed. Every other mutating
+method in this codebase (FeatureFlagsPanel, DataSourcePolicy,
 CrossPlatformInsightPolicy) already gates on team owner/admin; this
 reuses the same isTeamOwnerOrAdmin() gate pattern via a new
-manage-recommendations gate, and scopes the lookup to the acting
-user's own team so a cross-tenant id 404s instead of succeeding.
+manage-recommendations gate.
+
+Cross-tenant access was never actually open: Recommendation already
+carries HasTeamScope, whose global scope keys every query to the
+current team, so a cross-tenant id already threw
+ModelNotFoundException before this change too -- confirmed by running
+the new tests before implementing and seeing that exception, not a
+plain assertion failure. No explicit team-scope code was added here;
+this commit is authorization-only.
 
 Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>
 EOF

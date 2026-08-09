@@ -35,11 +35,22 @@ codebase. `Gate::authorize('manage-platforms')` (or an equivalent named gate)
 is the first line of every comparable mutator: `FeatureFlagsPanel::create()`/`toggle()`/`setRollout()`
 (`app/Livewire/Analytics/FeatureFlagsPanel.php:40,56,70`),
 `DataSourcePolicy::update()`/`delete()`, `CrossPlatformInsightPolicy::delete()`.
-`RecommendationsPanel` alone skips it: any authenticated user — regardless of
-team, regardless of role — can call `action($id)` or `dismiss($id)` on any
-`Recommendation` row by ID (`Recommendation::findOrFail($id)`, no team-scope
-check), silently changing its status. This is a real, exploitable gap: cross-tenant
-write access to another team's decision record.
+`RecommendationsPanel` alone skips it: any authenticated user, regardless of
+role, can call `action($id)` or `dismiss($id)` on any pending recommendation
+belonging to their own team, silently changing its status with no role check
+at all.
+
+**Correction made during implementation:** this spec originally also
+described the gap as cross-tenant (any team could touch any other team's
+recommendation by ID). That part was wrong — `Recommendation` uses the
+`HasTeamScope` trait (`app/Models/Concerns/HasTeamScope.php`), which applies
+a global query scope keyed on `Auth::user()->currentTeam->id`. This was
+missed during the design phase (the model file was read for its `$fillable`/
+relations but the trait's effect wasn't traced) and only surfaced once the
+cross-tenant test was actually run: `Recommendation::findOrFail($id)` already
+throws `ModelNotFoundException` for another team's id, before this fix and
+after it. The real, narrower gap is exactly what's described above — same-team,
+wrong-role access — and that's what this fix closes.
 
 ## Goal
 
@@ -92,10 +103,7 @@ public function action(int $id): void
 {
     Gate::authorize('manage-recommendations');
 
-    Recommendation::where('team_id', Auth::user()->currentTeam->id)
-        ->findOrFail($id)
-        ->update(['status' => 'actioned']);
-
+    Recommendation::findOrFail($id)->update(['status' => 'actioned']);
     unset($this->recommendations);
 }
 
@@ -103,23 +111,32 @@ public function dismiss(int $id): void
 {
     Gate::authorize('manage-recommendations');
 
-    Recommendation::where('team_id', Auth::user()->currentTeam->id)
-        ->findOrFail($id)
-        ->update(['status' => 'dismissed']);
-
+    Recommendation::findOrFail($id)->update(['status' => 'dismissed']);
     unset($this->recommendations);
 }
 ```
 
-`Gate::authorize()` throws `Illuminate\Auth\Access\AuthorizationException` on
-failure, which Laravel/Livewire converts to a 403 — matching
-`FeatureFlagsPanel`'s exact convention. Scoping the lookup to
-`Auth::user()->currentTeam->id` means a cross-tenant `$id` now 404s
-(`ModelNotFoundException`) rather than silently succeeding, matching how
-`DataSourcePolicy`-gated cross-tenant lookups already behave elsewhere in this
-codebase (see `GateTest::test_user_cannot_disconnect_another_teams_platform`).
+No explicit `->where('team_id', ...)` is needed — `Recommendation`'s own
+`HasTeamScope` trait already applies that as a global scope on every query
+(see the Context section's correction above), so `findOrFail($id)` already
+only ever resolves a row belonging to the acting user's current team.
+Explicitly repeating that condition here would be redundant with, not
+additive to, the trait's own stated design goal (its docblock: "a forgotten
+`where('team_id', ...)` call... can no longer leak another team's rows,
+because the model itself never returns unscoped results").
 
-`Auth` is already imported in this file (used by `generate()`).
+`Gate::authorize()` throws `Illuminate\Auth\Access\AuthorizationException` on
+failure, which Livewire's test harness converts to an assertable 403 —
+matching `FeatureFlagsPanel`'s exact convention and confirmed against this
+codebase's own `RemoveTeamMemberTest::test_only_team_owner_can_remove_team_members`.
+A cross-tenant `$id`, by contrast, throws `ModelNotFoundException` from the
+trait's global scope — confirmed this is **not** converted to an assertable
+HTTP response by Livewire's test `call()` the way `AuthorizationException`
+is; it must be asserted as a raw thrown exception in tests (see the plan's
+Task 1 for the resulting test shape).
+
+`Auth` is already imported in this file (used by `generate()`) but is no
+longer needed by these two methods after removing the explicit scope.
 `Illuminate\Support\Facades\Gate` is **not** currently imported (confirmed —
 the file's import block has no `Gate` line) and must be added.
 
