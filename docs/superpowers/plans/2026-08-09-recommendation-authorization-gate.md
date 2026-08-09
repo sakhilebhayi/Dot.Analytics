@@ -273,7 +273,7 @@ EOF
 - Consumes: `manage-recommendations` gate (Task 1).
 - Produces: nothing new — this task only adds test coverage and verifies the whole suite.
 
-- [ ] **Step 1: Write the failing gate-level tests**
+- [x] **Step 1: Write the failing gate-level tests**
 
 In `tests/Feature/Authorization/GateTest.php`, add a new section after the
 existing `// ─── view-audit-logs ─────` block and before `// ─── view-intelligence ───`:
@@ -311,30 +311,32 @@ pure test-coverage addition (extending `GateTest`'s existing one-section-per-gat
 convention for consistency), so there is no red step: the new tests are
 expected to pass immediately, proving Task 1's gate is wired correctly.
 
-- [ ] **Step 2: Run the new tests and confirm they pass**
+- [x] **Step 2: Run the new tests and confirm they pass**
+
+Actual: PASS, 2 tests, 0 failures.
 
 Run: `php artisan test --compact tests/Feature/Authorization/GateTest.php --filter=manage_recommendations`
 Expected: PASS, 2 tests, 0 failures. If either fails, Task 1's gate
 definition is wrong and must be fixed before continuing.
 
-- [ ] **Step 3: Run the full GateTest file**
+- [x] **Step 3: Run the full GateTest file**
 
 Run: `php artisan test --compact tests/Feature/Authorization/GateTest.php`
-Expected: PASS, all tests in the file including the 2 new ones.
+Actual: PASS, 15 tests, 0 failures.
 
-- [ ] **Step 4: Run Pint**
+- [x] **Step 4: Run Pint**
 
 Run: `vendor/bin/pint --dirty --format agent`
-Expected: `passed`.
+Actual: `passed`.
 
-- [ ] **Step 5: Run the full test suite**
+- [x] **Step 5: Run the full test suite**
 
 Run: `php artisan test --compact`
-Expected: 0 failures across the full suite (this repo's baseline before this
-plan started, per the earlier `feature/ecosystem-sso` branch state, was 494
-tests / 487 passed / 1070 assertions per `Dot.Brain/platforms/dot-analytics.md`'s
-"Verified Infrastructure State" note — the exact current count may differ;
-what matters is 0 failures, not matching that historical count exactly).
+Actual: PASS, 507 tests, 500 passed, 7 skipped, 0 failures (this repo's
+documented baseline before this plan started, per `Dot.Brain/platforms/dot-analytics.md`'s
+"Verified Infrastructure State" note, was 494 tests / 487 passed / 1070
+assertions — the higher count here reflects normal suite growth since that
+note was written; what matters is 0 failures, confirmed).
 
 - [ ] **Step 6: Commit**
 

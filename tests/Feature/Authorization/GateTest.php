@@ -98,6 +98,27 @@ class GateTest extends TestCase
         $this->assertTrue($owner->can('view-audit-logs'));
     }
 
+    // ─── manage-recommendations ──────────────────────────────────────────────
+
+    public function test_manage_recommendations_allows_team_owner(): void
+    {
+        $owner = $this->owner();
+        $this->actingAs($owner);
+
+        $this->assertTrue($owner->can('manage-recommendations'));
+    }
+
+    public function test_manage_recommendations_denies_user_with_no_team(): void
+    {
+        $userWithNoTeam = new User;
+        $userWithNoTeam->id = 9999;
+
+        $gate = app(Gate::class);
+
+        $result = $gate->forUser($userWithNoTeam)->check('manage-recommendations');
+        $this->assertFalse($result);
+    }
+
     // ─── view-intelligence ───────────────────────────────────────────────────
 
     public function test_view_intelligence_allows_any_team_member(): void
