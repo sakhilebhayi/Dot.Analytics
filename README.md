@@ -180,6 +180,16 @@ Set `ANTHROPIC_API_KEY` in `.env` to enable live AI intelligence. Without it, al
 
 ---
 
+## 🚢 Deployment
+
+Production runs as a single Docker image (`Dockerfile`, `target: production`) with nginx + PHP-FPM + supervisor baked in — `docker/nginx/default.conf` and `docker/supervisor/supervisord.conf` are the real, deployed configs, not just references. `docker-compose.yml` is the local multi-container dev setup (separate `app`/`queue`/`scheduler`/`reverb`/`postgres`/`redis` services); production uses the single-container image instead, with `docker/supervisor/supervisord.conf`'s `[program:reverb]`/`[program:queue-worker]`/`[program:scheduler]` playing the same role.
+
+See `.env.production.example` for the required production env vars, in particular the internal-vs-public Reverb host split (`REVERB_HOST`/`PORT`/`SCHEME` for what browsers connect to over `wss://`, vs `REVERB_SERVER_HOST`/`PORT` for the PHP backend's own outbound publish path inside the container) — `docker/nginx/default.conf`'s `/app` location block is what makes the public side work, proxying the WebSocket upgrade handshake down to the `reverb` supervisor program on `127.0.0.1:8080`.
+
+`GET /up/realtime` checks broadcasting config, queue connection, and whether `reverb:start` is actually accepting connections — independently, so it reports which link broke rather than a single healthy/unhealthy bit. See `app/Http/Controllers/RealtimeHealthController.php`.
+
+---
+
 ## Part of the Dot Ecosystem
 
 Dot.Analytics connects to [InfoDot](https://github.com/sakhileb/InfoDot) — the central hub. Log in to InfoDot once and navigate here without re-authenticating via `/auth/ecosystem`.

@@ -1,4 +1,12 @@
-<div class="bg-white rounded-xl shadow p-6">
+{{--
+    intelligence:engine-completed is a browser CustomEvent dispatched by
+    resources/js/app.js when Echo receives a broadcast on the team's
+    private team.{id}.intelligence channel (App\Events\Analytics\
+    IntelligenceEngineCompleted). $wire.$refresh() re-renders this
+    component, busting its #[Computed] cache so it reflects the engine
+    run without the user having to reload the page.
+--}}
+<div class="bg-white rounded-xl shadow p-6" x-on:intelligence:engine-completed.window="$wire.$refresh()">
     <div class="mb-5">
         <h3 class="text-lg font-semibold text-gray-800">Universal Intelligence Query</h3>
         <p class="text-sm text-gray-500 mt-0.5">

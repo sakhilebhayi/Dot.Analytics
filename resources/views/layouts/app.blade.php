@@ -4,6 +4,9 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    @auth
+    <script>window.teamId = {{ auth()->user()->currentTeam?->id ?? 'null' }};</script>
+    @endauth
     <title>Dot.Analytics</title>
     <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon-32x32.png') }}">
     <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('favicon-16x16.png') }}">
@@ -22,6 +25,7 @@
         .sl.active { border-left:4px solid #0ea5e9;background:rgba(14,165,233,0.1);color:#b6c4ff;opacity:1; }
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
     </style>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
     <script defer src="https://unpkg.com/alpinejs@3.10.2/dist/cdn.min.js"></script>
 </head>
