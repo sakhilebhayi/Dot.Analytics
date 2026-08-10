@@ -34,6 +34,12 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/up"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
     networks:
       - dot_network
 
@@ -52,7 +58,14 @@ services:
       - .:/var/www/html
       - /var/www/html/vendor
     depends_on:
-      - app
+      app:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -f 'queue:work' || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     networks:
       - dot_network
 
@@ -70,7 +83,18 @@ services:
       - .:/var/www/html
       - /var/www/html/vendor
     depends_on:
-      - app
+      app:
+        condition: service_healthy
+    healthcheck:
+      # Matches the persistent wrapping `sh -c "while true; ..."` process,
+      # not the brief `php artisan schedule:run` child that only exists for
+      # a moment once a minute -- checking for that directly would be
+      # flaky, failing whenever the check lands between runs.
+      test: ["CMD-SHELL", "pgrep -f 'schedule:run' || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     networks:
       - dot_network
 
@@ -90,7 +114,19 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      - app
+      app:
+        condition: service_healthy
+    healthcheck:
+      # No -f: a bare GET without the WebSocket Upgrade handshake gets a
+      # 4xx from Reverb, which is the expected, healthy response here --
+      # -f would treat that as failure. Any HTTP response at all (curl
+      # exit 0) means the process is up and accepting connections;
+      # a connection-refused/timeout (exit != 0) means it isn't.
+      test: ["CMD-SHELL", "curl -s -o /dev/null http://localhost:8080 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
     networks:
       - dot_network
 
