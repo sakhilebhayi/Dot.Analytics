@@ -32,7 +32,7 @@
         <div style="margin-bottom:1.75rem;padding:0 0.5rem;">
             <a href="{{ route('dashboard') }}" style="display:flex;align-items:center;gap:0.75rem;text-decoration:none;">
                 <div style="width:34px;height:34px;border-radius:8px;overflow:hidden;background:#fff;display:flex;align-items:center;justify-content:center;">
-                    <img src="{{ asset('images/logo.png') }}" alt="Dot.Analytics" style="width:100%;height:100%;object-fit:contain;">
+                    <img src="{{ asset('images/mark.png') }}" alt="Dot.Analytics" style="width:100%;height:100%;object-fit:contain;">
                 </div>
                 <div>
                     <div style="font-family:'Manrope',sans-serif;font-size:1rem;font-weight:800;color:#b6c4ff;">Dot.Analytics</div>

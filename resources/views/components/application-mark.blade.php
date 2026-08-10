@@ -1,1 +1,1 @@
-<img src="{{ asset('images/logo.png') }}" alt="Dot.Analytics" {{ $attributes->merge(['class' => 'object-contain']) }}>
+<img src="{{ asset('images/mark.png') }}" alt="Dot.Analytics" {{ $attributes->merge(['class' => 'object-contain']) }}>
