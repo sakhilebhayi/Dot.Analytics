@@ -42,11 +42,46 @@ class SecurityHeaders
         );
 
         // Content Security Policy
+        //
+        // Three real mismatches found while first loading the real
+        // authenticated dashboard in a browser (every prior
+        // browser-verification pass this platform went through only ever
+        // checked guest-facing pages, which don't exercise any of these):
+        //
+        // 1. script-src needs 'unsafe-eval': Livewire 3 bundles Alpine.js's
+        //    default build, which compiles every wire:click/wire:poll/x-data
+        //    expression via `new Function(...)` at runtime -- without
+        //    'unsafe-eval' the browser silently refuses to evaluate any of
+        //    them. ExecutiveBriefingPanel's wire:poll.30s crashed the whole
+        //    page with a real 500 (Livewire\Exceptions\MethodNotFoundException:
+        //    "toJSON" not found) -- Alpine's blocked expression evaluator
+        //    falls back to a broken path that serializes the $wire proxy
+        //    itself and sends it as a bogus server-side method call.
+        //    'unsafe-eval' is the standard, universally-applied trade-off for
+        //    apps using Alpine's default build; switching to its CSP-safe
+        //    build (@alpinejs/csp) is a real alternative but requires
+        //    rewriting every directive to that build's restricted expression
+        //    subset -- out of scope for this fix.
+        // 2. script-src needs https://cdn.tailwindcss.com and
+        //    https://unpkg.com: resources/views/layouts/app.blade.php (every
+        //    authenticated page) loads Tailwind and Alpine from these CDNs
+        //    directly, not via the compiled @vite bundle guest pages use --
+        //    blocked, so NONE of the dashboard's Tailwind utility classes
+        //    ever applied. Only the sidebar (built with inline style="..."
+        //    attributes, immune to this) rendered correctly; every panel
+        //    (built with Tailwind classes like "bg-white rounded-xl shadow
+        //    p-6") rendered as unstyled plain text.
+        // 3. style-src/font-src need fonts.googleapis.com/fonts.gstatic.com:
+        //    both layouts (guest and app) load Google Fonts directly from
+        //    those domains, not fonts.bunny.net -- silently degraded to
+        //    system fonts everywhere rather than breaking layout, so this
+        //    one was never visually obvious. fonts.bunny.net kept in case
+        //    something else legitimately depends on it.
         $csp = implode('; ', [
             "default-src 'self'",
-            "script-src 'self' 'unsafe-inline' https://fonts.bunny.net",
-            "style-src 'self' 'unsafe-inline' https://fonts.bunny.net",
-            "font-src 'self' https://fonts.bunny.net",
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://fonts.bunny.net https://cdn.tailwindcss.com https://unpkg.com",
+            "style-src 'self' 'unsafe-inline' https://fonts.bunny.net https://fonts.googleapis.com",
+            "font-src 'self' https://fonts.bunny.net https://fonts.gstatic.com",
             "img-src 'self' data: blob:",
             "connect-src 'self' ".$this->reverbWsOrigin(),
             "frame-ancestors 'none'",
