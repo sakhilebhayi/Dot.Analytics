@@ -23,19 +23,41 @@ class IntelligenceEngineService
      *
      * Format:
      *   'platform_key' => [
-     *     'label'         => Human-readable name
-     *     'description'   => One-line purpose
-     *     'color'         => Tailwind colour name for UI
-     *     'contributions' => Array of data points this platform contributes
-     *     'engines'       => Array of engine keys this platform powers
-     *     'produces'      => Array of intelligence outputs this platform enables
+     *     'label'            => Human-readable name
+     *     'description'      => One-line purpose
+     *     'color'             => Tailwind colour name for UI
+     *     'contributions'     => Array of data points this platform contributes
+     *     'engines'           => Array of engine keys this platform powers
+     *     'produces'          => Array of intelligence outputs this platform enables
+     *     'real_platform_id'  => The matching platform ID in Dot.Brain's registry
+     *                            (brain.platforms.md), or null if no real
+     *                            ecosystem platform serves this domain yet.
      *   ]
+     *
+     * Reconciliation note (wiki.md §7 roadmap item): these 15 keys predate
+     * the current 26-platform Dot Ecosystem and use invented names
+     * (dot.fleet, dot.crm, etc.) that don't match any real platform ID.
+     * Checked each one directly against Dot.Brain's authoritative registry
+     * (~/Dot/Dot.Brain/brain.platforms.md) rather than guessing: 11 have a
+     * clear, defensible real match; 4 (dot.crm, dot.support, dot.security,
+     * dot.vault) genuinely have no analog anywhere in the ecosystem today
+     * -- no platform does CRM/pipeline, ticketing/support-desk, dedicated
+     * security monitoring, or secrets management. Deliberately additive,
+     * not a key rename: the PLATFORMS/ENGINES keys themselves, the 55-row
+     * metric seeder, and ~24 existing tests all reference these exact
+     * fictitious keys throughout, and a full rename would cascade through
+     * all of it -- precisely the "touches core intelligence-engine logic"
+     * risk this wiki's own roadmap flags. This field achieves the actual
+     * reconciliation goal (which fictitious category maps to which real
+     * platform, and which don't map to anything yet) without that blast
+     * radius.
      */
     public const PLATFORMS = [
         'dot.fleet' => [
             'label' => 'Dot.Fleet',
             'description' => 'Fleet, vehicle & equipment management',
             'color' => 'blue',
+            'real_platform_id' => 'dot-mines', // Mining ERP -- GPS tracking, idle time, engine hours, driver behaviour are all real Dot.Mines equipment-fleet concepts
             'contributions' => [
                 'GPS tracking', 'Trip records', 'Fuel consumption', 'Maintenance history',
                 'Driver behaviour scores', 'Machine utilization', 'Idle time', 'Engine hours',
@@ -54,6 +76,7 @@ class IntelligenceEngineService
             'label' => 'Dot.CRM',
             'description' => 'Customer relationship & sales pipeline',
             'color' => 'green',
+            'real_platform_id' => null, // no CRM/lead/pipeline platform exists in this ecosystem yet
             'contributions' => [
                 'Leads', 'Opportunities', 'Sales records', 'Customer activity',
                 'Quotes', 'Closed deals', 'Marketing campaigns',
@@ -70,6 +93,7 @@ class IntelligenceEngineService
             'label' => 'Dot.HR',
             'description' => 'Human resources, workforce & payroll',
             'color' => 'purple',
+            'real_platform_id' => 'dot-hr', // exact match
             'contributions' => [
                 'Attendance records', 'Leave data', 'Payroll', 'Training completions',
                 'Performance reviews', 'Certifications', 'Skills inventory',
@@ -85,6 +109,7 @@ class IntelligenceEngineService
             'label' => 'Dot.Documents',
             'description' => 'Document management, contracts & compliance',
             'color' => 'yellow',
+            'real_platform_id' => 'dot-engage', // contract sharing + signing is Dot.Engage's exact registered responsibility
             'contributions' => [
                 'Contracts', 'Reports', 'Policies', 'SOPs', 'Invoices', 'PDFs',
             ],
@@ -100,6 +125,7 @@ class IntelligenceEngineService
             'label' => 'Dot.Hear',
             'description' => 'Community, feedback & social listening',
             'color' => 'pink',
+            'real_platform_id' => 'dot-pulse', // registered as "Social & community platform"
             'contributions' => [
                 'Comments', 'Reviews', 'Discussions', 'Likes', 'Polls',
                 'Suggestions', 'Community trends', 'Feature requests',
@@ -117,6 +143,7 @@ class IntelligenceEngineService
             'label' => 'Dot.Support',
             'description' => 'Customer support, tickets & service desk',
             'color' => 'orange',
+            'real_platform_id' => null, // no dedicated ticketing/service-desk platform exists in this ecosystem yet
             'contributions' => [
                 'Support tickets', 'Chat transcripts', 'Call records',
                 'Resolution times', 'Issue categories', 'CSAT scores',
@@ -133,6 +160,7 @@ class IntelligenceEngineService
             'label' => 'Dot.Inventory',
             'description' => 'Stock, warehousing & supply chain',
             'color' => 'teal',
+            'real_platform_id' => 'dot-emall', // marketplace platform with real Product.stock/warehousing-adjacent data
             'contributions' => [
                 'Stock levels', 'Warehouse locations', 'Supplier records',
                 'Purchase orders', 'Sales movements',
@@ -149,6 +177,7 @@ class IntelligenceEngineService
             'label' => 'Dot.Payments',
             'description' => 'Revenue, transactions & financial flows',
             'color' => 'emerald',
+            'real_platform_id' => 'dot-billing', // registered as "Payments & subscriptions" -- exact match
             'contributions' => [
                 'Revenue records', 'Expenses', 'Transactions', 'Refunds',
                 'Invoices', 'Subscriptions',
@@ -165,6 +194,7 @@ class IntelligenceEngineService
             'label' => 'Dot.Security',
             'description' => 'Security, access control & threat monitoring',
             'color' => 'red',
+            'real_platform_id' => null, // no dedicated security-monitoring platform exists in this ecosystem yet
             'contributions' => [
                 'Login events', 'Threat detections', 'Audit logs',
                 'Permission changes', 'Suspicious behaviour events',
@@ -180,6 +210,7 @@ class IntelligenceEngineService
             'label' => 'Dot.API',
             'description' => 'API gateway, usage & developer platform',
             'color' => 'indigo',
+            'real_platform_id' => 'dot-plug', // registered as "Developer marketplace & extensions" -- closest developer-facing platform
             'contributions' => [
                 'API call volumes', 'Latency metrics', 'Error rates',
                 'Request patterns', 'Consumer identities',
@@ -195,6 +226,7 @@ class IntelligenceEngineService
             'label' => 'Dot.Flow',
             'description' => 'Workflow automation & process orchestration',
             'color' => 'cyan',
+            'real_platform_id' => 'dot-tasks', // registered as "Task management" -- step/approval workflow is closest to Dot.Tasks' domain
             'contributions' => [
                 'Workflow execution logs', 'Step completions', 'Failure events',
                 'Approval records',
@@ -210,6 +242,7 @@ class IntelligenceEngineService
             'label' => 'Dot.Assets',
             'description' => 'Fixed assets, equipment & property management',
             'color' => 'slate',
+            'real_platform_id' => 'dot-farms', // registered as "Agriculture ERP" -- ERP-scale equipment/property tracking, distinct from dot.fleet's dot-mines mapping
             'contributions' => [
                 'Equipment records', 'Building details', 'Maintenance logs',
                 'Ownership records',
@@ -225,6 +258,7 @@ class IntelligenceEngineService
             'label' => 'Dot.Agents',
             'description' => 'AI agents, automation & decision execution',
             'color' => 'violet',
+            'real_platform_id' => 'dot-agents', // exact match
             'contributions' => [
                 'Agent usage statistics', 'Prompt history', 'Automation success rates',
                 'AI confidence scores', 'Execution histories', 'Decision logs',
@@ -242,6 +276,7 @@ class IntelligenceEngineService
             'label' => 'Dot.Finance',
             'description' => 'Accounting, budgeting & financial reporting',
             'color' => 'lime',
+            'real_platform_id' => 'dot-finance', // exact match
             'contributions' => [
                 'Budget allocations', 'Actuals vs budget', 'Cost centres',
                 'Financial statements', 'Tax records',
@@ -255,6 +290,7 @@ class IntelligenceEngineService
 
         'dot.vault' => [
             'label' => 'Dot.Vault',
+            'real_platform_id' => null, // no dedicated secrets-management platform exists in this ecosystem yet
             'description' => 'Secure credential & secrets management',
             'color' => 'amber',
             'contributions' => [
@@ -404,6 +440,18 @@ class IntelligenceEngineService
     public function getEngineRegistry(): array
     {
         return self::ENGINES;
+    }
+
+    /**
+     * The real Dot.Brain-registered platform ID (per
+     * ~/Dot/Dot.Brain/brain.platforms.md) that a fictitious catalog key
+     * maps to, or null if no real ecosystem platform serves this domain
+     * yet -- see PLATFORMS' own doc comment for the reconciliation this
+     * closes (wiki.md §7 roadmap item).
+     */
+    public function getRealPlatformId(string $key): ?string
+    {
+        return self::PLATFORMS[$key]['real_platform_id'] ?? null;
     }
 
     /**
