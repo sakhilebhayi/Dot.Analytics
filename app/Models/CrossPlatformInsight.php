@@ -6,6 +6,7 @@ use App\Models\Concerns\HasTeamScope;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Laravel\Scout\Searchable;
 
 /**
  * @property int $id
@@ -22,7 +23,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class CrossPlatformInsight extends Model
 {
-    use HasFactory, HasTeamScope;
+    use HasFactory, HasTeamScope, Searchable;
 
     protected $fillable = [
         'team_id', 'title', 'narrative', 'platforms_involved',
@@ -36,6 +37,14 @@ class CrossPlatformInsight extends Model
         'supporting_metrics' => 'array',
         'confidence' => 'float',
     ];
+
+    public function toSearchableArray(): array
+    {
+        return [
+            'title' => $this->title,
+            'narrative' => $this->narrative,
+        ];
+    }
 
     public function team(): BelongsTo
     {

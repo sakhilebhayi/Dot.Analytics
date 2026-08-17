@@ -8,6 +8,17 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-end h-16">
             <div class="hidden sm:flex sm:items-center sm:ms-6">
+                <!-- Search -->
+                <form method="GET" action="{{ route('search') }}" class="flex items-center">
+                    <input
+                        type="text"
+                        name="q"
+                        placeholder="Search…"
+                        value="{{ request('q') }}"
+                        style="background:var(--ink-soft);border:1px solid var(--line);color:var(--paper);border-radius:0.4rem;padding:0.4rem 0.75rem;font-size:0.8rem;width:220px;"
+                    />
+                </form>
+
                 <!-- Teams Dropdown -->
                 @if (Laravel\Jetstream\Jetstream::hasTeamFeatures() && Auth::user()->currentTeam)
                     <div class="ms-3 relative">
