@@ -192,4 +192,30 @@ class DashboardBuilderPanelTest extends TestCase
         // `col`, confirmed by the assertion below.
         $this->assertTrue($second->fresh()->col < $first->fresh()->col);
     }
+
+    public function test_a_dashboard_with_one_of_every_widget_type_renders_without_error(): void
+    {
+        $user = User::factory()->withPersonalTeam()->create();
+        $dashboard = AnalyticsDashboard::factory()->create(['team_id' => $user->currentTeam->id, 'user_id' => $user->id]);
+        $metric = MetricDefinition::factory()->create();
+
+        foreach (DashboardBuilderPanel::WIDGET_TYPES as $type => $label) {
+            $config = ['type' => $type];
+            if (in_array($type, DashboardBuilderPanel::METRIC_WIDGET_TYPES, true)) {
+                $config['metric_definition_id'] = $metric->id;
+            }
+
+            DashboardWidget::factory()->create([
+                'analytics_dashboard_id' => $dashboard->id,
+                'widget_type' => $type,
+                'config' => $config,
+            ]);
+        }
+
+        Livewire::actingAs($user)
+            ->test(DashboardBuilderPanel::class)
+            ->call('selectDashboard', $dashboard->id)
+            ->assertOk()
+            ->assertSee($dashboard->title);
+    }
 }
