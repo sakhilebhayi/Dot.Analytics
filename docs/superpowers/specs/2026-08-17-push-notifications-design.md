@@ -49,18 +49,21 @@ decisions:
    real ink/teal/paper tokens (`#eef2f0`, `#2bb6b7`, `#11201e` — confirmed
    by reading the file directly). Laravel's standard `MailMessage` builder
    renders through this theme automatically; no new email template needed.
-6. **A real, subtler bug found while designing the real-time bell**:
-   `SecurityHeaders::reverbWsOrigin()` (added in the earlier CSP fix, see
-   `56002bf`) reads `config('reverb.servers.reverb.host')` for its CSP
-   `connect-src` value — but that config key is the **server's bind
+6. **A real, feature-blocking bug found while designing the real-time
+   bell**: `SecurityHeaders::reverbWsOrigin()` (added in the earlier CSP
+   fix, see `56002bf`) reads `config('reverb.servers.reverb.host')` for its
+   CSP `connect-src` value — but that config key is the **server's bind
    address** (`0.0.0.0` in this dev environment, confirmed via
    `php artisan config:show reverb`), not the address a browser can
    actually connect to. This was never exercised before, since nothing
    ever opened a browser-side WebSocket connection — the CSP entry has been
-   silently wrong-but-unused. This spec's new Echo client uses the
-   client-facing `REVERB_HOST` env value directly rather than reusing that
-   helper; fixing the helper itself is a separate, smaller follow-up not
-   done here (see Non-Goals).
+   silently wrong-but-unused. Left as-is, the new Echo client (which
+   correctly connects to the client-facing host, per Design §4) would
+   connect to a *different* origin than what CSP's `connect-src` allows,
+   and the browser blocks the connection outright — the real-time bell
+   would ship non-functional. This is fixed as part of this spec (Design
+   §4), not deferred — confirmed with the user directly, since it means
+   touching a file an earlier draft of this spec's Non-Goals said not to.
 
 ## Goal
 
@@ -77,11 +80,6 @@ member.
 - **Per-user notification preferences / opt-out.** Every team member gets
   both channels for both event types — no settings UI, no `notification_preferences`
   table. A real, common expectation eventually, but not asked for here.
-- **Fixing `SecurityHeaders::reverbWsOrigin()`'s bind-vs-client-host
-  confusion.** Documented in Context as a real, found bug — this spec's own
-  Echo client avoids it by using `REVERB_HOST` directly, but the existing
-  CSP helper method itself is untouched. A one-line follow-up, not bundled
-  into this feature.
 - **Notifying on every event type that exists.** Only
   `CriticalInsightDiscovered` (→ critical alerts) and briefing-ready. Other
   real events (`PlatformConnected`, `PlatformDisconnected`,
@@ -301,6 +299,26 @@ automatically). The bell component listens for the `notification-received`
 Livewire event via `#[On('notification-received')]` and busts its own
 computed unread-count/list cache — no polling.
 
+**The CSP fix this feature needs to actually work** (Context finding #6):
+`SecurityHeaders::reverbWsOrigin()` must compute the same host the new
+Echo client connects to, or the browser blocks the WebSocket connection.
+Reusing the same new `config/echo.php`:
+
+```php
+private function reverbWsOrigin(): string
+{
+    $scheme = config('echo.scheme') === 'https' ? 'wss' : 'ws';
+    $host = config('echo.host');
+    $port = config('echo.port');
+
+    return "{$scheme}://{$host}:{$port}";
+}
+```
+
+One config source of truth for "where does the browser connect for
+real-time," read by both the CSP header and the Echo client — rather than
+two independently-maintained values that can (and did) drift apart.
+
 ### 5. Testing
 
 - **Trigger tests**: `CriticalInsightDiscovered` firing results in every
@@ -308,6 +326,12 @@ computed unread-count/list cache — no polling.
   (`Notification::fake()` + `Notification::assertSentTo()`, Laravel's
   standard pattern). Same shape for `GenerateExecutiveBriefingJob`
   reaching `status: ready`.
+- **`reverbWsOrigin()` regression test**: extends the existing
+  `SecurityHeadersTest.php` (this will be its third addition — the original
+  CSP mismatches, Sortable.js's CDN entry, now this) — asserts
+  `connect-src` matches `config('echo.host')`/`config('echo.port')`
+  exactly, so a future drift between the two config reads would fail loudly
+  rather than silently blocking WebSocket connections again.
 - **Notification content tests**: `toMail()`/`toArray()` produce the
   expected subject/fields for each class, direct unit-style tests (no
   fake needed — just instantiate and call the methods).
