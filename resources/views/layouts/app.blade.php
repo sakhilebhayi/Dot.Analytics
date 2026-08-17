@@ -70,6 +70,25 @@
          the server-side component state (confirmed via Livewire's own JS
          API) but never morphed the DOM to show it, e.g. clicking "+ Connect"
          set connectingPlatform without ever rendering the connect form. --}}
+    <script src="https://cdn.jsdelivr.net/npm/pusher-js@8.5.0/dist/web/pusher.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/laravel-echo@2.4.0/dist/echo.iife.js"></script>
+    <script>
+        window.Echo = new Echo({
+            broadcaster: 'reverb',
+            key: '{{ config('echo.key') }}',
+            wsHost: '{{ config('echo.host') }}',
+            wsPort: {{ config('echo.port') }},
+            forceTLS: {{ config('echo.scheme') === 'https' ? 'true' : 'false' }},
+            enabledTransports: ['ws', 'wss'],
+        });
+
+        document.addEventListener('livewire:init', () => {
+            Echo.private('App.Models.User.{{ Auth::id() }}')
+                .notification(() => {
+                    Livewire.dispatch('notification-received');
+                });
+        });
+    </script>
 </head>
 <body class="antialiased">
     <x-banner />
