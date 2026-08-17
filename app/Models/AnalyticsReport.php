@@ -3,14 +3,16 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasTeamScope;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Laravel\Scout\Searchable;
 
 class AnalyticsReport extends Model
 {
-    use HasTeamScope;
+    use HasFactory, HasTeamScope, Searchable;
 
     protected $table = 'analytics_reports';
 
@@ -21,6 +23,14 @@ class AnalyticsReport extends Model
     protected $casts = [
         'config' => 'array',
     ];
+
+    public function toSearchableArray(): array
+    {
+        return [
+            'title' => $this->title,
+            'description' => $this->description,
+        ];
+    }
 
     public function team(): BelongsTo
     {
