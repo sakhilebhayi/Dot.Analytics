@@ -59,4 +59,14 @@ class SecurityHeadersTest extends TestCase
         $this->assertStringContainsString("default-src 'self'", $csp);
         $this->assertStringContainsString("frame-ancestors 'none'", $csp);
     }
+
+    public function test_csp_connect_src_matches_the_echo_client_host_exactly(): void
+    {
+        $response = $this->get('/');
+
+        $csp = $response->headers->get('Content-Security-Policy');
+
+        $expectedOrigin = 'ws://'.config('echo.host').':'.config('echo.port');
+        $this->assertStringContainsString($expectedOrigin, $csp);
+    }
 }
