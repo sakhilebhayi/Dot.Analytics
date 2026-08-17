@@ -70,6 +70,7 @@
          the server-side component state (confirmed via Livewire's own JS
          API) but never morphed the DOM to show it, e.g. clicking "+ Connect"
          set connectingPlatform without ever rendering the connect form. --}}
+    <script defer src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
 </head>
 <body class="antialiased">
     <x-banner />

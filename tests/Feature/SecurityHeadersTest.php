@@ -40,6 +40,15 @@ class SecurityHeadersTest extends TestCase
         $this->assertStringContainsString('https://unpkg.com', $csp);
     }
 
+    public function test_csp_allows_the_sortablejs_cdn_the_dashboard_builder_loads(): void
+    {
+        $response = $this->get('/');
+
+        $csp = $response->headers->get('Content-Security-Policy');
+
+        $this->assertStringContainsString('https://cdn.jsdelivr.net', $csp);
+    }
+
     public function test_csp_allows_the_google_fonts_domains_every_layout_actually_uses(): void
     {
         $response = $this->get('/');
