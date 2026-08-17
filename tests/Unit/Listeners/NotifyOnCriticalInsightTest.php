@@ -7,7 +7,9 @@ use App\Listeners\Analytics\NotifyOnCriticalInsight;
 use App\Models\AnalyticsAlert;
 use App\Models\CrossPlatformInsight;
 use App\Models\User;
+use App\Notifications\CriticalAlertTriggered;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
 class NotifyOnCriticalInsightTest extends TestCase
@@ -52,5 +54,25 @@ class NotifyOnCriticalInsightTest extends TestCase
         $alert = AnalyticsAlert::where('team_id', $user->currentTeam->id)->first();
         $this->assertEquals($insight->id, $alert->context['insight_id']);
         $this->assertEquals('cross_platform_intelligence', $alert->context['source']);
+    }
+
+    public function test_listener_notifies_every_team_member_including_the_owner(): void
+    {
+        Notification::fake();
+
+        $owner = User::factory()->withPersonalTeam()->create();
+        $member = User::factory()->create();
+        $owner->currentTeam->users()->attach($member, ['role' => 'editor']);
+
+        $insight = CrossPlatformInsight::factory()->create([
+            'team_id' => $owner->currentTeam->id,
+            'severity' => 'critical',
+        ]);
+
+        $listener = new NotifyOnCriticalInsight;
+        $listener->handle(new CriticalInsightDiscovered($insight));
+
+        Notification::assertSentTo($owner, CriticalAlertTriggered::class);
+        Notification::assertSentTo($member, CriticalAlertTriggered::class);
     }
 }
