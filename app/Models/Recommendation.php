@@ -6,10 +6,11 @@ use App\Models\Concerns\HasTeamScope;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Laravel\Scout\Searchable;
 
 class Recommendation extends Model
 {
-    use HasFactory, HasTeamScope;
+    use HasFactory, HasTeamScope, Searchable;
 
     protected $fillable = [
         'team_id', 'engine', 'title', 'rationale', 'action_label',
@@ -19,6 +20,14 @@ class Recommendation extends Model
     protected $casts = [
         'supporting_data' => 'array',
     ];
+
+    public function toSearchableArray(): array
+    {
+        return [
+            'title' => $this->title,
+            'rationale' => $this->rationale,
+        ];
+    }
 
     public function team(): BelongsTo
     {
