@@ -3,14 +3,16 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasTeamScope;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Laravel\Scout\Searchable;
 
 class AnalyticsReport extends Model
 {
-    use HasTeamScope;
+    use HasFactory, HasTeamScope, Searchable;
 
     /** The kinds of data a report can contain. */
     public const REPORT_TYPES = ['insights', 'alerts', 'recommendations', 'metrics'];
@@ -38,6 +40,14 @@ class AnalyticsReport extends Model
         }
 
         return is_string($this->config['report_type'] ?? null) ? null : 'insights';
+    }
+
+    public function toSearchableArray(): array
+    {
+        return [
+            'title' => $this->title,
+            'description' => $this->description,
+        ];
     }
 
     /** @return BelongsTo<Team, $this> */
