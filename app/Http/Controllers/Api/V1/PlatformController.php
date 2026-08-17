@@ -70,7 +70,17 @@ class PlatformController extends BaseApiController
                 $validated['base_url'] ?? null,
             );
 
-            return $this->success($dataSource, "{$dataSource->display_name} connected.", 201);
+            // config (and the webhook_secret inside it) is hidden by
+            // default on DataSource (see its own doc comment) so it never
+            // leaks through catalog()/connected()/show() -- this is the
+            // one response where the caller is meant to see it, so it's
+            // re-attached explicitly rather than relying on the model's
+            // default serialization.
+            $payload = array_merge($dataSource->toArray(), [
+                'webhook_secret' => $dataSource->config['webhook_secret'] ?? null,
+            ]);
+
+            return $this->success($payload, "{$dataSource->display_name} connected.", 201);
         } catch (ValidationException $e) {
             return $this->error($e->getMessage(), 422, $e->errors());
         }

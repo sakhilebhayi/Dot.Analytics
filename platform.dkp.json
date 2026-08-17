@@ -1,0 +1,23 @@
+{
+  "platform": "dot-analytics",
+  "display_name": "Dot.Analytics",
+  "dkp_version": "1.0.0",
+  "endpoints": {
+    "publish_topic": "dkp.dot-analytics.publish",
+    "response_topic": "dkp.dot-analytics.response",
+    "pr_repository": "sakhilebhayi/Dot.Analytics"
+  },
+  "keys": [
+    {
+      "key_id": "dot-analytics-dkp-signing-v1",
+      "algorithm": "ed25519",
+      "public_key": "HPOcKAotHx5+5dz1uOMh5wxOLkscA2hbvXtOC5/phks=",
+      "valid_from": "2026-08-11T00:00:00Z"
+    }
+  ],
+  "advisory_subscriptions": ["security", "reliability", "business"],
+  "rate_limit_per_minute": 100,
+  "contacts": [
+    { "role": "Platform Lead", "handle": "sakhilebhayi" }
+  ]
+}
