@@ -91,6 +91,10 @@
                 <span class="material-symbols-outlined" style="font-size:18px;">dashboard</span>
                 <span>Intelligence Overview</span>
             </a>
+            <a href="{{ route('dashboards.index') }}" class="sl {{ request()->routeIs('dashboards.index') ? 'active' : '' }}">
+                <span class="material-symbols-outlined" style="font-size:18px;">dashboard_customize</span>
+                <span>My Dashboards</span>
+            </a>
         </nav>
 
         @auth
