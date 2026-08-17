@@ -4,10 +4,12 @@ namespace App\Jobs\Analytics;
 
 use App\Models\ExecutiveBriefing;
 use App\Models\Team;
+use App\Notifications\ExecutiveBriefingReady;
 use App\Services\AiModelRouter;
 use App\Services\IntelligenceEngineService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Support\Facades\Notification;
 
 /**
  * Generates an AI-powered executive intelligence briefing for a team.
@@ -87,6 +89,8 @@ PROMPT;
             'engines_consulted' => array_keys($activeEngines),
             'insight_count' => $team->crossPlatformInsights()->count(),
         ]);
+
+        Notification::send($team->allUsers(), new ExecutiveBriefingReady($briefing));
     }
 
     private function countOf(array $arr): int

@@ -43,7 +43,7 @@ class SecurityHeaders
 
         // Content Security Policy
         //
-        // Three real mismatches found while first loading the real
+        // Five real mismatches found while first loading the real
         // authenticated dashboard in a browser (every prior
         // browser-verification pass this platform went through only ever
         // checked guest-facing pages, which don't exercise any of these):
@@ -77,9 +77,27 @@ class SecurityHeaders
         //    system fonts everywhere rather than breaking layout, so this
         //    one was never visually obvious. fonts.bunny.net kept in case
         //    something else legitimately depends on it.
+        // 4. connect-src must match the host the browser's own Echo client
+        //    actually connects to, not the Reverb server's bind address.
+        //    reverbWsOrigin() previously read config('reverb.servers.reverb.host'),
+        //    which is 0.0.0.0 in this dev environment (confirmed via
+        //    `php artisan config:show reverb`) -- the server's listen
+        //    address, not something a browser can connect to. Never
+        //    exercised before Push Notifications, since nothing opened a
+        //    browser-side WebSocket connection until now. Both this CSP
+        //    header and the Echo client (layouts/app.blade.php) now read
+        //    the same config/echo.php, so there's one source of truth
+        //    instead of two values that can silently drift apart.
+        // 5. script-src also needs https://cdn.jsdelivr.net: Push
+        //    Notifications loads laravel-echo/pusher-js from this CDN
+        //    (layouts/app.blade.php). Caught by actually loading the page
+        //    in a browser after the fix above -- fixing connect-src alone
+        //    wasn't enough, since the CDN <script> tags themselves were
+        //    still blocked at the script-src level, so `Echo` was never
+        //    even defined and window.Echo stayed undefined.
         $csp = implode('; ', [
             "default-src 'self'",
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://fonts.bunny.net https://cdn.tailwindcss.com https://unpkg.com",
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://fonts.bunny.net https://cdn.tailwindcss.com https://unpkg.com https://cdn.jsdelivr.net",
             "style-src 'self' 'unsafe-inline' https://fonts.bunny.net https://fonts.googleapis.com",
             "font-src 'self' https://fonts.bunny.net https://fonts.gstatic.com",
             "img-src 'self' data: blob:",
@@ -107,9 +125,9 @@ class SecurityHeaders
 
     private function reverbWsOrigin(): string
     {
-        $scheme = config('reverb.servers.reverb.options.tls', false) ? 'wss' : 'ws';
-        $host = config('reverb.servers.reverb.host', 'localhost');
-        $port = config('reverb.servers.reverb.port', 8080);
+        $scheme = config('echo.scheme') === 'https' ? 'wss' : 'ws';
+        $host = config('echo.host');
+        $port = config('echo.port');
 
         return "{$scheme}://{$host}:{$port}";
     }
