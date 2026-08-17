@@ -73,7 +73,14 @@
     <script src="https://cdn.jsdelivr.net/npm/pusher-js@8.5.0/dist/web/pusher.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/laravel-echo@2.4.0/dist/echo.iife.js"></script>
     <script>
-        window.Echo = new Echo({
+        {{-- laravel-echo@2.4.0's IIFE build assigns the global `Echo` to the
+             whole ES-module namespace object ({ Channel, Connector,
+             EventFormatter, default, __esModule }), not the Echo class
+             itself -- the class is at Echo.default. `new Echo(...)` throws
+             "Echo is not a constructor" and window.Echo silently stays as
+             that raw namespace object. Confirmed by instantiating both ways
+             directly in a browser console against this exact CDN build. --}}
+        window.Echo = new Echo.default({
             broadcaster: 'reverb',
             key: '{{ config('echo.key') }}',
             wsHost: '{{ config('echo.host') }}',
