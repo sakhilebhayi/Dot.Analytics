@@ -199,11 +199,23 @@ class ExecutiveBriefingReady extends Notification implements ShouldQueue
 
 ### 2. Trigger points
 
+**A real gap caught while grounding the implementation plan**: Jetstream's
+`Team::users()` (the package's own base class, confirmed by reading its
+source directly) returns only pivot-attached members — it does **not**
+include the team owner unless the owner is separately attached as a
+member, which `User::factory()->withPersonalTeam()->create()` (used in
+nearly every test in this codebase, and the shape of every real
+single-person team) never does. `Team::allUsers()` —
+`$this->users->merge([$this->owner])`, also defined in Jetstream's base
+class — is the method that actually returns everyone. Using `->users`
+here would have silently excluded the single most common case, the
+personal-team owner, from every notification.
+
 `NotifyOnCriticalInsight::handle()` — after creating the `AnalyticsAlert`
 row it already creates, add:
 
 ```php
-Notification::send($insight->team->users, new CriticalAlertTriggered($alert));
+Notification::send($insight->team->allUsers(), new CriticalAlertTriggered($alert));
 ```
 
 Finishes what the listener's own name already promised, rather than adding
@@ -213,12 +225,8 @@ a second, differently-named listener for the same event.
 `$briefing->update([...'status' => 'ready'...])` call, add:
 
 ```php
-Notification::send($team->users, new ExecutiveBriefingReady($briefing));
+Notification::send($team->allUsers(), new ExecutiveBriefingReady($briefing));
 ```
-
-`$team->users` is Jetstream's own existing relation (already used
-elsewhere in this codebase, e.g. `RemoveTeamMemberTest`'s fixtures) — no
-new query needed.
 
 ### 3. The bell
 
