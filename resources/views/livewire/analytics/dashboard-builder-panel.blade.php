@@ -1,45 +1,61 @@
-<div class="bg-white rounded-xl shadow">
+<div style="padding:1.75rem 2rem 2rem;">
     {{-- Header --}}
-    <div class="flex items-center justify-between p-6 border-b border-gray-100">
+    <div class="flex items-center justify-between mb-5 flex-wrap gap-3">
         <div>
-            <h3 class="text-lg font-semibold text-gray-800">Dashboard Builder</h3>
-            <p class="text-xs text-gray-500 mt-0.5">Compose custom intelligence dashboards from widget building blocks</p>
+            <p class="font-mono" style="font-size:0.65rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--teal-soft);margin:0 0 0.35rem;">My Dashboards</p>
+            <h3 class="font-display" style="font-size:1.1rem;font-weight:700;color:var(--paper);margin:0;">Dashboard Builder</h3>
+            <p style="font-size:0.75rem;color:var(--mist);margin:0.3rem 0 0;">Compose custom intelligence views from widget building blocks</p>
         </div>
-        <button wire:click="$toggle('showNewDashboard')" class="text-xs px-3 py-1.5 bg-gray-800 text-white rounded-lg hover:bg-gray-700">
+        <button wire:click="$toggle('showNewDashboard')" class="press" style="font-size:0.72rem;padding:0.4rem 0.85rem;background:{{ $showNewDashboard ? 'transparent' : 'var(--gold)' }};color:{{ $showNewDashboard ? 'var(--paper)' : 'var(--ink)' }};border:1px solid {{ $showNewDashboard ? 'var(--line)' : 'transparent' }};border-radius:0.4rem;font-weight:600;">
             {{ $showNewDashboard ? 'Cancel' : '+ New Dashboard' }}
         </button>
     </div>
 
     {{-- Create dashboard form --}}
     @if($showNewDashboard)
-        <div class="px-6 py-4 border-b border-gray-100 bg-gray-50">
-            <form wire:submit="createDashboard" class="flex gap-3">
-                <input wire:model="newDashboardTitle" type="text" placeholder="Dashboard name"
-                    class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none" />
-                @error('newDashboardTitle') <span class="text-red-500 text-xs self-center">{{ $message }}</span> @enderror
-                <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700">Create</button>
+        <div class="mb-5 rounded-xl p-4" style="border:1px solid var(--line);background:var(--panel);">
+            <form wire:submit="createDashboard" class="flex gap-3 items-end flex-wrap">
+                <div class="flex-1" style="min-width:200px;">
+                    <label class="font-mono" style="display:block;font-size:0.62rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--mist);margin-bottom:0.35rem;">Dashboard name</label>
+                    <input wire:model="newDashboardTitle" type="text" placeholder="e.g. Ops Overview" class="w-full rounded-lg px-3 py-2 text-sm focus:outline-none" style="background:var(--ink-soft);border:1px solid var(--line);color:var(--paper);" />
+                    @error('newDashboardTitle') <span style="color:var(--danger);font-size:0.7rem;">{{ $message }}</span> @enderror
+                </div>
+                <div>
+                    <label class="font-mono" style="display:block;font-size:0.62rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--mist);margin-bottom:0.35rem;">Visibility</label>
+                    <select wire:model="newDashboardVisibility" class="rounded-lg px-3 py-2 text-sm" style="background:var(--ink-soft);border:1px solid var(--line);color:var(--paper);">
+                        <option value="private">Private — only me</option>
+                        <option value="team">Shared with team</option>
+                    </select>
+                </div>
+                <button type="submit" class="press" style="background:var(--gold);color:var(--ink);padding:0.5rem 1.25rem;border-radius:0.4rem;font-size:0.8rem;font-weight:600;">Create</button>
             </form>
         </div>
     @endif
 
-    <div class="flex h-[520px]">
+    <div class="flex" style="min-height:480px;border:1px solid var(--line);border-radius:12px;overflow:hidden;">
         {{-- Sidebar: dashboard list --}}
-        <div class="w-56 border-r border-gray-100 overflow-y-auto">
+        <div style="width:224px;border-right:1px solid var(--line);overflow-y:auto;flex-shrink:0;">
             @if($this->dashboards->isEmpty())
-                <p class="text-xs text-gray-400 p-4 text-center">No dashboards yet.</p>
+                <p style="font-size:0.75rem;color:var(--mist);padding:1.5rem 1rem;text-align:center;">No dashboards yet. Create your first one above.</p>
             @else
                 @foreach($this->dashboards as $dash)
                     <button
                         wire:click="selectDashboard({{ $dash->id }})"
-                        class="w-full text-left px-4 py-3 text-sm border-b border-gray-50 transition-colors {{ ($this->activeDashboard?->id === $dash->id) ? 'bg-indigo-50 text-indigo-700 font-medium' : 'text-gray-700 hover:bg-gray-50' }}"
+                        class="press"
+                        style="width:100%;text-align:left;padding:0.75rem 1rem;font-size:0.8rem;border-bottom:1px solid var(--line);background:{{ ($this->activeDashboard?->id === $dash->id) ? 'rgba(241,198,46,0.06)' : 'transparent' }};color:{{ ($this->activeDashboard?->id === $dash->id) ? 'var(--gold-soft)' : 'var(--paper)' }};"
                     >
-                        <div class="flex items-center justify-between">
-                            <span class="truncate">{{ $dash->title }}</span>
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="truncate" style="{{ ($this->activeDashboard?->id === $dash->id) ? 'font-weight:600;' : '' }}">{{ $dash->title }}</span>
                             @if($dash->is_default)
-                                <span class="text-xs bg-green-100 text-green-600 px-1 rounded ml-1">Default</span>
+                                <span class="font-mono" style="font-size:0.58rem;background:rgba(43,182,183,0.1);color:var(--teal-soft);padding:0.1rem 0.4rem;border-radius:0.25rem;flex-shrink:0;">Default</span>
                             @endif
                         </div>
-                        <p class="text-xs text-gray-400 mt-0.5">{{ $dash->widgets()->count() }} widgets</p>
+                        <p style="font-size:0.68rem;color:var(--mist);margin:0.2rem 0 0;">
+                            {{ $dash->widgets()->count() }} widgets
+                            @if($dash->visibility === 'team')
+                                &middot; shared
+                            @endif
+                        </p>
                     </button>
                 @endforeach
             @endif
@@ -49,59 +65,71 @@
         <div class="flex-1 p-5 overflow-y-auto">
             @if(! $this->activeDashboard)
                 <div class="flex items-center justify-center h-full">
-                    <p class="text-sm text-gray-400">Select or create a dashboard to start building.</p>
+                    <p style="font-size:0.85rem;color:var(--mist);">Select or create a dashboard to start building.</p>
                 </div>
             @else
                 {{-- Dashboard toolbar --}}
-                <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
                     <div class="flex items-center gap-2">
-                        <h4 class="text-sm font-semibold text-gray-700">{{ $this->activeDashboard->title }}</h4>
+                        <h4 class="font-display" style="font-size:0.95rem;font-weight:700;color:var(--paper);">{{ $this->activeDashboard->title }}</h4>
                         @if(! $this->activeDashboard->is_default)
-                            <button wire:click="setDefault({{ $this->activeDashboard->id }})" class="text-xs text-gray-400 hover:text-indigo-600">Set default</button>
+                            <button wire:click="setDefault({{ $this->activeDashboard->id }})" style="font-size:0.68rem;color:var(--mist);background:none;border:none;cursor:pointer;">Set as my default</button>
                         @endif
                     </div>
                     <div class="flex gap-2">
-                        <button wire:click="$toggle('showAddWidget')" class="text-xs px-3 py-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
+                        <button wire:click="$toggle('showAddWidget')" class="press" style="font-size:0.72rem;padding:0.4rem 0.85rem;background:var(--gold);color:var(--ink);border-radius:0.4rem;font-weight:600;">
                             {{ $showAddWidget ? 'Cancel' : '+ Add Widget' }}
                         </button>
                         <button
                             wire:click="deleteDashboard({{ $this->activeDashboard->id }})"
                             wire:confirm="Delete '{{ $this->activeDashboard->title }}'? All widgets will be removed."
-                            class="text-xs text-red-400 hover:text-red-600 px-2"
+                            style="font-size:0.72rem;color:var(--mist);background:none;border:1px solid var(--line);padding:0.4rem 0.7rem;border-radius:0.4rem;cursor:pointer;"
+                            onmouseover="this.style.color='var(--danger)'" onmouseout="this.style.color='var(--mist)'"
                         >Delete</button>
                     </div>
                 </div>
 
                 {{-- Add widget form --}}
                 @if($showAddWidget)
-                    <form wire:submit="addWidget" class="mb-4 border border-indigo-100 bg-indigo-50 rounded-xl p-4 grid grid-cols-2 gap-3">
+                    <form wire:submit="addWidget" class="mb-4 rounded-xl p-4 grid grid-cols-2 gap-3" style="border:1px solid var(--teal-soft);background:var(--panel);">
                         <div>
-                            <label class="block text-xs text-gray-500 mb-1">Widget type</label>
-                            <select wire:model="widgetType" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                            <label class="font-mono" style="display:block;font-size:0.62rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--mist);margin-bottom:0.35rem;">Widget type</label>
+                            <select wire:model.live="widgetType" class="w-full rounded-lg px-3 py-2 text-sm" style="background:var(--ink-soft);border:1px solid var(--line);color:var(--paper);">
                                 @foreach(\App\Livewire\Analytics\DashboardBuilderPanel::WIDGET_TYPES as $key => $label)
                                     <option value="{{ $key }}">{{ $label }}</option>
                                 @endforeach
                             </select>
                         </div>
                         <div>
-                            <label class="block text-xs text-gray-500 mb-1">Widget title (optional)</label>
-                            <input wire:model="widgetTitle" type="text" placeholder="Auto-filled from type"
-                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                            <label class="font-mono" style="display:block;font-size:0.62rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--mist);margin-bottom:0.35rem;">Widget title (optional)</label>
+                            <input wire:model="widgetTitle" type="text" placeholder="Auto-filled from type" class="w-full rounded-lg px-3 py-2 text-sm focus:outline-none" style="background:var(--ink-soft);border:1px solid var(--line);color:var(--paper);" />
                         </div>
+                        @if(in_array($widgetType, \App\Livewire\Analytics\DashboardBuilderPanel::METRIC_WIDGET_TYPES))
+                            <div class="col-span-2">
+                                <label class="font-mono" style="display:block;font-size:0.62rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--mist);margin-bottom:0.35rem;">Metric</label>
+                                <select wire:model="widgetMetricDefinitionId" class="w-full rounded-lg px-3 py-2 text-sm" style="background:var(--ink-soft);border:1px solid var(--line);color:var(--paper);">
+                                    <option value="">Choose a metric&hellip;</option>
+                                    @foreach($this->metricDefinitions as $definition)
+                                        <option value="{{ $definition->id }}">{{ $definition->label }}</option>
+                                    @endforeach
+                                </select>
+                                @error('widgetMetricDefinitionId') <span style="color:var(--danger);font-size:0.7rem;">{{ $message }}</span> @enderror
+                            </div>
+                        @endif
                         <div class="col-span-2">
-                            <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700">Add to Dashboard</button>
+                            <button type="submit" class="press" style="background:var(--gold);color:var(--ink);padding:0.5rem 1.25rem;border-radius:0.4rem;font-size:0.8rem;font-weight:600;">Add to Dashboard</button>
                         </div>
                     </form>
                 @endif
 
                 {{-- Widget grid --}}
                 @if($this->widgets->isEmpty())
-                    <div class="border-2 border-dashed border-gray-200 rounded-xl flex items-center justify-center h-48">
-                        <p class="text-sm text-gray-400">Add your first widget above to start building.</p>
+                    <div class="rounded-xl flex items-center justify-center" style="border:2px dashed var(--line);height:12rem;">
+                        <p style="font-size:0.85rem;color:var(--mist);">Add your first widget above to start building.</p>
                     </div>
                 @else
                     <div
-                        class="grid grid-cols-3 gap-3"
+                        class="grid grid-cols-1 lg:grid-cols-2 gap-4"
                         x-data="{ sortable: null }"
                         x-init="
                             sortable = new Sortable($el, {
@@ -116,22 +144,51 @@
                         "
                     >
                         @foreach($this->widgets as $widget)
-                            <div
-                                data-widget-id="{{ $widget->id }}"
-                                class="bg-gray-50 border border-gray-200 rounded-xl p-4 cursor-grab active:cursor-grabbing"
-                            >
-                                <div class="flex items-center justify-between mb-2">
-                                    <div>
-                                        <p class="text-xs font-semibold text-gray-700">{{ $widget->title ?? 'Untitled Widget' }}</p>
-                                        <p class="text-xs text-gray-400">{{ ucwords(str_replace('_', ' ', $widget->widget_type)) }}</p>
+                            <div data-widget-id="{{ $widget->id }}" class="rounded-xl" style="border:1px solid var(--line);overflow:hidden;">
+                                <div class="flex items-center justify-between cursor-grab active:cursor-grabbing" style="padding:0.6rem 0.9rem;border-bottom:1px solid var(--line);background:rgba(255,255,255,0.02);">
+                                    <div class="flex items-center gap-2" style="min-width:0;">
+                                        <span class="material-symbols-outlined" style="font-size:16px;color:var(--mist);">{{ match($widget->widget_type) {
+                                            'metric_card' => 'speed',
+                                            'chart' => 'show_chart',
+                                            'alert_feed' => 'warning',
+                                            'recommendation_feed' => 'lightbulb',
+                                            'insight_feed' => 'insights',
+                                            'dna_snapshot' => 'biotech',
+                                            'briefing_summary' => 'summarize',
+                                            default => 'widgets',
+                                        } }}</span>
+                                        <p class="truncate" style="font-size:0.75rem;font-weight:600;color:var(--paper);margin:0;">{{ $widget->title ?? 'Untitled Widget' }}</p>
                                     </div>
                                     <button
                                         wire:click="removeWidget({{ $widget->id }})"
-                                        class="text-gray-300 hover:text-red-400 text-xs"
-                                    >✕</button>
+                                        style="color:var(--mist);background:none;border:none;cursor:pointer;font-size:0.75rem;flex-shrink:0;"
+                                        onmouseover="this.style.color='var(--danger)'" onmouseout="this.style.color='var(--mist)'"
+                                    >&#10005;</button>
                                 </div>
-                                <div class="h-8 bg-gray-100 rounded flex items-center justify-center">
-                                    <span class="text-xs text-gray-400">{{ $widget->widget_type }}</span>
+                                <div style="padding:0.75rem 0.9rem;max-height:420px;overflow-y:auto;">
+                                    @switch($widget->widget_type)
+                                        @case('alert_feed')
+                                            <livewire:analytics.alerts-panel :key="'widget-'.$widget->id" />
+                                            @break
+                                        @case('recommendation_feed')
+                                            <livewire:analytics.recommendations-panel :key="'widget-'.$widget->id" />
+                                            @break
+                                        @case('insight_feed')
+                                            <livewire:analytics.cross-platform-insight-panel :key="'widget-'.$widget->id" />
+                                            @break
+                                        @case('dna_snapshot')
+                                            <livewire:analytics.business-dna-panel :key="'widget-'.$widget->id" />
+                                            @break
+                                        @case('briefing_summary')
+                                            <livewire:analytics.executive-briefing-panel :key="'widget-'.$widget->id" />
+                                            @break
+                                        @case('metric_card')
+                                            @include('livewire.analytics.widgets.metric-card', ['widget' => $widget])
+                                            @break
+                                        @case('chart')
+                                            @include('livewire.analytics.widgets.metric-chart', ['widget' => $widget])
+                                            @break
+                                    @endswitch
                                 </div>
                             </div>
                         @endforeach

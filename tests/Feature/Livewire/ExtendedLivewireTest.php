@@ -11,6 +11,7 @@ use App\Models\AnalyticsDashboard;
 use App\Models\AnalyticsReport;
 use App\Models\DashboardWidget;
 use App\Models\FeatureFlag;
+use App\Models\MetricDefinition;
 use App\Models\Recommendation;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -273,10 +274,16 @@ class ExtendedLivewireTest extends TestCase
             'title' => 'Test',
             'is_default' => true,
         ]);
+        // metric_card now requires picking a MetricDefinition (Custom
+        // Dashboards, docs/superpowers/plans/2026-08-17-custom-dashboards.md
+        // Task 3) -- this test previously omitted it and relied on the old,
+        // unvalidated addWidget() to create the row regardless.
+        $definition = MetricDefinition::factory()->create();
 
         Livewire::test(DashboardBuilderPanel::class)
             ->set('activeDashboardId', $dashboard->id)
             ->set('widgetType', 'metric_card')
+            ->set('widgetMetricDefinitionId', $definition->id)
             ->call('addWidget');
 
         $this->assertDatabaseHas('dashboard_widgets', [

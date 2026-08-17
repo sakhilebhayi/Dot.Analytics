@@ -77,9 +77,14 @@ class SecurityHeaders
         //    system fonts everywhere rather than breaking layout, so this
         //    one was never visually obvious. fonts.bunny.net kept in case
         //    something else legitimately depends on it.
+        // 4. script-src needs https://cdn.jsdelivr.net: the Custom Dashboards
+        //    feature's drag-to-reorder loads Sortable.js from this CDN
+        //    (resources/views/layouts/app.blade.php) -- without this, the
+        //    dashboard builder's widget grid throws "ReferenceError: Sortable
+        //    is not defined" the moment it has 1+ widgets to reorder.
         $csp = implode('; ', [
             "default-src 'self'",
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://fonts.bunny.net https://cdn.tailwindcss.com https://unpkg.com",
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://fonts.bunny.net https://cdn.tailwindcss.com https://unpkg.com https://cdn.jsdelivr.net",
             "style-src 'self' 'unsafe-inline' https://fonts.bunny.net https://fonts.googleapis.com",
             "font-src 'self' https://fonts.bunny.net https://fonts.gstatic.com",
             "img-src 'self' data: blob:",

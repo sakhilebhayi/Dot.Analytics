@@ -15,7 +15,7 @@ class AnalyticsDashboard extends Model
     protected $table = 'analytics_dashboards';
 
     protected $fillable = [
-        'team_id', 'user_id', 'title', 'is_default', 'layout',
+        'team_id', 'user_id', 'title', 'is_default', 'visibility', 'layout',
     ];
 
     protected $casts = [
