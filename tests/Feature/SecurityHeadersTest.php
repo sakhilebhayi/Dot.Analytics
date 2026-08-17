@@ -69,4 +69,13 @@ class SecurityHeadersTest extends TestCase
         $expectedOrigin = 'ws://'.config('echo.host').':'.config('echo.port');
         $this->assertStringContainsString($expectedOrigin, $csp);
     }
+
+    public function test_csp_allows_the_cdn_the_echo_and_pusher_scripts_load_from(): void
+    {
+        $response = $this->get('/');
+
+        $csp = $response->headers->get('Content-Security-Policy');
+
+        $this->assertStringContainsString('https://cdn.jsdelivr.net', $csp);
+    }
 }

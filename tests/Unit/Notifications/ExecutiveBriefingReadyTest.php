@@ -48,4 +48,27 @@ class ExecutiveBriefingReadyTest extends TestCase
         $this->assertSame('Monthly briefing ready', $data['title']);
         $this->assertSame(route('dashboard'), $data['url']);
     }
+
+    /**
+     * Regression test -- see the matching test in CriticalAlertTriggeredTest
+     * for the full story: this ShouldQueue notification originally used
+     * only Queueable, not SerializesModels, which is invisible under
+     * phpunit.xml's forced QUEUE_CONNECTION=sync (never actually
+     * serializes) but broke silently against a real queue driver.
+     */
+    public function test_survives_a_real_serialize_unserialize_round_trip(): void
+    {
+        $user = User::factory()->create();
+        $briefing = ExecutiveBriefing::factory()->create(['period' => 'weekly', 'summary' => 'Serialized summary.']);
+        $notification = new ExecutiveBriefingReady($briefing);
+
+        /** @var ExecutiveBriefingReady $restored */
+        $restored = unserialize(serialize($notification));
+
+        $this->assertSame('weekly', $restored->briefing->period);
+        $this->assertSame($briefing->getKey(), $restored->briefing->getKey());
+
+        $data = $restored->toArray($user);
+        $this->assertSame('Serialized summary.', $data['description']);
+    }
 }

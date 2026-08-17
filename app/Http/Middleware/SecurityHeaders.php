@@ -43,7 +43,7 @@ class SecurityHeaders
 
         // Content Security Policy
         //
-        // Four real mismatches found while first loading the real
+        // Five real mismatches found while first loading the real
         // authenticated dashboard in a browser (every prior
         // browser-verification pass this platform went through only ever
         // checked guest-facing pages, which don't exercise any of these):
@@ -88,9 +88,16 @@ class SecurityHeaders
         //    header and the Echo client (layouts/app.blade.php) now read
         //    the same config/echo.php, so there's one source of truth
         //    instead of two values that can silently drift apart.
+        // 5. script-src also needs https://cdn.jsdelivr.net: Push
+        //    Notifications loads laravel-echo/pusher-js from this CDN
+        //    (layouts/app.blade.php). Caught by actually loading the page
+        //    in a browser after the fix above -- fixing connect-src alone
+        //    wasn't enough, since the CDN <script> tags themselves were
+        //    still blocked at the script-src level, so `Echo` was never
+        //    even defined and window.Echo stayed undefined.
         $csp = implode('; ', [
             "default-src 'self'",
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://fonts.bunny.net https://cdn.tailwindcss.com https://unpkg.com",
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://fonts.bunny.net https://cdn.tailwindcss.com https://unpkg.com https://cdn.jsdelivr.net",
             "style-src 'self' 'unsafe-inline' https://fonts.bunny.net https://fonts.googleapis.com",
             "font-src 'self' https://fonts.bunny.net https://fonts.gstatic.com",
             "img-src 'self' data: blob:",

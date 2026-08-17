@@ -48,4 +48,35 @@ class CriticalAlertTriggeredTest extends TestCase
         $this->assertSame('Test Alert', $data['title']);
         $this->assertSame(route('dashboard'), $data['url']);
     }
+
+    /**
+     * Regression test for a real production bug: this notification is
+     * ShouldQueue, but originally only used the Queueable trait, not
+     * SerializesModels. phpunit.xml forces QUEUE_CONNECTION=sync, so
+     * every other test above executes this class inline and never
+     * actually serializes it -- the bug was invisible to the whole
+     * suite. It only surfaced against this dev environment's real
+     * `database` queue driver: `php artisan queue:work` reported the
+     * job as DONE, but the notifications table stayed empty and
+     * failed_jobs stayed empty too (no exception was ever thrown/
+     * caught). Round-tripping through PHP's own serialize()/
+     * unserialize() -- exactly what a real queue driver does to store
+     * and later restore the job payload -- reproduces the bug without
+     * needing a live queue backend in the test suite.
+     */
+    public function test_survives_a_real_serialize_unserialize_round_trip(): void
+    {
+        $user = User::factory()->create();
+        $alert = AnalyticsAlert::factory()->create(['title' => 'Serialized Alert', 'description' => 'Detail']);
+        $notification = new CriticalAlertTriggered($alert);
+
+        /** @var CriticalAlertTriggered $restored */
+        $restored = unserialize(serialize($notification));
+
+        $this->assertSame('Serialized Alert', $restored->alert->title);
+        $this->assertSame($alert->getKey(), $restored->alert->getKey());
+
+        $data = $restored->toArray($user);
+        $this->assertSame('Serialized Alert', $data['title']);
+    }
 }
