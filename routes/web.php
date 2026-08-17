@@ -68,6 +68,15 @@ Route::middleware([
         return view('dashboards');
     })->name('dashboards.index');
 
+    Route::get('/search', function () {
+        // Same reachable-null case as /dashboard above.
+        if (! Auth::user()->currentTeam) {
+            return redirect()->route('teams.create');
+        }
+
+        return view('search');
+    })->name('search');
+
     // Report CSV download
     Route::get('/reports/{id}/download', function (int $id) {
         // Same reachable-null case as /dashboard above; this route has no
