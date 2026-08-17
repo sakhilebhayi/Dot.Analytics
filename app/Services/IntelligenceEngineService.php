@@ -489,28 +489,35 @@ class IntelligenceEngineService
 
     /**
      * Return the Tailwind CSS colour classes for a platform.
+     *
+     * Values target the dashboard's dark ink shell (resources/views/layouts/
+     * app.blade.php) rather than a white card: low-opacity tinted fills,
+     * light-shade text/borders, and a saturated dot. The hue itself is what
+     * carries meaning — it is how a connected platform's card is
+     * distinguished from its neighbors at a glance — so each platform keeps
+     * its own color family, only the shades moved to work on dark backgrounds.
      */
     public function getPlatformColorClasses(string $key): array
     {
         $color = self::PLATFORMS[$key]['color'] ?? 'gray';
 
         $map = [
-            'blue' => ['bg' => 'bg-blue-100',    'text' => 'text-blue-700',    'border' => 'border-blue-300',    'dot' => 'bg-blue-500'],
-            'green' => ['bg' => 'bg-green-100',   'text' => 'text-green-700',   'border' => 'border-green-300',   'dot' => 'bg-green-500'],
-            'purple' => ['bg' => 'bg-purple-100',  'text' => 'text-purple-700',  'border' => 'border-purple-300',  'dot' => 'bg-purple-500'],
-            'yellow' => ['bg' => 'bg-yellow-100',  'text' => 'text-yellow-700',  'border' => 'border-yellow-300',  'dot' => 'bg-yellow-500'],
-            'pink' => ['bg' => 'bg-pink-100',     'text' => 'text-pink-700',    'border' => 'border-pink-300',    'dot' => 'bg-pink-500'],
-            'orange' => ['bg' => 'bg-orange-100',  'text' => 'text-orange-700',  'border' => 'border-orange-300',  'dot' => 'bg-orange-500'],
-            'teal' => ['bg' => 'bg-teal-100',    'text' => 'text-teal-700',    'border' => 'border-teal-300',    'dot' => 'bg-teal-500'],
-            'emerald' => ['bg' => 'bg-emerald-100', 'text' => 'text-emerald-700', 'border' => 'border-emerald-300', 'dot' => 'bg-emerald-500'],
-            'red' => ['bg' => 'bg-red-100',     'text' => 'text-red-700',     'border' => 'border-red-300',     'dot' => 'bg-red-500'],
-            'indigo' => ['bg' => 'bg-indigo-100',  'text' => 'text-indigo-700',  'border' => 'border-indigo-300',  'dot' => 'bg-indigo-500'],
-            'cyan' => ['bg' => 'bg-cyan-100',    'text' => 'text-cyan-700',    'border' => 'border-cyan-300',    'dot' => 'bg-cyan-500'],
-            'slate' => ['bg' => 'bg-slate-100',   'text' => 'text-slate-700',   'border' => 'border-slate-300',   'dot' => 'bg-slate-500'],
-            'violet' => ['bg' => 'bg-violet-100',  'text' => 'text-violet-700',  'border' => 'border-violet-300',  'dot' => 'bg-violet-500'],
-            'lime' => ['bg' => 'bg-lime-100',     'text' => 'text-lime-700',    'border' => 'border-lime-300',    'dot' => 'bg-lime-500'],
-            'amber' => ['bg' => 'bg-amber-100',   'text' => 'text-amber-700',   'border' => 'border-amber-300',   'dot' => 'bg-amber-500'],
-            'gray' => ['bg' => 'bg-gray-100',    'text' => 'text-gray-700',    'border' => 'border-gray-300',    'dot' => 'bg-gray-500'],
+            'blue' => ['bg' => 'bg-blue-500/10',    'text' => 'text-blue-300',    'border' => 'border-blue-500/30',    'dot' => 'bg-blue-400'],
+            'green' => ['bg' => 'bg-green-500/10',   'text' => 'text-green-300',   'border' => 'border-green-500/30',   'dot' => 'bg-green-400'],
+            'purple' => ['bg' => 'bg-purple-500/10',  'text' => 'text-purple-300',  'border' => 'border-purple-500/30',  'dot' => 'bg-purple-400'],
+            'yellow' => ['bg' => 'bg-yellow-500/10',  'text' => 'text-yellow-300',  'border' => 'border-yellow-500/30',  'dot' => 'bg-yellow-400'],
+            'pink' => ['bg' => 'bg-pink-500/10',     'text' => 'text-pink-300',    'border' => 'border-pink-500/30',    'dot' => 'bg-pink-400'],
+            'orange' => ['bg' => 'bg-orange-500/10',  'text' => 'text-orange-300',  'border' => 'border-orange-500/30',  'dot' => 'bg-orange-400'],
+            'teal' => ['bg' => 'bg-teal-500/10',    'text' => 'text-teal-300',    'border' => 'border-teal-500/30',    'dot' => 'bg-teal-400'],
+            'emerald' => ['bg' => 'bg-emerald-500/10', 'text' => 'text-emerald-300', 'border' => 'border-emerald-500/30', 'dot' => 'bg-emerald-400'],
+            'red' => ['bg' => 'bg-red-500/10',     'text' => 'text-red-300',     'border' => 'border-red-500/30',     'dot' => 'bg-red-400'],
+            'indigo' => ['bg' => 'bg-indigo-500/10',  'text' => 'text-indigo-300',  'border' => 'border-indigo-500/30',  'dot' => 'bg-indigo-400'],
+            'cyan' => ['bg' => 'bg-cyan-500/10',    'text' => 'text-cyan-300',    'border' => 'border-cyan-500/30',    'dot' => 'bg-cyan-400'],
+            'slate' => ['bg' => 'bg-slate-500/10',   'text' => 'text-slate-300',   'border' => 'border-slate-500/30',   'dot' => 'bg-slate-400'],
+            'violet' => ['bg' => 'bg-violet-500/10',  'text' => 'text-violet-300',  'border' => 'border-violet-500/30',  'dot' => 'bg-violet-400'],
+            'lime' => ['bg' => 'bg-lime-500/10',     'text' => 'text-lime-300',    'border' => 'border-lime-500/30',    'dot' => 'bg-lime-400'],
+            'amber' => ['bg' => 'bg-amber-500/10',   'text' => 'text-amber-300',   'border' => 'border-amber-500/30',   'dot' => 'bg-amber-400'],
+            'gray' => ['bg' => 'bg-white/5',    'text' => 'text-[var(--mist)]',    'border' => 'border-[var(--line)]',    'dot' => 'bg-gray-400'],
         ];
 
         return $map[$color] ?? $map['gray'];
