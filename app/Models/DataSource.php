@@ -24,6 +24,16 @@ class DataSource extends Model
         'capabilities' => 'array',
     ];
 
+    /**
+     * config currently only ever holds webhook_secret (see
+     * ConnectPlatformAction::handle() / IngestController::receive()) --
+     * hidden so it never leaks through catalog()/connected()/show()'s
+     * default JSON serialization. PlatformController::connect() re-attaches
+     * it explicitly to that one response only, the single moment it's
+     * meant to be surfaced to the connecting caller.
+     */
+    protected $hidden = ['config'];
+
     public function team(): BelongsTo
     {
         return $this->belongsTo(Team::class);
