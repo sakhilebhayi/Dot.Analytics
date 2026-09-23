@@ -2,9 +2,8 @@ name: CI
 
 on:
   push:
-    branches: [main, develop, "feature/**"]
+    branches: [main, develop, "feature/**", "feat/**"]
   pull_request:
-    branches: [main, develop]
 
 jobs:
   test:
@@ -52,8 +51,10 @@ jobs:
 
       - name: Configure test database
         run: |
+          mkdir -p database
+          touch database/database.sqlite
           echo "DB_CONNECTION=sqlite" >> .env
-          echo "DB_DATABASE=:memory:" >> .env
+          echo "DB_DATABASE=${{ github.workspace }}/database/database.sqlite" >> .env
 
       - name: Run migrations
         run: php artisan migrate --force
@@ -77,7 +78,7 @@ jobs:
         run: php artisan test --coverage --min=80
         env:
           DB_CONNECTION: sqlite
-          DB_DATABASE: ":memory:"
+          DB_DATABASE: ${{ github.workspace }}/database/database.sqlite
           QUEUE_CONNECTION: sync
           BROADCAST_CONNECTION: "null"
           CACHE_STORE: array

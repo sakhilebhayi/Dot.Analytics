@@ -3,6 +3,7 @@
 namespace Tests\Unit\Models;
 
 use App\Models\AiModelUsage;
+use App\Models\AnalyticsAlert;
 use App\Models\AnalyticsReport;
 use App\Models\AnalyticsSnapshot;
 use App\Models\ComputedMetric;
@@ -173,6 +174,161 @@ class RemainingModelsTest extends TestCase
         $runB = ReportRun::create(['analytics_report_id' => $report->id, 'status' => 'completed']);
 
         $this->assertEquals($runB->id, $report->latestRun->id);
+    }
+
+    public function test_analytics_report_belongs_to_team(): void
+    {
+        $team = $this->team();
+        $report = AnalyticsReport::create([
+            'team_id' => $team->id,
+            'user_id' => $team->user_id,
+            'title' => 'Test',
+            'type' => 'ad_hoc',
+            'config' => [],
+        ]);
+
+        $this->assertEquals($team->id, $report->team->id);
+    }
+
+    public function test_analytics_report_belongs_to_author(): void
+    {
+        $team = $this->team();
+        $report = AnalyticsReport::create([
+            'team_id' => $team->id,
+            'user_id' => $team->user_id,
+            'title' => 'Test',
+            'type' => 'ad_hoc',
+            'config' => [],
+        ]);
+
+        $this->assertEquals($team->user_id, $report->author->id);
+    }
+
+    public function test_analytics_report_has_many_runs(): void
+    {
+        $team = $this->team();
+        $report = AnalyticsReport::create([
+            'team_id' => $team->id,
+            'user_id' => $team->user_id,
+            'title' => 'Test',
+            'type' => 'ad_hoc',
+            'config' => [],
+        ]);
+
+        ReportRun::create(['analytics_report_id' => $report->id, 'status' => 'completed']);
+        ReportRun::create(['analytics_report_id' => $report->id, 'status' => 'failed']);
+
+        $this->assertCount(2, $report->runs);
+    }
+
+    // ─── AnalyticsAlert ──────────────────────────────────────────────────────
+
+    private function metricDefinitionForAlert(string $key): MetricDefinition
+    {
+        return MetricDefinition::create([
+            'key' => $key,
+            'label' => 'Alert Metric',
+            'source_platform' => 'dot.fleet',
+            'engine' => 'operational',
+            'aggregation' => 'avg',
+        ]);
+    }
+
+    public function test_analytics_alert_belongs_to_team(): void
+    {
+        $team = $this->team();
+        $def = $this->metricDefinitionForAlert('alert.metric.team');
+
+        $alert = AnalyticsAlert::create([
+            'team_id' => $team->id,
+            'metric_definition_id' => $def->id,
+            'title' => 'Idle rate spike',
+            'description' => 'Idle rate exceeded threshold',
+            'severity' => 'high',
+            'status' => 'open',
+            'context' => ['threshold' => 0.2, 'observed' => 0.35],
+            'triggered_at' => now(),
+        ]);
+
+        $this->assertEquals($team->id, $alert->team->id);
+    }
+
+    public function test_analytics_alert_belongs_to_metric_definition(): void
+    {
+        $team = $this->team();
+        $def = $this->metricDefinitionForAlert('alert.metric.def');
+
+        $alert = AnalyticsAlert::create([
+            'team_id' => $team->id,
+            'metric_definition_id' => $def->id,
+            'title' => 'Test',
+            'description' => 'Test',
+            'severity' => 'low',
+            'status' => 'open',
+            'context' => [],
+            'triggered_at' => now(),
+        ]);
+
+        $this->assertEquals($def->id, $alert->metricDefinition->id);
+    }
+
+    public function test_analytics_alert_context_is_cast_to_array(): void
+    {
+        $team = $this->team();
+        $def = $this->metricDefinitionForAlert('alert.metric.ctx');
+
+        $alert = AnalyticsAlert::create([
+            'team_id' => $team->id,
+            'metric_definition_id' => $def->id,
+            'title' => 'Test',
+            'description' => 'Test',
+            'severity' => 'low',
+            'status' => 'open',
+            'context' => ['threshold' => 0.2],
+            'triggered_at' => now(),
+        ]);
+
+        $this->assertIsArray($alert->context);
+        $this->assertEquals(0.2, $alert->context['threshold']);
+    }
+
+    public function test_analytics_alert_is_open_when_status_is_open(): void
+    {
+        $team = $this->team();
+        $def = $this->metricDefinitionForAlert('alert.metric.open');
+
+        $alert = AnalyticsAlert::create([
+            'team_id' => $team->id,
+            'metric_definition_id' => $def->id,
+            'title' => 'Test',
+            'description' => 'Test',
+            'severity' => 'low',
+            'status' => 'open',
+            'context' => [],
+            'triggered_at' => now(),
+        ]);
+
+        $this->assertTrue($alert->isOpen());
+    }
+
+    public function test_analytics_alert_is_not_open_when_status_is_resolved(): void
+    {
+        $team = $this->team();
+        $def = $this->metricDefinitionForAlert('alert.metric.resolved');
+
+        $alert = AnalyticsAlert::create([
+            'team_id' => $team->id,
+            'metric_definition_id' => $def->id,
+            'title' => 'Test',
+            'description' => 'Test',
+            'severity' => 'low',
+            'status' => 'resolved',
+            'context' => [],
+            'triggered_at' => now(),
+            'resolved_at' => now(),
+        ]);
+
+        $this->assertFalse($alert->isOpen());
     }
 
     // ─── Recommendation ──────────────────────────────────────────────────────
