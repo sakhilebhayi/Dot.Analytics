@@ -1,5 +1,14 @@
 # ─── Stage 1: PHP dependencies ────────────────────────────────────────────────
-FROM composer:2.7 AS vendor
+# Must run composer install under PHP 8.4 (matching the production runtime in
+# stage 3), not the composer:2.7 image's own bundled PHP 8.3 -- composer.lock
+# locks several Symfony 8.1.x packages that require PHP >= 8.4.1, so running
+# composer install under 8.3 fails platform requirement checks even though
+# the actual production PHP is 8.4.
+FROM php:8.4-cli-alpine AS vendor
+RUN apk add --no-cache oniguruma-dev ${PHPIZE_DEPS} \
+    && docker-php-ext-install mbstring \
+    && apk del ${PHPIZE_DEPS}
+COPY --from=composer:2.7 /usr/bin/composer /usr/bin/composer
 WORKDIR /app
 COPY composer.json composer.lock ./
 RUN composer install \
