@@ -162,6 +162,45 @@ class ModelsTest extends TestCase
         $this->assertTrue($conn->isActive());
     }
 
+    public function test_data_connector_belongs_to_team(): void
+    {
+        $team = $this->team();
+        $conn = DataConnector::create([
+            'team_id' => $team->id,
+            'name' => 'My DB',
+            'type' => 'database',
+            'driver' => 'postgres',
+            'config' => [],
+            'status' => 'active',
+        ]);
+
+        $this->assertEquals($team->id, $conn->team->id);
+    }
+
+    public function test_data_connector_has_many_pipelines(): void
+    {
+        $team = $this->team();
+        $conn = DataConnector::create([
+            'team_id' => $team->id,
+            'name' => 'My DB',
+            'type' => 'database',
+            'driver' => 'postgres',
+            'config' => [],
+            'status' => 'active',
+        ]);
+
+        DataPipeline::create([
+            'team_id' => $team->id,
+            'data_connector_id' => $conn->id,
+            'name' => 'Pipeline A',
+            'source_config' => [],
+            'transform_config' => [],
+            'destination_config' => [],
+        ]);
+
+        $this->assertCount(1, $conn->pipelines);
+    }
+
     public function test_data_connector_is_not_active_when_inactive(): void
     {
         $team = $this->team();

@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /**
  * @property int $id
  * @property int $team_id
+ * @property int|null $data_source_id
  * @property string $name
  * @property string $type
  * @property string $driver
@@ -27,7 +28,7 @@ class DataConnector extends Model
     use HasTeamScope;
 
     protected $fillable = [
-        'team_id', 'name', 'type', 'driver', 'config', 'status', 'version',
+        'team_id', 'data_source_id', 'name', 'type', 'driver', 'config', 'status', 'version',
         'records_ingested', 'last_tested_at', 'last_ingested_at', 'last_error',
     ];
 
@@ -41,6 +42,11 @@ class DataConnector extends Model
     public function team(): BelongsTo
     {
         return $this->belongsTo(Team::class);
+    }
+
+    public function dataSource(): BelongsTo
+    {
+        return $this->belongsTo(DataSource::class);
     }
 
     public function pipelines(): HasMany

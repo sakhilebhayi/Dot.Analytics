@@ -3,7 +3,9 @@
 namespace App\Services;
 
 use App\Models\AnalyticsSnapshot;
+use App\Models\DataConnector;
 use App\Models\DataPipeline;
+use App\Models\DataSource;
 use App\Models\PipelineRun;
 use App\Services\Connectors\ConnectorRegistry;
 use Illuminate\Support\Carbon;
@@ -183,11 +185,13 @@ class PipelineExecutionService
         $teamId = $pipeline->team_id;
         $target = $dest['target'] ?? 'snapshot';
 
-        if ($target === 'snapshot' && $pipeline->data_connector_id) {
+        if ($target === 'snapshot' && $pipeline->connector) {
+            $dataSourceId = $this->resolveDataSourceId($pipeline->connector);
+
             foreach (array_chunk($records, 100) as $chunk) {
                 AnalyticsSnapshot::create([
                     'team_id' => $teamId,
-                    'data_source_id' => $pipeline->data_connector_id,
+                    'data_source_id' => $dataSourceId,
                     'snapshot_type' => 'pipeline',
                     'payload' => $chunk,
                     'captured_at' => Carbon::now(),
@@ -196,6 +200,30 @@ class PipelineExecutionService
         }
 
         return count($records);
+    }
+
+    /**
+     * A DataConnector (external DB/API/file connector) and a DataSource
+     * (platform connection, e.g. dot.files) are separate, unlinked concepts.
+     * analytics_snapshots.data_source_id is a foreign key to data_sources,
+     * so a connector-sourced pipeline needs a real DataSource to write
+     * against. Resolves the connector's linked DataSource, lazily
+     * provisioning and persisting the link on first use.
+     */
+    private function resolveDataSourceId(DataConnector $connector): int
+    {
+        if ($connector->data_source_id) {
+            return $connector->data_source_id;
+        }
+
+        $dataSource = DataSource::firstOrCreate(
+            ['team_id' => $connector->team_id, 'platform' => "connector:{$connector->id}"],
+            ['display_name' => $connector->name, 'status' => 'connected', 'connected_at' => Carbon::now()],
+        );
+
+        $connector->update(['data_source_id' => $dataSource->id]);
+
+        return $dataSource->id;
     }
 
     // ─── Helpers ───────────────────────────────────────────────────────────────
