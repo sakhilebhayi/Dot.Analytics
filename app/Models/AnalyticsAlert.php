@@ -3,13 +3,14 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasTeamScope;
+use App\Models\Concerns\SearchesWithinTeam;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class AnalyticsAlert extends Model
 {
-    use HasFactory, HasTeamScope;
+    use HasFactory, HasTeamScope, SearchesWithinTeam;
 
     protected $table = 'analytics_alerts';
 
@@ -23,6 +24,14 @@ class AnalyticsAlert extends Model
         'triggered_at' => 'datetime',
         'resolved_at' => 'datetime',
     ];
+
+    public function toSearchableArray(): array
+    {
+        return [
+            'title' => $this->title,
+            'description' => $this->description,
+        ];
+    }
 
     public function team(): BelongsTo
     {

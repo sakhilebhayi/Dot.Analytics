@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasTeamScope;
+use App\Models\Concerns\SearchesWithinTeam;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -10,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class AnalyticsDashboard extends Model
 {
-    use HasFactory, HasTeamScope;
+    use HasFactory, HasTeamScope, SearchesWithinTeam;
 
     protected $table = 'analytics_dashboards';
 
@@ -22,6 +23,13 @@ class AnalyticsDashboard extends Model
         'is_default' => 'boolean',
         'layout' => 'array',
     ];
+
+    public function toSearchableArray(): array
+    {
+        return [
+            'title' => $this->title,
+        ];
+    }
 
     public function team(): BelongsTo
     {

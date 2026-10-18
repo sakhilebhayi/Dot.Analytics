@@ -63,6 +63,19 @@
                     </div>
                 @endif
 
+                <!-- Search -->
+                <form method="GET" action="{{ route('search') }}" class="flex items-center ms-3" role="search">
+                    <input
+                        type="text"
+                        name="q"
+                        aria-label="Search"
+                        maxlength="100"
+                        placeholder="Search…"
+                        value="{{ request('q') }}"
+                        style="background:var(--ink-soft);border:1px solid var(--line);color:var(--paper);border-radius:0.4rem;padding:0.4rem 0.75rem;font-size:0.8rem;width:220px;"
+                    />
+                </form>
+
                 <!-- Settings Dropdown -->
                 <div class="ms-3 relative">
                     <x-dropdown align="right" width="48">
