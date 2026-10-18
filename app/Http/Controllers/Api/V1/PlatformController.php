@@ -51,7 +51,11 @@ class PlatformController extends BaseApiController
     {
         $this->currentTeam();
 
-        $sources = DataSource::where('status', 'connected')->get();
+        // Sources named for platforms that are not in the roster (the retired
+        // Dot.Fleet / Dot.CRM names) can never ingest, so they are not listed.
+        $sources = DataSource::where('status', 'connected')
+            ->whereIn('platform', array_keys(IntelligenceEngineService::PLATFORMS))
+            ->get();
 
         return $this->success($sources);
     }

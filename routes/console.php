@@ -1,5 +1,6 @@
 <?php
 
+use App\Console\Commands\ComputeMetricsCommand;
 use App\Console\Commands\GenerateBriefingsCommand;
 use App\Console\Commands\RecomputeDnaCommand;
 use App\Console\Commands\RunIntelligenceEnginesCommand;
@@ -10,6 +11,14 @@ use Illuminate\Support\Facades\Schedule;
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
+
+// ─── Metric computation ───────────────────────────────────────────────────────
+// Turn the latest platform snapshots into computed metrics (idempotent). Also
+// run right after each new snapshot arrives; the hourly run is the safety net.
+Schedule::command(ComputeMetricsCommand::class)->hourly()
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->description('Compute metrics from platform snapshots');
 
 // ─── Intelligence Engine Schedule ─────────────────────────────────────────────
 // Run all intelligence engines for all teams every 6 hours

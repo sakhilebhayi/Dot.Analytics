@@ -2,12 +2,11 @@
 
 namespace Tests\Feature\Integrity;
 
-use App\Jobs\Analytics\IngestPlatformSnapshotJob;
+use App\Models\AnalyticsSnapshot;
 use App\Models\AuditLog;
 use App\Models\DataSource;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\DB;
 use Tests\Support\BuildsTeams;
 use Tests\TestCase;
@@ -22,7 +21,7 @@ class WebhookSecretTest extends TestCase
     {
         return DataSource::factory()->create([
             'team_id' => $owner->currentTeam->id,
-            'platform' => 'dot.fleet',
+            'platform' => 'tasks',
             'status' => 'connected',
             'webhook_secret' => $secret,
         ]);
@@ -58,7 +57,7 @@ class WebhookSecretTest extends TestCase
         $owner = $this->ownerWithTeam();
         $source = DataSource::factory()->create([
             'team_id' => $owner->currentTeam->id,
-            'platform' => 'dot.fleet',
+            'platform' => 'tasks',
             'status' => 'connected',
             'config' => ['webhook_secret' => self::SECRET, 'region' => 'za'],
         ]);
@@ -98,64 +97,58 @@ class WebhookSecretTest extends TestCase
         $this->sourceWithSecret($owner);
         $token = $owner->createToken('t')->plainTextToken;
 
-        foreach (['/api/v1/platforms', '/api/v1/platforms/connected', '/api/v1/platforms/dot.fleet'] as $url) {
+        foreach (['/api/v1/platforms', '/api/v1/platforms/connected', '/api/v1/platforms/tasks'] as $url) {
             $this->assertStringNotContainsString(self::SECRET, $this->withToken($token)->getJson($url)->getContent(), $url);
         }
     }
 
     // ─── ingest HMAC is required ─────────────────────────────────────────────
 
+    private function company(User $owner): string
+    {
+        return $this->linkCompany($owner->currentTeam);
+    }
+
     public function test_unsigned_ingest_is_rejected_with_401(): void
     {
-        Bus::fake();
         $owner = $this->ownerWithTeam();
         $this->sourceWithSecret($owner);
+        $body = $this->snapshotBody($this->company($owner), 'tasks', ['open' => 1]);
 
-        $this->withToken($owner->createToken('t')->plainTextToken)
-            ->postJson('/api/v1/ingest/dot.fleet', ['vehicles' => [1]])
-            ->assertUnauthorized();
+        $this->asApi($owner)->postJson('/api/v1/ingest/tasks', $body)->assertUnauthorized();
 
-        Bus::assertNotDispatched(IngestPlatformSnapshotJob::class);
+        $this->assertSame(0, AnalyticsSnapshot::withoutGlobalScopes()->count());
     }
 
     public function test_ingest_for_source_without_a_secret_is_rejected(): void
     {
-        Bus::fake();
         $owner = $this->ownerWithTeam();
         $this->sourceWithSecret($owner, null);
+        $body = $this->snapshotBody($this->company($owner), 'tasks', ['open' => 1]);
 
-        $this->withToken($owner->createToken('t')->plainTextToken)
-            ->postJson('/api/v1/ingest/dot.fleet', ['vehicles' => [1]])
-            ->assertUnauthorized();
+        $this->postSnapshot($owner, 'tasks', $body, 'any-secret')->assertUnauthorized();
 
-        Bus::assertNotDispatched(IngestPlatformSnapshotJob::class);
+        $this->assertSame(0, AnalyticsSnapshot::withoutGlobalScopes()->count());
     }
 
     public function test_wrong_signature_is_rejected(): void
     {
         $owner = $this->ownerWithTeam();
         $this->sourceWithSecret($owner);
-        $payload = ['vehicles' => [1]];
+        $body = $this->snapshotBody($this->company($owner), 'tasks', ['open' => 1]);
 
-        $this->withToken($owner->createToken('t')->plainTextToken)
-            ->withHeaders($this->signed($payload, 'some-other-secret'))
-            ->postJson('/api/v1/ingest/dot.fleet', $payload)
-            ->assertUnauthorized();
+        $this->postSnapshot($owner, 'tasks', $body, self::SECRET, 'some-other-secret')->assertUnauthorized();
     }
 
     public function test_correctly_signed_ingest_is_accepted(): void
     {
-        Bus::fake();
         $owner = $this->ownerWithTeam();
         $this->sourceWithSecret($owner);
-        $payload = ['vehicles' => [['id' => 'V-1']]];
+        $body = $this->snapshotBody($this->company($owner), 'tasks', ['open' => 1]);
 
-        $this->withToken($owner->createToken('t')->plainTextToken)
-            ->withHeaders($this->signed($payload))
-            ->postJson('/api/v1/ingest/dot.fleet', $payload)
-            ->assertStatus(202);
+        $this->postSnapshot($owner, 'tasks', $body, self::SECRET)->assertStatus(201);
 
-        Bus::assertDispatched(IngestPlatformSnapshotJob::class);
+        $this->assertSame(1, AnalyticsSnapshot::withoutGlobalScopes()->count());
     }
 
     // ─── provisioning ────────────────────────────────────────────────────────
@@ -163,22 +156,19 @@ class WebhookSecretTest extends TestCase
     public function test_connecting_a_platform_issues_a_secret_shown_once(): void
     {
         $owner = $this->ownerWithTeam();
+        $company = $this->company($owner);
         $token = $owner->createToken('t')->plainTextToken;
 
-        $response = $this->withToken($token)->postJson('/api/v1/platforms/dot.fleet/connect')->assertCreated();
+        $response = $this->withToken($token)->postJson('/api/v1/platforms/tasks/connect')->assertCreated();
 
         $secret = $response->json('data.webhook_secret');
         $this->assertIsString($secret);
         $this->assertGreaterThanOrEqual(32, strlen($secret));
         $this->assertNotNull(DataSource::first()->webhook_secret);
-        $this->assertStringNotContainsString($secret, $this->withToken($token)->getJson('/api/v1/platforms/dot.fleet')->getContent());
+        $this->assertStringNotContainsString($secret, $this->withToken($token)->getJson('/api/v1/platforms/tasks')->getContent());
 
-        $payload = ['vehicles' => [1]];
-        Bus::fake();
-        $this->withToken($token)
-            ->withHeaders($this->signed($payload, $secret))
-            ->postJson('/api/v1/ingest/dot.fleet', $payload)
-            ->assertStatus(202);
+        $this->postSnapshot($owner, 'tasks', $this->snapshotBody($company, 'tasks', ['open' => 1]), $secret)
+            ->assertStatus(201);
     }
 
     public function test_rotate_endpoint_is_admin_only_and_invalidates_the_old_secret(): void
@@ -188,10 +178,10 @@ class WebhookSecretTest extends TestCase
         $this->sourceWithSecret($owner);
 
         $this->asApi($member)
-            ->postJson('/api/v1/platforms/dot.fleet/webhook-secret')->assertForbidden();
+            ->postJson('/api/v1/platforms/tasks/webhook-secret')->assertForbidden();
 
         $new = $this->asApi($owner)
-            ->postJson('/api/v1/platforms/dot.fleet/webhook-secret')->assertOk()->json('data.webhook_secret');
+            ->postJson('/api/v1/platforms/tasks/webhook-secret')->assertOk()->json('data.webhook_secret');
 
         $this->assertNotSame(self::SECRET, $new);
         $this->assertSame($new, DataSource::first()->webhook_secret);

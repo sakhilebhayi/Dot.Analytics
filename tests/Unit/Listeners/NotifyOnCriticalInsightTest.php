@@ -24,7 +24,7 @@ class NotifyOnCriticalInsightTest extends TestCase
             'title' => 'Critical pattern detected',
             'narrative' => 'Three platforms show correlated failures.',
             'severity' => 'critical',
-            'platforms_involved' => ['dot.fleet', 'dot.hr'],
+            'platforms_involved' => ['tasks', 'hr'],
         ]);
 
         $listener = new NotifyOnCriticalInsight;

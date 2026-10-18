@@ -97,7 +97,7 @@ class ViewerRoleMatrixTest extends TestCase
             $model::withoutGlobalScopes()->delete();
         }
 
-        $source = $this->connect($this->team(), 'dot.fleet');
+        $source = $this->connect($this->team(), 'tasks');
         $source->forceFill(['display_name' => 'Matrix Fleet Display'])->save();
         $this->secret = $source->rotateWebhookSecret();
 
@@ -218,9 +218,9 @@ class ViewerRoleMatrixTest extends TestCase
             $api = $this->asApi($this->users[$role]);
             $response = match ($action) {
                 'run engines' => $api->postJson('/api/v1/intelligence/run'),
-                'connect platform' => $api->postJson('/api/v1/platforms/dot.crm/connect'),
-                'disconnect platform' => $api->deleteJson('/api/v1/platforms/dot.fleet'),
-                'rotate webhook secret' => $api->postJson('/api/v1/platforms/dot.fleet/webhook-secret'),
+                'connect platform' => $api->postJson('/api/v1/platforms/emall/connect'),
+                'disconnect platform' => $api->deleteJson('/api/v1/platforms/tasks'),
+                'rotate webhook secret' => $api->postJson('/api/v1/platforms/tasks/webhook-secret'),
                 'sql generate' => $api->postJson('/api/v1/sql/generate', $sql),
                 'sql query' => $api->postJson('/api/v1/sql/query', $sql),
                 'create saved report' => $api->postJson('/api/v1/saved-reports', ['title' => 'Sneaky', 'type' => 'insights']),
@@ -232,8 +232,8 @@ class ViewerRoleMatrixTest extends TestCase
 
             $effect = match ($action) {
                 'run engines' => count(Queue::pushedJobs()) > 0,
-                'connect platform' => DataSource::withoutGlobalScopes()->where('team_id', $this->team()->id)->where('platform', 'dot.crm')->exists(),
-                'disconnect platform' => ! DataSource::withoutGlobalScopes()->where('team_id', $this->team()->id)->where('platform', 'dot.fleet')->exists(),
+                'connect platform' => DataSource::withoutGlobalScopes()->where('team_id', $this->team()->id)->where('platform', 'emall')->exists(),
+                'disconnect platform' => ! DataSource::withoutGlobalScopes()->where('team_id', $this->team()->id)->where('platform', 'tasks')->exists(),
                 'rotate webhook secret' => $r['source']->fresh()->webhook_secret !== $this->secret,
                 'sql generate', 'sql query' => $this->ai->prompts !== [],
                 'create saved report' => AnalyticsReport::withoutGlobalScopes()->where('title', 'Sneaky')->exists(),
@@ -265,8 +265,8 @@ class ViewerRoleMatrixTest extends TestCase
         $team = $this->team()->id;
 
         return match ($action) {
-            'connect platform' => DataSource::withoutGlobalScopes()->where('team_id', $team)->where('platform', 'dot.crm')->exists(),
-            'disconnect platform' => ! DataSource::withoutGlobalScopes()->where('team_id', $team)->where('platform', 'dot.fleet')->exists(),
+            'connect platform' => DataSource::withoutGlobalScopes()->where('team_id', $team)->where('platform', 'emall')->exists(),
+            'disconnect platform' => ! DataSource::withoutGlobalScopes()->where('team_id', $team)->where('platform', 'tasks')->exists(),
             'rotate webhook secret' => $r['source']->fresh()->webhook_secret !== $this->secret,
             'create saved report' => AnalyticsReport::withoutGlobalScopes()->where('team_id', $team)->where('title', 'Sneaky')->exists(),
             'delete saved report' => ! AnalyticsReport::withoutGlobalScopes()->whereKey($r['report']->id)->exists(),
@@ -282,7 +282,7 @@ class ViewerRoleMatrixTest extends TestCase
     {
         return array_map(fn ($k) => [$k], [
             '/api/v1/intelligence/engines', '/api/v1/intelligence/insights', '/api/v1/intelligence/graph',
-            '/api/v1/platforms', '/api/v1/platforms/connected', '/api/v1/platforms/dot.fleet',
+            '/api/v1/platforms', '/api/v1/platforms/connected', '/api/v1/platforms/tasks',
             '/api/v1/metrics/definitions', '/api/v1/metrics/ai-usage', '/api/v1/saved-reports',
             '/api/v1/saved-reports/{report}/runs', '/api/v1/reports/insights', '/api/v1/reports/insights/csv',
             '/api/v1/reports/insights/html', '/api/v1/feature-flags',
@@ -373,9 +373,9 @@ class ViewerRoleMatrixTest extends TestCase
                     'review insight' => Livewire::actingAs($user)->test(CrossPlatformInsightPanel::class)->call('review', $r['insight']->id),
                     'dismiss insight' => Livewire::actingAs($user)->test(CrossPlatformInsightPanel::class)->call('dismiss', $r['insight']->id),
                     'generate briefing' => Livewire::actingAs($user)->test(ExecutiveBriefingPanel::class)->call('generate'),
-                    'start connect' => Livewire::actingAs($user)->test(EcosystemMapPanel::class)->call('startConnect', 'dot.crm'),
-                    'confirm connect' => Livewire::actingAs($user)->test(EcosystemMapPanel::class)->set('connectingPlatform', 'dot.crm')->call('confirmConnect'),
-                    'disconnect' => Livewire::actingAs($user)->test(EcosystemMapPanel::class)->call('disconnect', 'dot.fleet'),
+                    'start connect' => Livewire::actingAs($user)->test(EcosystemMapPanel::class)->call('startConnect', 'emall'),
+                    'confirm connect' => Livewire::actingAs($user)->test(EcosystemMapPanel::class)->set('connectingPlatform', 'emall')->call('confirmConnect'),
+                    'disconnect' => Livewire::actingAs($user)->test(EcosystemMapPanel::class)->call('disconnect', 'tasks'),
                     'acknowledge alert' => Livewire::actingAs($user)->test(AlertsPanel::class)->call('acknowledge', $r['alert']->id),
                     'resolve alert' => Livewire::actingAs($user)->test(AlertsPanel::class)->call('resolve', $r['alert']->id),
                     'generate recommendations' => Livewire::actingAs($user)->test(RecommendationsPanel::class)->call('generate'),
@@ -405,8 +405,8 @@ class ViewerRoleMatrixTest extends TestCase
             $moved = match ($action) {
                 'review insight' => $r['insight']->fresh()->status !== 'new',
                 'dismiss insight' => $r['insight']->fresh()->status === 'dismissed',
-                'confirm connect' => DataSource::withoutGlobalScopes()->where('team_id', $team)->where('platform', 'dot.crm')->exists(),
-                'disconnect' => ! DataSource::withoutGlobalScopes()->where('team_id', $team)->where('platform', 'dot.fleet')->exists(),
+                'confirm connect' => DataSource::withoutGlobalScopes()->where('team_id', $team)->where('platform', 'emall')->exists(),
+                'disconnect' => ! DataSource::withoutGlobalScopes()->where('team_id', $team)->where('platform', 'tasks')->exists(),
                 'acknowledge alert' => $r['alert']->fresh()->status !== 'open',
                 'resolve alert' => $r['alert']->fresh()->status === 'resolved',
                 'action recommendation' => $r['rec']->fresh()->status === 'actioned',

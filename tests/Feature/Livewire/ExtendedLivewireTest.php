@@ -181,7 +181,7 @@ class ExtendedLivewireTest extends TestCase
     {
         Livewire::test(KnowledgeGraphPanel::class)
             ->set('entityId', 'CUST-001')
-            ->set('results', [['id' => 1, 'label' => 'test', 'entity_type' => 'x', 'entity_id' => '1', 'source_platform' => 'dot.crm']])
+            ->set('results', [['id' => 1, 'label' => 'test', 'entity_type' => 'x', 'entity_id' => '1', 'source_platform' => 'emall']])
             ->call('clear')
             ->assertSet('entityId', '')
             ->assertSet('results', [])

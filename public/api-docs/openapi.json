@@ -118,8 +118,8 @@
                             "type": "string"
                         },
                         "example": [
-                            "dot.fleet",
-                            "dot.hr"
+                            "tasks",
+                            "hr"
                         ]
                     },
                     "insight_type": {
@@ -164,7 +164,7 @@
                     },
                     "platform": {
                         "type": "string",
-                        "example": "dot.fleet"
+                        "example": "tasks"
                     },
                     "display_name": {
                         "type": "string"
@@ -1133,7 +1133,7 @@
                 "tags": [
                     "Ingest"
                 ],
-                "summary": "Push a data snapshot from a Dot platform via webhook.",
+                "summary": "Push a signed daily metrics snapshot from a Dot platform (see docs/metrics-contract.md). 201 stored, 200 replay of an already-stored snapshot, 404 generic when the company or platform is not connected, 422 when the contract is broken.",
                 "operationId": "ingest",
                 "responses": {
                     "200": {

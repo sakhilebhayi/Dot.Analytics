@@ -6,6 +6,8 @@ use App\Models\AnalyticsSnapshot;
 use App\Models\DataSource;
 use App\Models\Team;
 use App\Models\User;
+use Illuminate\Support\Str;
+use Illuminate\Testing\TestResponse;
 
 trait BuildsTeams
 {
@@ -53,5 +55,41 @@ trait BuildsTeams
             'payload' => $payload,
             'captured_at' => $at ?? now(),
         ]);
+    }
+
+    /** Give the team the InfoDot company uuid a publisher would address it by. */
+    protected function linkCompany(Team $team, ?string $uuid = null): string
+    {
+        $uuid ??= (string) Str::uuid();
+        $team->forceFill(['infodot_team_uuid' => $uuid])->save();
+
+        return $uuid;
+    }
+
+    /**
+     * A contract snapshot body (docs/metrics-contract.md).
+     *
+     * @param  array<string, mixed>  $metrics
+     * @return array<string, mixed>
+     */
+    protected function snapshotBody(string $companyUuid, string $platform, array $metrics, string $takenAt = '2026-10-17T06:00:00Z', string $period = 'day'): array
+    {
+        return [
+            'company_uuid' => $companyUuid,
+            'platform' => $platform,
+            'taken_at' => $takenAt,
+            'period' => $period,
+            'metrics' => $metrics,
+        ];
+    }
+
+    /** POST a signed snapshot as $user, signing the exact raw body the way a publisher must. */
+    protected function postSnapshot(User $user, string $platform, array $body, string $secret, ?string $signWith = null): TestResponse
+    {
+        $signature = 'sha256='.hash_hmac('sha256', json_encode($body), $signWith ?? $secret);
+
+        return $this->asApi($user)
+            ->withHeaders(['X-Analytics-Signature' => $signature])
+            ->postJson('/api/v1/ingest/'.$platform, $body);
     }
 }

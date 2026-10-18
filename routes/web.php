@@ -48,6 +48,7 @@ Route::middleware([
 
         $connectedPlatforms = DataSource::where('team_id', $team->id)
             ->where('status', 'connected')
+            ->whereIn('platform', array_keys(IntelligenceEngineService::PLATFORMS))
             ->pluck('platform')
             ->toArray();
 

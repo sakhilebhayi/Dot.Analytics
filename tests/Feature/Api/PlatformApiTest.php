@@ -29,7 +29,7 @@ class PlatformApiTest extends TestCase
             ->assertJsonPath('success', true)
             ->assertJsonStructure(['success', 'data']);
 
-        $this->assertCount(15, $response->json('data'));
+        $this->assertCount(11, $response->json('data'));
     }
 
     public function test_connected_returns_only_connected_platforms(): void
@@ -39,13 +39,13 @@ class PlatformApiTest extends TestCase
 
         DataSource::factory()->create([
             'team_id' => $team->id,
-            'platform' => 'dot.fleet',
+            'platform' => 'tasks',
             'status' => 'connected',
         ]);
 
         DataSource::factory()->create([
             'team_id' => $team->id,
-            'platform' => 'dot.crm',
+            'platform' => 'emall',
             'status' => 'pending',
         ]);
 
@@ -59,7 +59,7 @@ class PlatformApiTest extends TestCase
     {
         [$user, $token] = $this->authenticatedUser();
 
-        $response = $this->withToken($token)->postJson('/api/v1/platforms/dot.fleet/connect', [
+        $response = $this->withToken($token)->postJson('/api/v1/platforms/tasks/connect', [
             'base_url' => 'https://fleet.infodot.app',
         ]);
 
@@ -68,7 +68,7 @@ class PlatformApiTest extends TestCase
 
         $this->assertDatabaseHas('data_sources', [
             'team_id' => $user->currentTeam->id,
-            'platform' => 'dot.fleet',
+            'platform' => 'tasks',
             'status' => 'connected',
         ]);
     }
@@ -89,17 +89,17 @@ class PlatformApiTest extends TestCase
 
         DataSource::factory()->create([
             'team_id' => $team->id,
-            'platform' => 'dot.fleet',
+            'platform' => 'tasks',
             'status' => 'connected',
         ]);
 
-        $response = $this->withToken($token)->deleteJson('/api/v1/platforms/dot.fleet');
+        $response = $this->withToken($token)->deleteJson('/api/v1/platforms/tasks');
 
         $response->assertOk()->assertJsonPath('success', true);
 
         $this->assertDatabaseMissing('data_sources', [
             'team_id' => $team->id,
-            'platform' => 'dot.fleet',
+            'platform' => 'tasks',
         ]);
     }
 
@@ -107,7 +107,7 @@ class PlatformApiTest extends TestCase
     {
         [$user, $token] = $this->authenticatedUser();
 
-        $response = $this->withToken($token)->deleteJson('/api/v1/platforms/dot.fleet');
+        $response = $this->withToken($token)->deleteJson('/api/v1/platforms/tasks');
 
         $response->assertNotFound();
     }
@@ -119,11 +119,11 @@ class PlatformApiTest extends TestCase
 
         DataSource::factory()->create([
             'team_id' => $team->id,
-            'platform' => 'dot.crm',
+            'platform' => 'emall',
             'status' => 'connected',
         ]);
 
-        $response = $this->withToken($token)->getJson('/api/v1/platforms/dot.crm');
+        $response = $this->withToken($token)->getJson('/api/v1/platforms/emall');
 
         $response->assertOk()
             ->assertJsonStructure(['success', 'data' => ['source', 'definition']]);
@@ -133,7 +133,7 @@ class PlatformApiTest extends TestCase
     {
         [$user, $token] = $this->authenticatedUser();
 
-        $response = $this->withToken($token)->getJson('/api/v1/platforms/dot.fleet');
+        $response = $this->withToken($token)->getJson('/api/v1/platforms/tasks');
 
         $response->assertNotFound();
     }
@@ -150,7 +150,7 @@ class PlatformApiTest extends TestCase
 
         DataSource::factory()->create([
             'team_id' => $userB->currentTeam->id,
-            'platform' => 'dot.fleet',
+            'platform' => 'tasks',
             'status' => 'connected',
         ]);
 

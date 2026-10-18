@@ -118,7 +118,7 @@ class GenerateOpenApiCommand extends Command
                         'id' => ['type' => 'integer'],
                         'title' => ['type' => 'string'],
                         'narrative' => ['type' => 'string'],
-                        'platforms_involved' => ['type' => 'array', 'items' => ['type' => 'string'], 'example' => ['dot.fleet', 'dot.hr']],
+                        'platforms_involved' => ['type' => 'array', 'items' => ['type' => 'string'], 'example' => ['tasks', 'hr']],
                         'insight_type' => ['type' => 'string', 'enum' => ['correlation', 'causation', 'prediction', 'risk', 'opportunity']],
                         'confidence' => ['type' => 'number', 'format' => 'float', 'minimum' => 0, 'maximum' => 1],
                         'severity' => ['type' => 'string', 'enum' => ['info', 'warning', 'critical']],
@@ -129,7 +129,7 @@ class GenerateOpenApiCommand extends Command
                     'type' => 'object',
                     'properties' => [
                         'id' => ['type' => 'integer'],
-                        'platform' => ['type' => 'string', 'example' => 'dot.fleet'],
+                        'platform' => ['type' => 'string', 'example' => 'tasks'],
                         'display_name' => ['type' => 'string'],
                         'status' => ['type' => 'string', 'enum' => ['pending', 'connected', 'error', 'not_connected']],
                         'last_synced_at' => ['type' => 'string', 'format' => 'date-time', 'nullable' => true],
@@ -208,7 +208,7 @@ class GenerateOpenApiCommand extends Command
             ]),
 
             // Ingest
-            '/v1/ingest/{platform}' => $this->postParam('Ingest', 'Push a data snapshot from a Dot platform via webhook.', 'ingest', 'platform', []),
+            '/v1/ingest/{platform}' => $this->postParam('Ingest', 'Push a signed daily metrics snapshot from a Dot platform (see docs/metrics-contract.md). 201 stored, 200 replay of an already-stored snapshot, 404 generic when the company or platform is not connected, 422 when the contract is broken.', 'ingest', 'platform', []),
             '/v1/ingest/{platform}/ping' => $this->getParam('Ingest', 'Check webhook connectivity for a platform.', 'ingest-ping', 'platform'),
 
             // Feature flags

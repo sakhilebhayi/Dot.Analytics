@@ -15,7 +15,7 @@ class MetricDefinitionFactory extends Factory
     public function definition(): array
     {
         $engines = ['business', 'financial', 'operational', 'people', 'customer', 'risk', 'predictive'];
-        $platforms = ['dot.fleet', 'dot.crm', 'dot.hr', 'dot.payments', 'dot.support'];
+        $platforms = ['tasks', 'emall', 'hr', 'billing', 'notify'];
 
         return [
             'key' => $this->faker->unique()->slug(3),

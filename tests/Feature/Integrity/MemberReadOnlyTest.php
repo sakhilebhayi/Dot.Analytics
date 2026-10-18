@@ -50,7 +50,7 @@ class MemberReadOnlyTest extends TestCase
     public function test_member_cannot_run_engines_over_the_api_but_admin_can(): void
     {
         Bus::fake();
-        $this->connect($this->owner->currentTeam, 'dot.hear');
+        $this->connect($this->owner->currentTeam, 'pulse');
 
         $this->asApi($this->member)->postJson('/api/v1/intelligence/run')->assertForbidden();
         $this->asApi($this->admin)->postJson('/api/v1/intelligence/run')->assertOk();
@@ -58,15 +58,15 @@ class MemberReadOnlyTest extends TestCase
 
     public function test_member_cannot_connect_or_disconnect_platforms_over_the_api(): void
     {
-        $this->connect($this->owner->currentTeam, 'dot.fleet');
+        $this->connect($this->owner->currentTeam, 'tasks');
 
-        $this->asApi($this->member)->postJson('/api/v1/platforms/dot.crm/connect')->assertForbidden();
-        $this->asApi($this->member)->deleteJson('/api/v1/platforms/dot.fleet')->assertForbidden();
-        $this->assertDatabaseHas('data_sources', ['platform' => 'dot.fleet']);
-        $this->assertDatabaseMissing('data_sources', ['platform' => 'dot.crm']);
+        $this->asApi($this->member)->postJson('/api/v1/platforms/emall/connect')->assertForbidden();
+        $this->asApi($this->member)->deleteJson('/api/v1/platforms/tasks')->assertForbidden();
+        $this->assertDatabaseHas('data_sources', ['platform' => 'tasks']);
+        $this->assertDatabaseMissing('data_sources', ['platform' => 'emall']);
 
-        $this->asApi($this->admin)->postJson('/api/v1/platforms/dot.crm/connect')->assertCreated();
-        $this->asApi($this->admin)->deleteJson('/api/v1/platforms/dot.fleet')->assertOk();
+        $this->asApi($this->admin)->postJson('/api/v1/platforms/emall/connect')->assertCreated();
+        $this->asApi($this->admin)->deleteJson('/api/v1/platforms/tasks')->assertOk();
     }
 
     public function test_member_cannot_use_sql_endpoints(): void
@@ -137,20 +137,20 @@ class MemberReadOnlyTest extends TestCase
 
     public function test_member_cannot_connect_or_disconnect_from_the_ecosystem_map(): void
     {
-        $this->connect($this->owner->currentTeam, 'dot.fleet');
+        $this->connect($this->owner->currentTeam, 'tasks');
 
         Livewire::actingAs($this->member)->test(EcosystemMapPanel::class)
-            ->call('startConnect', 'dot.crm')->assertForbidden();
+            ->call('startConnect', 'emall')->assertForbidden();
         Livewire::actingAs($this->member)->test(EcosystemMapPanel::class)
-            ->set('connectingPlatform', 'dot.crm')->call('confirmConnect')->assertForbidden();
+            ->set('connectingPlatform', 'emall')->call('confirmConnect')->assertForbidden();
         Livewire::actingAs($this->member)->test(EcosystemMapPanel::class)
-            ->call('disconnect', 'dot.fleet')->assertForbidden();
+            ->call('disconnect', 'tasks')->assertForbidden();
 
-        $this->assertDatabaseHas('data_sources', ['platform' => 'dot.fleet']);
-        $this->assertDatabaseMissing('data_sources', ['platform' => 'dot.crm']);
+        $this->assertDatabaseHas('data_sources', ['platform' => 'tasks']);
+        $this->assertDatabaseMissing('data_sources', ['platform' => 'emall']);
 
-        Livewire::actingAs($this->admin)->test(EcosystemMapPanel::class)->call('disconnect', 'dot.fleet');
-        $this->assertDatabaseMissing('data_sources', ['platform' => 'dot.fleet']);
+        Livewire::actingAs($this->admin)->test(EcosystemMapPanel::class)->call('disconnect', 'tasks');
+        $this->assertDatabaseMissing('data_sources', ['platform' => 'tasks']);
     }
 
     public function test_member_cannot_acknowledge_or_resolve_alerts(): void

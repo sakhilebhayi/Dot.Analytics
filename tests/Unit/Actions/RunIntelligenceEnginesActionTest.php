@@ -50,7 +50,7 @@ class RunIntelligenceEnginesActionTest extends TestCase
     {
         Queue::fake();
 
-        $team = $this->teamWithPlatform('dot.fleet');
+        $team = $this->teamWithPlatform('tasks');
         $count = $this->action->handle($team);
 
         $this->assertGreaterThan(0, $count);
@@ -61,7 +61,7 @@ class RunIntelligenceEnginesActionTest extends TestCase
     {
         Queue::fake();
 
-        $team = $this->teamWithPlatform('dot.hear');
+        $team = $this->teamWithPlatform('pulse');
         $count = $this->action->handle($team, ['community']);
 
         $this->assertEquals(1, $count);
@@ -86,7 +86,7 @@ class RunIntelligenceEnginesActionTest extends TestCase
         $user = User::factory()->withPersonalTeam()->create();
         $team = $user->currentTeam;
 
-        foreach (['dot.fleet', 'dot.hr', 'dot.crm'] as $p) {
+        foreach (['tasks', 'hr', 'emall'] as $p) {
             DataSource::factory()->create(['team_id' => $team->id, 'platform' => $p, 'status' => 'connected']);
         }
 

@@ -31,7 +31,7 @@ class RemainingModelsTest extends TestCase
     public function test_computed_metric_belongs_to_team(): void
     {
         $team = $this->team();
-        $def = MetricDefinition::create(['key' => 'test.m', 'label' => 'T', 'source_platform' => 'dot.fleet', 'engine' => 'operational', 'aggregation' => 'avg']);
+        $def = MetricDefinition::create(['key' => 'test.m', 'label' => 'T', 'source_platform' => 'tasks', 'engine' => 'operational', 'aggregation' => 'avg']);
 
         $metric = ComputedMetric::create([
             'team_id' => $team->id,
@@ -48,7 +48,7 @@ class RemainingModelsTest extends TestCase
     public function test_computed_metric_value_is_cast_to_decimal(): void
     {
         $team = $this->team();
-        $def = MetricDefinition::create(['key' => 'test.cast', 'label' => 'Cast', 'source_platform' => 'dot.crm', 'engine' => 'customer', 'aggregation' => 'sum']);
+        $def = MetricDefinition::create(['key' => 'test.cast', 'label' => 'Cast', 'source_platform' => 'emall', 'engine' => 'customer', 'aggregation' => 'sum']);
 
         $metric = ComputedMetric::create([
             'team_id' => $team->id,
@@ -228,7 +228,7 @@ class RemainingModelsTest extends TestCase
         return MetricDefinition::create([
             'key' => $key,
             'label' => 'Alert Metric',
-            'source_platform' => 'dot.fleet',
+            'source_platform' => 'tasks',
             'engine' => 'operational',
             'aggregation' => 'avg',
         ]);

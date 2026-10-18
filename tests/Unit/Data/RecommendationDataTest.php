@@ -15,7 +15,7 @@ class RecommendationDataTest extends TestCase
             'engine' => 'operational',
             'priority' => 'high',
             'confidence' => 0.85,
-            'platforms_referenced' => ['dot.fleet', 'dot.hr'],
+            'platforms_referenced' => ['tasks', 'hr'],
         ]);
 
         $this->assertEquals('Reduce fleet idle time', $rec->title);

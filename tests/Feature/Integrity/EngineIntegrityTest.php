@@ -49,7 +49,7 @@ class EngineIntegrityTest extends TestCase
         return json_encode([array_merge([
             'title' => 'Idle time is rising on fleet',
             'narrative' => 'Vehicle V-001 logged 7.5 idle hours.',
-            'platforms_involved' => ['dot.fleet'],
+            'platforms_involved' => ['tasks'],
             'insight_type' => 'correlation',
             'confidence' => 0.8,
             'severity' => 'warning',
@@ -59,7 +59,7 @@ class EngineIntegrityTest extends TestCase
     public function test_no_provider_records_skipped_run_and_saves_no_insight_or_alert(): void
     {
         $team = $this->ownerWithTeam()->currentTeam;
-        $this->snapshot($this->connect($team, 'dot.hear'), ['reviews' => 12]);
+        $this->snapshot($this->connect($team, 'pulse'), ['reviews' => 12]);
         $router = $this->useRouter(new FakeAiRouter(configured: false));
 
         $this->runJob($team->id, 'community');
@@ -76,7 +76,7 @@ class EngineIntegrityTest extends TestCase
     public function test_no_snapshots_records_no_data_and_never_calls_the_model(): void
     {
         $team = $this->ownerWithTeam()->currentTeam;
-        $this->connect($team, 'dot.hear');
+        $this->connect($team, 'pulse');
         $router = $this->useRouter(new FakeAiRouter(response: $this->insightJson()));
 
         $this->runJob($team->id, 'community');
@@ -91,11 +91,11 @@ class EngineIntegrityTest extends TestCase
     public function test_prompt_is_built_from_real_snapshots_and_platforms_without_data_are_skipped(): void
     {
         $team = $this->ownerWithTeam()->currentTeam;
-        $fleet = $this->connect($team, 'dot.fleet');
-        $this->connect($team, 'dot.hr'); // connected but never pushed anything
+        $fleet = $this->connect($team, 'tasks');
+        $this->connect($team, 'hr'); // connected but never pushed anything
         $snapshot = $this->snapshot($fleet, ['vehicles' => [['id' => 'V-001', 'idle_hours' => 7.5]]]);
         $router = $this->useRouter(new FakeAiRouter(response: $this->insightJson([
-            'platforms_involved' => ['dot.fleet', 'dot.hr'],
+            'platforms_involved' => ['tasks', 'hr'],
         ])));
 
         $this->runJob($team->id, 'operational');
@@ -103,16 +103,16 @@ class EngineIntegrityTest extends TestCase
         $this->assertCount(1, $router->prompts);
         $this->assertStringContainsString('V-001', $router->prompts[0]);
         $this->assertStringContainsString('7.5', $router->prompts[0]);
-        $this->assertStringContainsString('dot.hr', $router->prompts[0]); // named only as "no data"
+        $this->assertStringContainsString('hr', $router->prompts[0]); // named only as "no data"
         $this->assertStringContainsStringIgnoringCase('no snapshots', $router->prompts[0]);
 
         $run = IntelligenceEngineRun::where('team_id', $team->id)->firstOrFail();
         $this->assertSame('completed', $run->status);
-        $this->assertSame(['dot.hr'], $run->provenance['platforms_skipped']);
+        $this->assertSame(['hr'], $run->provenance['platforms_skipped']);
         $this->assertSame([$snapshot->id], $run->provenance['snapshot_ids']);
 
         $insight = CrossPlatformInsight::firstOrFail();
-        $this->assertSame(['dot.fleet'], $insight->platforms_involved, 'platforms with no data may not be cited');
+        $this->assertSame(['tasks'], $insight->platforms_involved, 'platforms with no data may not be cited');
         $this->assertSame([$snapshot->id], $insight->provenance['snapshot_ids']);
         $this->assertArrayHasKey('window_start', $insight->provenance);
         $this->assertArrayHasKey('window_end', $insight->provenance);
@@ -122,7 +122,7 @@ class EngineIntegrityTest extends TestCase
     public function test_snapshots_outside_the_window_do_not_count(): void
     {
         $team = $this->ownerWithTeam()->currentTeam;
-        $this->snapshot($this->connect($team, 'dot.hear'), ['reviews' => 3], now()->subDays(90));
+        $this->snapshot($this->connect($team, 'pulse'), ['reviews' => 3], now()->subDays(90));
         $router = $this->useRouter(new FakeAiRouter);
 
         $this->runJob($team->id, 'community');
@@ -134,7 +134,7 @@ class EngineIntegrityTest extends TestCase
     public function test_snapshot_summary_is_size_capped(): void
     {
         $team = $this->ownerWithTeam()->currentTeam;
-        $source = $this->connect($team, 'dot.hear');
+        $source = $this->connect($team, 'pulse');
         for ($i = 0; $i < 12; $i++) {
             $this->snapshot($source, ['blob' => str_repeat('x', 100_000), 'n' => $i]);
         }
@@ -148,8 +148,8 @@ class EngineIntegrityTest extends TestCase
     public function test_insight_citing_only_platforms_without_data_is_dropped(): void
     {
         $team = $this->ownerWithTeam()->currentTeam;
-        $this->snapshot($this->connect($team, 'dot.hear'), ['reviews' => 3]);
-        $this->useRouter(new FakeAiRouter(response: $this->insightJson(['platforms_involved' => ['dot.crm']])));
+        $this->snapshot($this->connect($team, 'pulse'), ['reviews' => 3]);
+        $this->useRouter(new FakeAiRouter(response: $this->insightJson(['platforms_involved' => ['emall']])));
 
         $this->runJob($team->id, 'community');
 
@@ -159,7 +159,7 @@ class EngineIntegrityTest extends TestCase
     public function test_unparseable_model_output_fails_the_run_and_saves_nothing(): void
     {
         $team = $this->ownerWithTeam()->currentTeam;
-        $this->snapshot($this->connect($team, 'dot.hear'), ['reviews' => 3]);
+        $this->snapshot($this->connect($team, 'pulse'), ['reviews' => 3]);
         $this->useRouter(new FakeAiRouter(response: 'Sorry, I cannot help with that.'));
 
         $this->runJob($team->id, 'community');
@@ -173,7 +173,7 @@ class EngineIntegrityTest extends TestCase
     public function test_provider_failure_marks_run_failed_without_canned_text(): void
     {
         $team = $this->ownerWithTeam()->currentTeam;
-        $this->snapshot($this->connect($team, 'dot.hear'), ['reviews' => 3]);
+        $this->snapshot($this->connect($team, 'pulse'), ['reviews' => 3]);
         $this->useRouter(new FakeAiRouter(configured: true, response: null));
 
         $this->runJob($team->id, 'community');
@@ -185,9 +185,9 @@ class EngineIntegrityTest extends TestCase
     public function test_critical_insight_from_real_data_creates_an_alert(): void
     {
         $team = $this->ownerWithTeam()->currentTeam;
-        $this->snapshot($this->connect($team, 'dot.hear'), ['reviews' => 3]);
+        $this->snapshot($this->connect($team, 'pulse'), ['reviews' => 3]);
         $this->useRouter(new FakeAiRouter(response: $this->insightJson([
-            'platforms_involved' => ['dot.hear'],
+            'platforms_involved' => ['pulse'],
             'severity' => 'critical',
         ])));
 
@@ -207,7 +207,7 @@ class EngineIntegrityTest extends TestCase
     public function test_service_run_for_team_without_provider_persists_nothing(): void
     {
         $team = $this->ownerWithTeam()->currentTeam;
-        $this->snapshot($this->connect($team, 'dot.hear'), ['reviews' => 3]);
+        $this->snapshot($this->connect($team, 'pulse'), ['reviews' => 3]);
         $this->useRouter(new FakeAiRouter(configured: false));
 
         $count = app(CrossPlatformIntelligenceService::class)->runForTeam($team);
@@ -221,14 +221,14 @@ class EngineIntegrityTest extends TestCase
     public function test_service_run_for_team_uses_snapshots_and_stamps_provenance(): void
     {
         $team = $this->ownerWithTeam()->currentTeam;
-        $snapshot = $this->snapshot($this->connect($team, 'dot.hear'), ['reviews' => 17]);
+        $snapshot = $this->snapshot($this->connect($team, 'pulse'), ['reviews' => 17]);
         $router = $this->useRouter(new FakeAiRouter(response: $this->insightJson([
-            'platforms_involved' => ['dot.hear'],
+            'platforms_involved' => ['pulse'],
         ])));
 
         $count = app(CrossPlatformIntelligenceService::class)->runForTeam($team);
 
-        // dot.hear feeds several engines; each one analyses the same real snapshot.
+        // pulse feeds several engines; each one analyses the same real snapshot.
         $this->assertGreaterThan(0, $count);
         $this->assertSame($count, CrossPlatformInsight::count());
         $this->assertStringContainsString('17', $router->prompts[0]);

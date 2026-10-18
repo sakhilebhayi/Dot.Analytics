@@ -44,7 +44,7 @@ class AnalyticsTest extends TestCase
     {
         DataSource::create([
             'team_id' => $this->team->id,
-            'platform' => 'dot.finance',
+            'platform' => 'auction',
             'display_name' => 'Dot.Finance',
             'status' => 'connected',
         ]);
@@ -74,7 +74,7 @@ class AnalyticsTest extends TestCase
     {
         $source = DataSource::create([
             'team_id' => $this->team->id,
-            'platform' => 'dot.agents',
+            'platform' => 'agents',
             'display_name' => 'Dot.Agents',
             'status' => 'pending',
         ]);
@@ -99,7 +99,7 @@ class AnalyticsTest extends TestCase
     {
         DataSource::create([
             'team_id' => $this->team->id,
-            'platform' => 'dot.finance',
+            'platform' => 'auction',
             'display_name' => 'Dot.Finance',
             'status' => 'pending',
         ]);
@@ -108,7 +108,7 @@ class AnalyticsTest extends TestCase
 
         DataSource::create([
             'team_id' => $this->team->id,
-            'platform' => 'dot.finance',
+            'platform' => 'auction',
             'display_name' => 'Dot.Finance Duplicate',
             'status' => 'pending',
         ]);
