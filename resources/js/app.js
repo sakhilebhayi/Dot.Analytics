@@ -4,22 +4,26 @@ import Pusher from 'pusher-js';
 
 window.Pusher = Pusher;
 
-window.Echo = new Echo({
-    broadcaster: 'reverb',
-    key: import.meta.env.VITE_REVERB_APP_KEY,
-    wsHost: import.meta.env.VITE_REVERB_HOST,
-    wsPort: import.meta.env.VITE_REVERB_PORT ?? 80,
-    wssPort: import.meta.env.VITE_REVERB_PORT ?? 443,
-    forceTLS: (import.meta.env.VITE_REVERB_SCHEME ?? 'https') === 'https',
-    enabledTransports: ['ws', 'wss'],
-});
+// No VITE_REVERB_APP_KEY (shared cPanel hosting cannot run Reverb): leave window.Echo unset instead of
+// letting Pusher throw on an empty key, which would stop the rest of this bundle from running.
+if (import.meta.env.VITE_REVERB_APP_KEY) {
+    window.Echo = new Echo({
+        broadcaster: 'reverb',
+        key: import.meta.env.VITE_REVERB_APP_KEY,
+        wsHost: import.meta.env.VITE_REVERB_HOST,
+        wsPort: import.meta.env.VITE_REVERB_PORT ?? 80,
+        wssPort: import.meta.env.VITE_REVERB_PORT ?? 443,
+        forceTLS: (import.meta.env.VITE_REVERB_SCHEME ?? 'https') === 'https',
+        enabledTransports: ['ws', 'wss'],
+    });
+}
 
 /**
  * Listen for intelligence engine completion events on the team's private channel.
  * Dispatches a browser CustomEvent so any Livewire component or Alpine.js
  * component can react without polling.
  */
-if (window.teamId) {
+if (window.Echo && window.teamId) {
     window.Echo.private(`team.${window.teamId}.intelligence`)
         .listen('.engine.completed', (data) => {
             window.dispatchEvent(new CustomEvent('intelligence:engine-completed', { detail: data }));
