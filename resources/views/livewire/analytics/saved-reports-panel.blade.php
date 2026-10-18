@@ -77,6 +77,7 @@
                                 target="_blank"
                             >CSV</a>
                         @endif
+                        @can('run-reports')
                         <button
                             wire:click="run({{ $report->id }})"
                             wire:loading.attr="disabled"
@@ -90,6 +91,7 @@
                                 Run
                             @endif
                         </button>
+                        @endcan
                         @can('manage-reports')
                         <button
                             wire:click="delete({{ $report->id }})"

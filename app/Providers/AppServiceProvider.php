@@ -114,9 +114,21 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('manage-feature-flags', fn ($user) => $user->isPlatformOperator()
         );
 
+        // Working inside the layer without managing it (owner, admin, editor; never the
+        // read-only viewer): saved reports can be run, dashboards arranged, and the
+        // Intelligence box asked, which spends AI budget.
+        Gate::define('ask-intelligence', fn ($user) => $user->contributesTo($user->currentTeam)
+        );
+
+        Gate::define('edit-dashboards', fn ($user) => $user->contributesTo($user->currentTeam)
+        );
+
+        Gate::define('run-reports', fn ($user) => $user->contributesTo($user->currentTeam)
+        );
+
         Gate::define('view-intelligence', fn ($user) =>
-            // All authenticated team members can view intelligence
-            $user->currentTeam !== null
+            // Every member of the team, viewers included
+            $user->currentTeam !== null && $user->belongsToTeam($user->currentTeam)
         );
 
         // SSO token redemption: unauthenticated, so key by IP.

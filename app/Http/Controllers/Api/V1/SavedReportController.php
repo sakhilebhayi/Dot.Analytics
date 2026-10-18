@@ -73,6 +73,8 @@ class SavedReportController extends BaseApiController
      */
     public function run(int $id): JsonResponse
     {
+        Gate::authorize('run-reports');
+
         $team = $this->currentTeam();
         $report = AnalyticsReport::findOrFail($id);
 

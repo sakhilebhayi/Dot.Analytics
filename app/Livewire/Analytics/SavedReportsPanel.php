@@ -67,6 +67,8 @@ class SavedReportsPanel extends Component
 
     public function run(int $id): void
     {
+        Gate::authorize('run-reports');
+
         $this->running = true;
         $this->runningId = $id;
 

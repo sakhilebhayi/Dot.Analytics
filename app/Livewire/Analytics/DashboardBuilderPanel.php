@@ -6,6 +6,7 @@ use App\Models\AnalyticsDashboard;
 use App\Models\DashboardWidget;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
@@ -81,6 +82,8 @@ class DashboardBuilderPanel extends Component
 
     public function createDashboard(): void
     {
+        Gate::authorize('edit-dashboards');
+
         $this->validateOnly('newDashboardTitle');
 
         $team = Auth::user()->currentTeam;
@@ -106,6 +109,8 @@ class DashboardBuilderPanel extends Component
 
     public function setDefault(int $id): void
     {
+        Gate::authorize('edit-dashboards');
+
         AnalyticsDashboard::query()->update(['is_default' => false]);
         AnalyticsDashboard::where('id', $id)->update(['is_default' => true]);
         unset($this->dashboards);
@@ -113,6 +118,8 @@ class DashboardBuilderPanel extends Component
 
     public function deleteDashboard(int $id): void
     {
+        Gate::authorize('edit-dashboards');
+
         AnalyticsDashboard::findOrFail($id)->delete();
 
         if ($this->activeDashboardId === $id) {
@@ -124,6 +131,8 @@ class DashboardBuilderPanel extends Component
 
     public function addWidget(): void
     {
+        Gate::authorize('edit-dashboards');
+
         $this->validateOnly('widgetType');
 
         $dashboard = $this->activeDashboard;
@@ -153,6 +162,8 @@ class DashboardBuilderPanel extends Component
 
     public function removeWidget(int $id): void
     {
+        Gate::authorize('edit-dashboards');
+
         DashboardWidget::whereHas('dashboard')
             ->findOrFail($id)
             ->delete();
@@ -168,6 +179,8 @@ class DashboardBuilderPanel extends Component
      */
     public function updatePositions(array $orderedIds): void
     {
+        Gate::authorize('edit-dashboards');
+
         foreach ($orderedIds as $position => $widgetId) {
             DashboardWidget::whereHas('dashboard')->where('id', $widgetId)->update([
                 'row' => (int) floor($position / 3),

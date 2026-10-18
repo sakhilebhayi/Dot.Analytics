@@ -9,6 +9,7 @@ use App\Services\AiModelRouter;
 use App\Services\SnapshotContextBuilder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
@@ -71,6 +72,10 @@ class IntelligenceDashboard extends Component
 
             return;
         }
+
+        // Every answer is an AI call: not for the read-only viewer. Checked before
+        // anything is built or sent.
+        Gate::authorize('ask-intelligence');
 
         $this->queryLoading = true;
 

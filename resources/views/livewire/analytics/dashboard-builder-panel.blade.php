@@ -5,9 +5,11 @@
             <h3 class="text-lg font-semibold text-gray-800">Dashboard Builder</h3>
             <p class="text-xs text-gray-500 mt-0.5">Compose custom intelligence dashboards from widget building blocks</p>
         </div>
+        @can('edit-dashboards')
         <button wire:click="$toggle('showNewDashboard')" class="text-xs px-3 py-1.5 bg-gray-800 text-white rounded-lg hover:bg-gray-700">
             {{ $showNewDashboard ? 'Cancel' : '+ New Dashboard' }}
         </button>
+        @endcan
     </div>
 
     {{-- Create dashboard form --}}
@@ -49,7 +51,7 @@
         <div class="flex-1 p-5 overflow-y-auto">
             @if(! $this->activeDashboard)
                 <div class="flex items-center justify-center h-full">
-                    <p class="text-sm text-gray-400">Select or create a dashboard to start building.</p>
+                    <p class="text-sm text-gray-400">@can('edit-dashboards')Select or create a dashboard to start building.@else Select a dashboard to view it.@endcan</p>
                 </div>
             @else
                 {{-- Dashboard toolbar --}}
@@ -57,9 +59,12 @@
                     <div class="flex items-center gap-2">
                         <h4 class="text-sm font-semibold text-gray-700">{{ $this->activeDashboard->title }}</h4>
                         @if(! $this->activeDashboard->is_default)
+                            @can('edit-dashboards')
                             <button wire:click="setDefault({{ $this->activeDashboard->id }})" class="text-xs text-gray-400 hover:text-indigo-600">Set default</button>
+                            @endcan
                         @endif
                     </div>
+                    @can('edit-dashboards')
                     <div class="flex gap-2">
                         <button wire:click="$toggle('showAddWidget')" class="text-xs px-3 py-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
                             {{ $showAddWidget ? 'Cancel' : '+ Add Widget' }}
@@ -70,6 +75,7 @@
                             class="text-xs text-red-400 hover:text-red-600 px-2"
                         >Delete</button>
                     </div>
+                    @endcan
                 </div>
 
                 {{-- Add widget form --}}
@@ -97,12 +103,13 @@
                 {{-- Widget grid --}}
                 @if($this->widgets->isEmpty())
                     <div class="border-2 border-dashed border-gray-200 rounded-xl flex items-center justify-center h-48">
-                        <p class="text-sm text-gray-400">Add your first widget above to start building.</p>
+                        <p class="text-sm text-gray-400">@can('edit-dashboards')Add your first widget above to start building.@else No widgets on this dashboard yet.@endcan</p>
                     </div>
                 @else
                     <div
                         class="grid grid-cols-3 gap-3"
                         x-data="{ sortable: null }"
+                        @can('edit-dashboards')
                         x-init="
                             sortable = new Sortable($el, {
                                 animation: 150,
@@ -114,6 +121,7 @@
                                 }
                             });
                         "
+                        @endcan
                     >
                         @foreach($this->widgets as $widget)
                             <div
@@ -125,10 +133,12 @@
                                         <p class="text-xs font-semibold text-gray-700">{{ $widget->title ?? 'Untitled Widget' }}</p>
                                         <p class="text-xs text-gray-400">{{ ucwords(str_replace('_', ' ', $widget->widget_type)) }}</p>
                                     </div>
+                                    @can('edit-dashboards')
                                     <button
                                         wire:click="removeWidget({{ $widget->id }})"
                                         class="text-gray-300 hover:text-red-400 text-xs"
                                     >✕</button>
+                                    @endcan
                                 </div>
                                 <div class="h-8 bg-gray-100 rounded flex items-center justify-center">
                                     <span class="text-xs text-gray-400">{{ $widget->widget_type }}</span>

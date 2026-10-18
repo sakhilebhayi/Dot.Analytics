@@ -78,6 +78,21 @@ class User extends Authenticatable
     }
 
     /**
+     * May work inside the team's intelligence layer without managing it: the owner
+     * and any member whose role carries the `create` permission (admin, editor).
+     * The read-only `viewer` never does. Decided from the team role alone, like
+     * administersTeam(), so an API token's abilities do not change it.
+     */
+    public function contributesTo(?Team $team): bool
+    {
+        if (! $team || ! $this->belongsToTeam($team)) {
+            return false;
+        }
+
+        return $this->ownsTeam($team) || in_array('create', $this->teamPermissions($team), true);
+    }
+
+    /**
      * Team owner, or a member whose role on the team is 'admin'. Plain members
      * (editor etc.) are read-only across the intelligence layer.
      */

@@ -6,6 +6,7 @@ use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Factory;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
@@ -148,7 +149,7 @@ class InfoDotTeamSyncTest extends TestCase
         $this->assertSame(0, Team::whereNotNull('infodot_team_uuid')->count());
     }
 
-    public function test_the_viewer_role_falls_back_to_the_least_powerful_role_this_app_has(): void
+    public function test_an_infodot_viewer_becomes_a_read_only_viewer_here(): void
     {
         $this->signIn('ann@acme.test', [$this->company(self::ACME, 'Acme Ltd', 'owner')], self::ACME);
         $this->signIn('vic@acme.test', [$this->company(self::ACME, 'Acme Ltd', 'viewer')], self::ACME);
@@ -156,8 +157,66 @@ class InfoDotTeamSyncTest extends TestCase
         $team = Team::where('infodot_team_uuid', self::ACME)->firstOrFail();
         $vic = User::where('email', 'vic@acme.test')->firstOrFail();
 
-        $this->assertSame('editor', $vic->teamRole($team)->key);
+        $this->assertSame('viewer', $vic->teamRole($team)->key);
         $this->assertFalse($vic->ownsTeam($team));
+        $this->assertTrue($vic->hasTeamPermission($team, 'read'));
+        $this->assertFalse($vic->hasTeamPermission($team, 'create'));
+        $this->assertFalse($vic->administersTeam($team));
+        $this->assertFalse($vic->contributesTo($team));
+    }
+
+    public function test_an_editor_who_becomes_a_viewer_in_infodot_loses_write_access_at_next_sign_in(): void
+    {
+        $this->signIn('ann@acme.test', [$this->company(self::ACME, 'Acme Ltd', 'owner')], self::ACME);
+        $this->signIn('carl@acme.test', [$this->company(self::ACME, 'Acme Ltd', 'editor')], self::ACME);
+
+        $team = Team::where('infodot_team_uuid', self::ACME)->firstOrFail();
+        $carl = User::where('email', 'carl@acme.test')->firstOrFail();
+        $this->assertTrue($carl->hasTeamPermission($team, 'update'), 'an editor writes before the change');
+        $this->assertTrue($carl->contributesTo($team));
+        $this->assertTrue(Gate::forUser($carl)->allows('ask-intelligence'));
+
+        $this->signIn('carl@acme.test', [$this->company(self::ACME, 'Acme Ltd', 'viewer')], self::ACME);
+
+        $carl = $carl->fresh();
+        $this->assertSame('viewer', $carl->teamRole($team->fresh())->key);
+        $this->assertFalse($carl->hasTeamPermission($team->fresh(), 'create'));
+        $this->assertFalse($carl->contributesTo($team->fresh()));
+        $this->assertFalse(Gate::forUser($carl)->allows('ask-intelligence'));
+        $this->assertTrue($carl->belongsToTeam($team->fresh()), 'still a member, read-only');
+    }
+
+    public function test_an_admin_who_becomes_a_viewer_in_infodot_can_no_longer_manage_the_intelligence_layer(): void
+    {
+        $this->signIn('ann@acme.test', [$this->company(self::ACME, 'Acme Ltd', 'owner')], self::ACME);
+        $this->signIn('dee@acme.test', [$this->company(self::ACME, 'Acme Ltd', 'admin')], self::ACME);
+        $team = Team::where('infodot_team_uuid', self::ACME)->firstOrFail();
+
+        $dee = User::where('email', 'dee@acme.test')->firstOrFail();
+        $this->assertTrue($dee->administersTeam($team));
+        $this->assertTrue(Gate::forUser($dee)->allows('run-intelligence-engines'));
+
+        $this->signIn('dee@acme.test', [$this->company(self::ACME, 'Acme Ltd', 'viewer')], self::ACME);
+
+        $dee = $dee->fresh();
+        $this->assertFalse($dee->administersTeam($team->fresh()));
+        $this->assertFalse(Gate::forUser($dee)->allows('run-intelligence-engines'));
+    }
+
+    public function test_an_infodot_role_this_app_does_not_know_gets_the_least_powerful_role_not_editor(): void
+    {
+        $this->signIn('ann@acme.test', [$this->company(self::ACME, 'Acme Ltd', 'owner')], self::ACME);
+
+        foreach (['auditor', 'billing', '', 'EDITOR '] as $i => $role) {
+            $email = "who{$i}@acme.test";
+            $this->signIn($email, [$this->company(self::ACME, 'Acme Ltd', $role)], self::ACME);
+
+            $team = Team::where('infodot_team_uuid', self::ACME)->firstOrFail();
+            $person = User::where('email', $email)->firstOrFail();
+
+            $this->assertSame('viewer', $person->teamRole($team)->key, "role [{$role}]");
+            $this->assertFalse($person->hasTeamPermission($team, 'update'), "role [{$role}]");
+        }
     }
 
     public function test_a_company_owner_administers_the_synced_team_but_a_member_does_not(): void

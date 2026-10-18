@@ -30,8 +30,10 @@ class IntelligenceDashboardComputedTest extends TestCase
         $this->actingAs($user);
         $team = $user->currentTeam;
 
-        DataSource::factory()->create(['team_id' => $team->id, 'status' => 'connected']);
-        DataSource::factory()->create(['team_id' => $team->id, 'status' => 'pending']);
+        // Explicit platforms: the factory picks one at random and (team_id, platform) is unique,
+        // so two random picks collide now and then.
+        DataSource::factory()->create(['team_id' => $team->id, 'platform' => 'dot.fleet', 'status' => 'connected']);
+        DataSource::factory()->create(['team_id' => $team->id, 'platform' => 'dot.hear', 'status' => 'pending']);
 
         $component = Livewire::test(IntelligenceDashboard::class);
 

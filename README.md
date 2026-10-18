@@ -154,6 +154,19 @@ Team
 
 ---
 
+## Roles
+
+Access follows the team (company) role. InfoDot is the source of truth and the role is re-applied at every sign-in.
+
+| InfoDot role | Dot.Analytics role | Can |
+|---|---|---|
+| owner, admin | admin (owner for the creator) | manage the layer: connect and disconnect platforms, rotate webhook secrets, run engines, generate briefings, recommendations and Business DNA, use the AI SQL endpoints, review insights, resolve alerts, action recommendations, create and delete saved reports |
+| editor | editor | read everything, plus work inside the layer: run saved reports, arrange dashboards, ask the Intelligence box (an AI call) |
+| viewer | viewer | read only: insights, alerts, recommendations, reports, dashboards and the platform list. No write, no AI call (the Intelligence box is replaced by a note), no control that would answer 403 |
+| anything else | viewer | an unrecognised InfoDot role gets the least powerful role, never editor |
+
+Webhook secrets are shown once, to the admin who issues them, and are never serialised or rendered for anyone else. Feature flags are global and reserved for platform operators; no team role grants that. The gates are in `AppServiceProvider`; `ask-intelligence`, `edit-dashboards` and `run-reports` are the three that separate an editor from a viewer. The role matrix is in `tests/Feature/Roles/ViewerRoleMatrixTest.php`.
+
 ## Tech Stack
 
 | Layer | Technology |

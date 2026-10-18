@@ -24,6 +24,7 @@
         @endforeach
     </div>
 
+    @can('ask-intelligence')
     <form wire:submit="askIntelligence" class="flex gap-3">
         <input
             type="text"
@@ -42,6 +43,9 @@
             <span wire:loading>Analysing across platforms&hellip;</span>
         </button>
     </form>
+    @else
+    <p style="font-size:0.8rem;color:var(--mist);margin:0;">Asking questions uses AI and is limited to owners, admins and editors. You can still read everything below.</p>
+    @endcan
 
     @error('intelligenceQuery')
         <p style="color:#f08a6c;font-size:0.8rem;margin-top:0.5rem;">{{ $message }}</p>

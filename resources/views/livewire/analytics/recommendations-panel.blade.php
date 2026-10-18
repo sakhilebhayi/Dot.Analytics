@@ -46,10 +46,12 @@
                             <p style="font-size:0.85rem;font-weight:600;color:var(--paper);margin:0;">{{ $rec->title }}</p>
                             <p style="font-size:0.75rem;color:var(--mist);margin:0.2rem 0 0;">{{ $rec->rationale }}</p>
                         </div>
+                        @can('manage-recommendations')
                         <div class="flex gap-1 shrink-0">
                             <button wire:click="action({{ $rec->id }})" class="press" style="font-size:0.68rem;padding:0.25rem 0.6rem;border:1px solid var(--teal-soft);border-radius:0.3rem;color:var(--teal-soft);background:transparent;">Act</button>
                             <button wire:click="dismiss({{ $rec->id }})" class="press" style="font-size:0.68rem;padding:0.25rem 0.6rem;border:1px solid var(--line);border-radius:0.3rem;color:var(--mist);background:transparent;">Dismiss</button>
                         </div>
+                        @endcan
                     </div>
                 </li>
             @endforeach
