@@ -64,9 +64,11 @@ class NotifyOnCriticalInsightTest extends TestCase
         $member = User::factory()->create();
         $owner->currentTeam->users()->attach($member, ['role' => 'editor']);
 
+        // A real insight carries the provenance the engine stamped on it; only those notify.
         $insight = CrossPlatformInsight::factory()->create([
             'team_id' => $owner->currentTeam->id,
             'severity' => 'critical',
+            'provenance' => ['snapshot_ids' => [1], 'engine' => 'community'],
         ]);
 
         $listener = new NotifyOnCriticalInsight;
