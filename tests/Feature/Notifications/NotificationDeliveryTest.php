@@ -335,7 +335,9 @@ class NotificationDeliveryTest extends TestCase
         $this->assertSame(3, DB::table('jobs')->count(), 'database, real-time and mail are separate jobs');
         $this->assertSame(0, $this->owner->notifications()->count(), 'nothing is sent inside the request');
 
-        $this->artisan('queue:work', ['--stop-when-empty' => true, '--queue' => 'default'])->assertSuccessful();
+        // A generous --memory: the worker exits with status 12 once it passes the default 128 MB,
+        // which a coverage run (xdebug) does with the whole app booted around it.
+        $this->artisan('queue:work', ['--stop-when-empty' => true, '--queue' => 'default', '--memory' => 4096])->assertSuccessful();
 
         $this->assertSame(0, DB::table('jobs')->count());
         $this->assertSame(0, DB::table('failed_jobs')->count());
