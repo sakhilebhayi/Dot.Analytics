@@ -9,7 +9,8 @@ The machine-readable version is `config/metrics.php`; a test fails if this page 
 ## The data path
 
 ```
-platform --signed daily snapshot--> POST /api/v1/ingest/{platform}
+platform --signed daily snapshot--> POST /api/ingest/snapshots            (a platform, no user token)
+                                    POST /api/v1/ingest/{platform}        (a team member's token, see below)
    -> analytics_snapshots          stored once, as received (validated)
    -> computed_metrics             value, previous value, delta, delta %, per metric per day
    -> anomaly alerts               only with >= 7 prior daily points (see "Anomalies")
@@ -20,9 +21,141 @@ platform --signed daily snapshot--> POST /api/v1/ingest/{platform}
 * A metric a platform never reported has no row. The UI says "no data yet"; it never shows zero in its place.
 * A latest value older than two daily periods is shown as **stale**, and is never used for anomaly detection.
 
-## Sending a snapshot
+## Publishing from a platform (server to server)
 
-`POST /api/v1/ingest/{platform}` where `{platform}` is the platform key (`tasks`, `billing`, ...).
+This is how a Dot platform publishes its own numbers. It needs **no user and no token**: the platform proves who it
+is with a secret only it and Dot.Analytics know. The snapshot body is exactly the one described under "Body" further
+down, and goes through the same validation, storage and metric computation as the user-token endpoint.
+
+`POST /api/ingest/snapshots`
+
+Headers:
+
+| Header | Value |
+|---|---|
+| `Content-Type` | `application/json` |
+| `X-InfoDot-Timestamp` | The current unix time in seconds. Must be within five minutes of Dot.Analytics' clock, either way. |
+| `X-InfoDot-Signature` | `sha256=` + hex `HMAC-SHA256(secret, "{timestamp}.{raw body}")`, keyed with the platform's own secret |
+
+This is the same scheme Dot.Notify's `POST /api/ingest/events` uses, so a platform that already publishes events
+signs snapshots the same way. The signature covers the timestamp and the **exact bytes** of the request body, so sign
+the string you actually send (do not re-encode it afterwards). A bare hex digest without the `sha256=` prefix is also
+accepted.
+
+### Secrets
+
+Each platform has one secret, set in Dot.Analytics' environment as `ANALYTICS_INGEST_SECRET_<KEY>` and in the
+publishing platform's own environment (never committed). Generate one with `php -r 'echo bin2hex(random_bytes(32));'`.
+
+| Platform | Environment variable |
+|---|---|
+| `tasks` | `ANALYTICS_INGEST_SECRET_TASKS` |
+| `hr` | `ANALYTICS_INGEST_SECRET_HR` |
+| `auction` | `ANALYTICS_INGEST_SECRET_AUCTION` |
+| `ehail` | `ANALYTICS_INGEST_SECRET_EHAIL` |
+| `farms` | `ANALYTICS_INGEST_SECRET_FARMS` |
+| `billing` | `ANALYTICS_INGEST_SECRET_BILLING` |
+| `emall` | `ANALYTICS_INGEST_SECRET_EMALL` |
+| `tutor` | `ANALYTICS_INGEST_SECRET_TUTOR` |
+| `pulse` | `ANALYTICS_INGEST_SECRET_PULSE` |
+| `notify` | `ANALYTICS_INGEST_SECRET_NOTIFY` |
+| `design` | `ANALYTICS_INGEST_SECRET_DESIGN` |
+
+* A **blank or absent** secret means that platform cannot call at all. Nothing is enabled until an operator sets one.
+* The `platform` field in the body picks which secret is checked, so a platform can only ever publish **as itself**:
+  a body naming another platform is checked against that platform's secret and refused. The `platform` must be one of
+  the keys in the catalogue below, spelled exactly (lower case).
+* Rotating a secret is changing the variable in both places; the old one stops working at once.
+* Dot.Analytics never stores a signature, and never logs a secret, a signature or a request body.
+
+### Worked example
+
+Dot.Tasks publishes two numbers for a company. The secret below is an example, never a real one.
+
+```
+secret     example-tasks-secret-do-not-use
+timestamp  1792400000
+body       {"company_uuid":"3f2b8c1e-9a4d-4e7b-8c55-1d2e3f4a5b6c","platform":"tasks","taken_at":"2026-10-17T06:00:00Z","period":"day","metrics":{"open":12,"overdue":3}}
+```
+
+The string that is signed is the timestamp, a full stop, then the body, byte for byte:
+
+```
+1792400000.{"company_uuid":"3f2b8c1e-9a4d-4e7b-8c55-1d2e3f4a5b6c","platform":"tasks","taken_at":"2026-10-17T06:00:00Z","period":"day","metrics":{"open":12,"overdue":3}}
+```
+
+and the signature is:
+
+```
+sha256=82807766b9833aa9b2d5af9cc8e8bf6b4a45ef958e4e8363dc105724d93ad8ca
+```
+
+In PHP:
+
+```php
+$raw = json_encode($snapshot);                                  // sign what you send
+$timestamp = time();
+$signature = 'sha256='.hash_hmac('sha256', $timestamp.'.'.$raw, config('services.analytics.secret'));
+
+Http::withHeaders([
+    'X-InfoDot-Timestamp' => (string) $timestamp,
+    'X-InfoDot-Signature' => $signature,
+])->withBody($raw, 'application/json')->post($analyticsUrl.'/api/ingest/snapshots');
+```
+
+With curl and openssl (the timestamp must be fresh when you run it):
+
+```
+BODY='{"company_uuid":"3f2b8c1e-9a4d-4e7b-8c55-1d2e3f4a5b6c","platform":"tasks","taken_at":"2026-10-17T06:00:00Z","period":"day","metrics":{"open":12,"overdue":3}}'
+TS=$(date +%s)
+SIG=$(printf '%s.%s' "$TS" "$BODY" | openssl dgst -sha256 -hmac "$SECRET" | sed 's/^.* //')
+curl -X POST https://analytics.infodot.app/api/ingest/snapshots \
+  -H 'Content-Type: application/json' -H "X-InfoDot-Timestamp: $TS" -H "X-InfoDot-Signature: sha256=$SIG" \
+  --data-binary "$BODY"
+```
+
+### What Dot.Analytics does, in order
+
+1. Refuses bodies over 64 KB (`413`).
+2. **Authenticates** the platform. Any failure is the same `401` with the same body (`{"error":"invalid_request"}`):
+   unknown platform, blank secret, missing header, wrong secret, stale or future timestamp, a body changed after
+   signing, a platform naming another platform. The caller is told nothing about which. The reason is written to the server log (no secrets).
+3. Applies the platform's rate limit: 120 calls a minute per platform (`ANALYTICS_INGEST_RATE_LIMIT`), counting
+   only authenticated calls, answered with `429` and `Retry-After`.
+4. Checks the snapshot against the contract (`422`, with `errors` keyed by field, e.g. `metrics.open`).
+5. Looks the company up by `company_uuid` in `teams.infodot_team_uuid`. An unknown company is a generic `404`
+   (`{"error":"not_found"}`), and only ever after step 2, so it cannot be used to find out which companies exist.
+6. Stores it for that team, idempotently, and refreshes the team's computed metrics.
+
+The company is part of the signed body, so a platform's signature for company X cannot be replayed against
+company Y, and a snapshot only ever lands in the one team its `company_uuid` maps to.
+
+### The data source is created for you
+
+The first accepted snapshot of a platform for a company **creates that team's data source for the platform**, already
+connected and marked as a push source (`config.source_type = "push"`), so the dashboard shows the platform as
+connected without anyone clicking "+ Connect". The owner does not need to issue a webhook secret for this path. A
+source an owner already created is reused as it is (its webhook secret is untouched), and a pending one is
+connected. If an owner disconnects a platform, the next accepted snapshot connects it again: to stop a platform, blank
+its `ANALYTICS_INGEST_SECRET_<KEY>`.
+
+### Server-to-server responses
+
+| Status | Body | Meaning |
+|---|---|---|
+| `201` | `id`, `status: "stored"`, `replayed: false`, `platform`, `taken_at`, `period`, `accepted_keys`, `dropped_keys` | Stored. The same fields are repeated under `data` (with `data.snapshot_id`) in the envelope the user-token endpoint uses. |
+| `200` | the same, `status: "replayed"`, `replayed: true` | Already stored: the same (company, platform, `taken_at`, `period`) was received before. `id` is the **original** snapshot's, and its numbers are kept even if the replay's differ, so a retry can never restate a day. |
+| `401` | `{"error":"invalid_request"}` | Not authenticated, for any reason. |
+| `404` | `{"error":"not_found"}` | No company with that `company_uuid`. |
+| `413` | `{"error":"payload_too_large"}` | Body over 64 KB. |
+| `422` | `{"error":"invalid_request","errors":{"metrics.open":["open must be a number."]}}` | The contract was broken; nothing was stored and no data source was created. |
+| `429` | `{"error":"rate_limited"}` + `Retry-After` | The platform is over its rate limit. Retry after the delay. |
+
+Retrying a request that timed out is safe: send it again with a fresh timestamp and signature.
+
+## Sending a snapshot with a user token
+
+The older way, still supported unchanged, for a team member's own tooling. `POST /api/v1/ingest/{platform}` where `{platform}` is the platform key (`tasks`, `billing`, ...).
 
 Headers:
 
@@ -31,6 +164,8 @@ Headers:
 | `Authorization` | `Bearer <Sanctum token of a member of the company's team>` |
 | `Content-Type` | `application/json` |
 | `X-Analytics-Signature` | `sha256=` + hex HMAC-SHA256 of the **raw request body**, keyed with the platform's webhook secret |
+
+This path is **not** the one a platform uses to publish; that is `POST /api/ingest/snapshots` above, which needs no user.
 
 The webhook secret is issued once when an owner or admin connects the platform in Dot.Analytics
 (`POST /api/v1/platforms/{platform}/connect`, or "+ Connect" on the dashboard), and can be rotated
@@ -83,8 +218,9 @@ Body:
 
 ### Idempotency
 
-A snapshot is identified by (data source, platform, `taken_at`, `period`). Retrying a request that timed out is
-safe. Two snapshots on the same UTC day are both kept; the later `taken_at` is the one the day's metric uses.
+A snapshot is identified by (data source, platform, `taken_at`, `period`), whichever endpoint carried it: a snapshot
+stored through `POST /api/ingest/snapshots` is a replay if the same one arrives on the user-token endpoint, and the
+other way round. Retrying a request that timed out is safe. Two snapshots on the same UTC day are both kept; the later `taken_at` is the one the day's metric uses.
 
 ## Catalogue
 

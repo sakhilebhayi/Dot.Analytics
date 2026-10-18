@@ -24,6 +24,9 @@ class SnapshotIngestService
 
     public const TYPE_DEMO = 'demo';
 
+    /** Published by a platform itself, server to server (POST /api/ingest/snapshots). */
+    public const TYPE_PUSH = 'push';
+
     public function __construct(private readonly SnapshotContract $contract = new SnapshotContract) {}
 
     /**

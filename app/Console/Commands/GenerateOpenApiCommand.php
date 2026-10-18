@@ -208,6 +208,7 @@ class GenerateOpenApiCommand extends Command
             ]),
 
             // Ingest
+            '/ingest/snapshots' => $this->serverIngest(),
             '/v1/ingest/{platform}' => $this->postParam('Ingest', 'Push a signed daily metrics snapshot from a Dot platform (see docs/metrics-contract.md). 201 stored, 200 replay of an already-stored snapshot, 404 generic when the company or platform is not connected, 422 when the contract is broken.', 'ingest', 'platform', []),
             '/v1/ingest/{platform}/ping' => $this->getParam('Ingest', 'Check webhook connectivity for a platform.', 'ingest-ping', 'platform'),
 
@@ -264,6 +265,25 @@ class GenerateOpenApiCommand extends Command
         if ($body) {
             $op['requestBody'] = ['required' => true, 'content' => ['application/json' => ['schema' => ['type' => 'object', 'properties' => $body]]]];
         }
+
+        return ['post' => $op];
+    }
+
+    /** Server to server: no bearer token; the platform signs the body (docs/metrics-contract.md). */
+    private function serverIngest(): array
+    {
+        $op = $this->operation('Ingest', 'A Dot platform publishes its own signed daily metrics snapshot. No user token: send X-InfoDot-Timestamp (unix seconds, 5 minute tolerance) and X-InfoDot-Signature = sha256= + HMAC-SHA256(platform secret, "{timestamp}.{raw body}"). 201 stored, 200 replay (original id), 401 generic for every authentication failure, 404 unknown company, 422 contract broken, 429 rate limited. See docs/metrics-contract.md.', 'ingest-snapshots', false);
+        $op['parameters'] = [
+            ['name' => 'X-InfoDot-Timestamp', 'in' => 'header', 'required' => true, 'schema' => ['type' => 'string']],
+            ['name' => 'X-InfoDot-Signature', 'in' => 'header', 'required' => true, 'schema' => ['type' => 'string']],
+        ];
+        $op['requestBody'] = ['required' => true, 'content' => ['application/json' => ['schema' => ['type' => 'object', 'properties' => [
+            'platform' => ['type' => 'string', 'description' => 'The calling platform key, e.g. tasks.'],
+            'company_uuid' => ['type' => 'string', 'format' => 'uuid'],
+            'taken_at' => ['type' => 'string', 'format' => 'date-time'],
+            'period' => ['type' => 'string', 'enum' => ['day']],
+            'metrics' => ['type' => 'object'],
+        ]]]]];
 
         return ['post' => $op];
     }

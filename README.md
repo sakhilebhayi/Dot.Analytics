@@ -70,7 +70,7 @@ Each engine consumes data from several Dot platforms and produces a holistic vie
 ## The real data path
 
 ```
-platform --signed daily snapshot--> POST /api/v1/ingest/{platform}
+platform --signed daily snapshot--> POST /api/ingest/snapshots        (server to server, no user token)
    -> analytics_snapshots     validated against config/metrics.php, stored once (idempotent)
    -> computed_metrics        value, previous value, delta, delta %, per metric per day (hourly + after each snapshot)
    -> anomaly alerts          median-absolute-deviation, only with >= 7 prior daily points, once per metric per day
@@ -80,7 +80,8 @@ platform --signed daily snapshot--> POST /api/v1/ingest/{platform}
 * The contract is [`docs/metrics-contract.md`](docs/metrics-contract.md); the catalogue is `config/metrics.php`. Each platform has a short list of headline numbers (tasks open and overdue, billing MRR and overdue amount, ...). Unknown keys are dropped, the wrong kind of value is a 422, money is whole cents plus an ISO currency, a replay returns the original.
 * **Nothing is invented.** A metric nobody reported is "no data yet", never `0`. A value older than two daily periods is shown **stale**. Demo numbers exist only through the local-only `DemoMetricsSeeder` and are labelled DEMO DATA wherever they appear.
 * Briefings, Business DNA and the AI engines read the same real snapshots and computed metrics. With no data there is no briefing and no Business DNA profile ("no data yet"), and with no AI provider nothing is generated.
-* This repo is the receiving side. The publishing side (each platform posting its snapshot) is a separate piece of work in each platform.
+* **Platforms publish server to server.** `POST /api/ingest/snapshots` needs no user token: the platform signs `{timestamp}.{raw body}` (headers `X-InfoDot-Timestamp`, `X-InfoDot-Signature`) with its own secret, `ANALYTICS_INGEST_SECRET_<KEY>` in `.env` (blank means that platform cannot call). The first accepted snapshot connects the platform for that company by itself. The signing scheme, a worked HMAC example, the responses and every environment variable are in [`docs/metrics-contract.md`](docs/metrics-contract.md). A team member can still post with a Sanctum token to `POST /api/v1/ingest/{platform}`.
+* This repo is the receiving side. The publishing side (each platform signing and posting its snapshot) is a separate piece of work in each platform, and **no platform publishes yet**.
 
 ### Running it: cron and queue
 
