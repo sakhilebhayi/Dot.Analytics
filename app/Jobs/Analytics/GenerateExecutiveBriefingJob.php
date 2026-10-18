@@ -4,13 +4,12 @@ namespace App\Jobs\Analytics;
 
 use App\Models\ExecutiveBriefing;
 use App\Models\Team;
-use App\Notifications\ExecutiveBriefingReady;
 use App\Services\AiModelRouter;
 use App\Services\IntelligenceEngineService;
 use App\Services\Metrics\MetricsContextBuilder;
+use App\Services\Notifications\TeamNotifier;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
-use Illuminate\Support\Facades\Notification;
 
 /**
  * Generates an AI-powered executive intelligence briefing for a team.
@@ -133,7 +132,9 @@ PROMPT;
             ],
         ]);
 
-        Notification::send($team->allUsers(), new ExecutiveBriefingReady($briefing));
+        // Only a briefing that was really written gets here (every unavailable path returned
+        // above), and the job returns early for one that is already ready, so this is once.
+        app(TeamNotifier::class)->briefingReady($briefing->refresh());
     }
 
     private function markUnavailable(ExecutiveBriefing $briefing, string $reason): void

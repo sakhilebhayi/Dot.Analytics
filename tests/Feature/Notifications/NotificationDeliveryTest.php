@@ -2,15 +2,18 @@
 
 namespace Tests\Feature\Notifications;
 
+use App\Events\Analytics\CriticalInsightDiscovered;
 use App\Events\Analytics\PlatformConnected;
 use App\Jobs\Analytics\GenerateExecutiveBriefingJob;
 use App\Jobs\Analytics\RunIntelligenceEngineJob;
+use App\Listeners\Analytics\NotifyOnCriticalInsight;
 use App\Models\AnalyticsAlert;
 use App\Models\CrossPlatformInsight;
 use App\Models\DataSource;
 use App\Models\ExecutiveBriefing;
 use App\Models\Team;
 use App\Models\User;
+use App\Notifications\Channels\BestEffortBroadcastChannel;
 use App\Notifications\CriticalAlertTriggered;
 use App\Notifications\ExecutiveBriefingReady;
 use App\Services\AiModelRouter;
@@ -24,6 +27,7 @@ use Illuminate\Broadcasting\BroadcastException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Notifications\SendQueuedNotifications;
 use Illuminate\Support\Facades\Broadcast;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -175,13 +179,13 @@ class NotificationDeliveryTest extends TestCase
         Notification::fake();
 
         // Connected but nothing ingested: a no_data run.
-        $this->connect($this->team, 'pulse');
+        $pulse = $this->connect($this->team, 'pulse');
         $this->useRouter(new FakeAiRouter(response: $this->insightJson('critical')));
         $this->runEngine($this->team);
         $this->assertSame('no_data', $this->team->intelligenceEngineRuns()->latest('id')->first()->status);
 
         // Data but no AI provider: a skipped run.
-        $this->realPulseData();
+        $this->snapshot($pulse, ['reviews' => 3]);
         $this->useRouter(new FakeAiRouter(configured: false));
         $this->runEngine($this->team);
         $this->assertSame('skipped', $this->team->intelligenceEngineRuns()->latest('id')->first()->status);
@@ -198,9 +202,9 @@ class NotificationDeliveryTest extends TestCase
         ]);
         Notification::fake();
 
-        $listener = new \App\Listeners\Analytics\NotifyOnCriticalInsight;
-        $listener->handle(new \App\Events\Analytics\CriticalInsightDiscovered($insight));
-        $listener->handle(new \App\Events\Analytics\CriticalInsightDiscovered($insight));
+        $listener = new NotifyOnCriticalInsight;
+        $listener->handle(new CriticalInsightDiscovered($insight));
+        $listener->handle(new CriticalInsightDiscovered($insight));
 
         $this->assertSame(1, AnalyticsAlert::withoutGlobalScopes()->count());
         Notification::assertSentTimes(CriticalAlertTriggered::class, 3);
@@ -211,7 +215,7 @@ class NotificationDeliveryTest extends TestCase
         $insight = CrossPlatformInsight::factory()->critical()->create(['team_id' => $this->team->id, 'provenance' => null]);
         Notification::fake();
 
-        (new \App\Listeners\Analytics\NotifyOnCriticalInsight)->handle(new \App\Events\Analytics\CriticalInsightDiscovered($insight));
+        (new NotifyOnCriticalInsight)->handle(new CriticalInsightDiscovered($insight));
 
         $this->assertSame(1, AnalyticsAlert::withoutGlobalScopes()->count());
         Notification::assertNothingSent();
@@ -308,18 +312,39 @@ class NotificationDeliveryTest extends TestCase
 
     // ─── Delivery guarantees ────────────────────────────────────────────────
 
-    public function test_each_channel_is_queued_as_its_own_job(): void
+    public function test_each_channel_is_queued_as_its_own_job_so_a_dead_mail_transport_cannot_hold_back_the_bell(): void
     {
         Queue::fake();
         $alert = AnalyticsAlert::factory()->create(['team_id' => $this->team->id, 'severity' => 'critical']);
 
         $this->owner->notify(new CriticalAlertTriggered($alert));
 
-        Queue::assertPushed(SendQueuedNotifications::class, 1);
+        $channels = Queue::pushed(SendQueuedNotifications::class)
+            ->map(fn (SendQueuedNotifications $job) => $job->channels)
+            ->all();
+        $this->assertSame([['database'], [BestEffortBroadcastChannel::class], ['mail']], $channels);
+    }
+
+    public function test_it_survives_a_real_database_queue_round_trip_and_a_worker_delivers_every_channel(): void
+    {
+        config(['queue.default' => 'database', 'mail.default' => 'array']);
+        $alert = AnalyticsAlert::factory()->create(['team_id' => $this->team->id, 'severity' => 'critical', 'title' => 'Queued for a worker']);
+
+        $this->owner->notify(new CriticalAlertTriggered($alert));
+
+        $this->assertSame(3, DB::table('jobs')->count(), 'database, real-time and mail are separate jobs');
+        $this->assertSame(0, $this->owner->notifications()->count(), 'nothing is sent inside the request');
+
+        $this->artisan('queue:work', ['--stop-when-empty' => true, '--queue' => 'default'])->assertSuccessful();
+
+        $this->assertSame(0, DB::table('jobs')->count());
+        $this->assertSame(0, DB::table('failed_jobs')->count());
+        $this->assertSame('Queued for a worker', $this->owner->notifications()->sole()->data['title']);
     }
 
     public function test_the_mail_is_sent_through_the_configured_mailer_without_context_or_secrets(): void
     {
+        config(['mail.default' => 'array']);
         $this->realPulseData();
         $this->useRouter(new FakeAiRouter(response: $this->insightJson('critical')));
 

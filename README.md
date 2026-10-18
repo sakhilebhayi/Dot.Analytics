@@ -90,6 +90,10 @@ platform --signed daily snapshot--> POST /api/ingest/snapshots        (server to
 | Laravel scheduler every minute (`* * * * * php artisan schedule:run`) | hourly `analytics:compute-metrics` (compute + anomaly check), every-minute `analytics:run-scheduled-reports` (saved reports with a cron expression, read in the team timezone, run history kept; nothing is emailed), the 6-hourly engine run, briefings and the nightly Business DNA |
 | A queue worker | `ComputeMetricsJob` refreshes a team's tiles right after a snapshot arrives; without a worker the hourly run still computes everything |
 
+### Notifications
+
+Members of a team are told (in-app bell, email, and an instant push when Reverb runs) about a critical alert or a ready briefing, only when it comes from real data, and only members of that team (viewers included). Every channel is queued, so **a queue worker is needed for them to be sent**; **Reverb is optional** and cannot run on the shared cPanel host, where the bell polls every 60 seconds instead. What notifies, the payload rules and every degradation are in [`docs/notifications.md`](docs/notifications.md).
+
 ### Not wired
 
 Data connectors (REST, database, file), data pipelines, the AI-to-SQL service and the currency service exist in the codebase, but no route or screen creates a connector, so they play no part in the data path. They are left in place, untouched and untested end to end; do not assume they work.

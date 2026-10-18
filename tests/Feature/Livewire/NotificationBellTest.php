@@ -134,11 +134,12 @@ class NotificationBellTest extends TestCase
         $this->assertSame(1, $user->fresh()->unreadNotifications()->count());
     }
 
-    public function test_a_user_without_a_current_team_sees_an_empty_bell(): void
+    public function test_a_user_without_any_team_sees_an_empty_bell(): void
     {
-        $user = User::factory()->withPersonalTeam()->create();
-        $user->notify(new CriticalAlertTriggered($this->alertFor($user->currentTeam)));
-        $user->forceFill(['current_team_id' => null])->save();
+        $user = User::factory()->create();
+        $stranger = $this->ownerWithTeam();
+        $user->notify(new CriticalAlertTriggered($this->alertFor($stranger->currentTeam)));
+        $this->assertNull($user->fresh()->currentTeam);
 
         $component = Livewire::actingAs($user->fresh())->test(NotificationBell::class);
 

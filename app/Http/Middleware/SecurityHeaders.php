@@ -43,7 +43,7 @@ class SecurityHeaders
 
         // Content Security Policy
         //
-        // Five real mismatches found while first loading the real
+        // Four real mismatches found while first loading the real
         // authenticated dashboard in a browser (every prior
         // browser-verification pass this platform went through only ever
         // checked guest-facing pages, which don't exercise any of these):
@@ -77,31 +77,22 @@ class SecurityHeaders
         //    system fonts everywhere rather than breaking layout, so this
         //    one was never visually obvious. fonts.bunny.net kept in case
         //    something else legitimately depends on it.
-        // 4. connect-src must match the host the browser's own Echo client
-        //    actually connects to, not the Reverb server's bind address.
-        //    reverbWsOrigin() previously read config('reverb.servers.reverb.host'),
-        //    which is 0.0.0.0 in this dev environment (confirmed via
-        //    `php artisan config:show reverb`) -- the server's listen
-        //    address, not something a browser can connect to. Never
-        //    exercised before Push Notifications, since nothing opened a
-        //    browser-side WebSocket connection until now. Both this CSP
-        //    header and the Echo client (layouts/app.blade.php) now read
-        //    the same config/echo.php, so there's one source of truth
-        //    instead of two values that can silently drift apart.
-        // 5. script-src also needs https://cdn.jsdelivr.net: Push
-        //    Notifications loads laravel-echo/pusher-js from this CDN
-        //    (layouts/app.blade.php). Caught by actually loading the page
-        //    in a browser after the fix above -- fixing connect-src alone
-        //    wasn't enough, since the CDN <script> tags themselves were
-        //    still blocked at the script-src level, so `Echo` was never
-        //    even defined and window.Echo stayed undefined.
+        // 4. Real-time (Echo/Reverb) is optional (config/echo.php). Only when it is on does the
+        //    page load laravel-echo/pusher-js from cdn.jsdelivr.net and open a WebSocket, so
+        //    only then does the CSP name that CDN (script-src) and the WebSocket origin
+        //    (connect-src); with it off neither is allowed. The origin must be the host the
+        //    browser's Echo client connects to (config/echo.php, the same source the layout
+        //    reads), not the Reverb server's bind address: reverbWsOrigin() used to read
+        //    config('reverb.servers.reverb.host'), which is 0.0.0.0 in containers.
+        $realtime = (bool) config('echo.enabled');
+
         $csp = implode('; ', [
             "default-src 'self'",
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://fonts.bunny.net https://cdn.tailwindcss.com https://unpkg.com https://cdn.jsdelivr.net",
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://fonts.bunny.net https://cdn.tailwindcss.com https://unpkg.com".($realtime ? ' https://cdn.jsdelivr.net' : ''),
             "style-src 'self' 'unsafe-inline' https://fonts.bunny.net https://fonts.googleapis.com",
             "font-src 'self' https://fonts.bunny.net https://fonts.gstatic.com",
             "img-src 'self' data: blob:",
-            "connect-src 'self' ".$this->reverbWsOrigin(),
+            "connect-src 'self'".($realtime ? ' '.$this->reverbWsOrigin() : ''),
             "frame-ancestors 'none'",
             "base-uri 'self'",
             "form-action 'self'",

@@ -1,5 +1,11 @@
 # Push Notifications Implementation Plan
 
+> **Rebased onto `feature/ecosystem-sso`.** This plan was written against the pre-metrics-pipeline code and is kept as the
+> record of the original design. Where it differs, [`docs/notifications.md`](../../notifications.md) and the code win: the
+> bell is scoped to the user's current team (`data->team_id`); only real alerts/briefings with provenance notify (the engines
+> no longer produce canned ones); recipients still include viewers; the broadcast leg is best-effort and the bell polls;
+> Echo/pusher-js and their CSP allowances load only when real-time is configured; the `notifications.data` column is JSON.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Deliver critical alerts and executive briefings — both already generated with nobody told — via a persistent in-app notification bell and email, reaching every team member.

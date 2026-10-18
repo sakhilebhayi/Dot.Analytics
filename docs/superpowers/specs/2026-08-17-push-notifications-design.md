@@ -1,5 +1,11 @@
 # Push Notifications — Design Spec
 
+> **Rebased onto `feature/ecosystem-sso`.** This spec was written against the pre-metrics-pipeline code and is kept as the
+> record of the original design. Where it differs, [`docs/notifications.md`](../../notifications.md) and the code win: the
+> bell is scoped to the user's current team (`data->team_id`); only real alerts/briefings with provenance notify (the engines
+> no longer produce canned ones); recipients still include viewers; the broadcast leg is best-effort and the bell polls;
+> Echo/pusher-js and their CSP allowances load only when real-time is configured; the `notifications.data` column is JSON.
+
 ## Context
 
 The third and final direction from the original reach-features brainstorm

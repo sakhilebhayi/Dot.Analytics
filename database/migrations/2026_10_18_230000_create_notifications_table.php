@@ -7,7 +7,9 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Run the migrations.
+     * Laravel's database-notification table, with `data` as JSON rather than text so the
+     * bell can filter on the team a notification was raised for (`data->team_id`) the same
+     * way on SQLite and Postgres.
      */
     public function up(): void
     {
@@ -15,15 +17,12 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->string('type');
             $table->morphs('notifiable');
-            $table->text('data');
+            $table->json('data');
             $table->timestamp('read_at')->nullable();
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('notifications');

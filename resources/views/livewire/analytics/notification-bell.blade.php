@@ -1,4 +1,4 @@
-<div class="ms-3 relative">
+<div class="ms-3 relative" wire:poll.60s>
     <x-dropdown align="right" width="80">
         <x-slot name="trigger">
             <button type="button" class="press relative" style="width:36px;height:36px;border-radius:9999px;background:transparent;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;">

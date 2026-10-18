@@ -3,22 +3,15 @@
 namespace App\Notifications;
 
 use App\Models\ExecutiveBriefing;
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
-use Illuminate\Notifications\Notification;
-use Illuminate\Queue\SerializesModels;
 
-class ExecutiveBriefingReady extends Notification implements ShouldQueue
+/**
+ * A briefing that was actually written from real insights and metrics. Unavailable
+ * briefings never reach here (TeamNotifier refuses them).
+ */
+class ExecutiveBriefingReady extends TeamNotification
 {
-    use Queueable, SerializesModels;
-
     public function __construct(public readonly ExecutiveBriefing $briefing) {}
-
-    public function via(object $notifiable): array
-    {
-        return ['mail', 'database', 'broadcast'];
-    }
 
     public function toMail(object $notifiable): MailMessage
     {
@@ -27,17 +20,18 @@ class ExecutiveBriefingReady extends Notification implements ShouldQueue
         return (new MailMessage)
             ->subject("Your {$this->briefing->period} intelligence briefing is ready")
             ->line("{$period} briefing for {$this->briefing->period_date}:")
-            ->line($this->briefing->summary)
+            ->line($this->excerpt($this->briefing->summary))
             ->action('View full briefing', route('dashboard'));
     }
 
-    public function toArray(object $notifiable): array
+    protected function payload(): array
     {
         return [
             'type' => 'briefing_ready',
             'title' => ucfirst($this->briefing->period).' briefing ready',
-            'description' => $this->briefing->summary,
+            'description' => $this->excerpt($this->briefing->summary),
             'url' => route('dashboard'),
+            'team_id' => $this->briefing->team_id,
         ];
     }
 }
