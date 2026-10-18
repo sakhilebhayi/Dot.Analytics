@@ -7,6 +7,7 @@ use App\Actions\Analytics\DisconnectPlatformAction;
 use App\Models\DataSource;
 use App\Services\IntelligenceEngineService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
@@ -23,6 +24,11 @@ class EcosystemMapPanel extends Component
     public ?string $connectingPlatform = null;
 
     public string $connectUrl = '';
+
+    /** Webhook secret issued by the last connect. Shown once, never stored on the component after dismissal. */
+    public ?string $issuedWebhookSecret = null;
+
+    public ?string $issuedForPlatform = null;
 
     private IntelligenceEngineService $engineService;
 
@@ -82,31 +88,46 @@ class EcosystemMapPanel extends Component
 
     public function startConnect(string $platform): void
     {
+        Gate::authorize('create', DataSource::class);
+
         $this->connectingPlatform = $platform;
         $this->connectUrl = '';
     }
 
     public function confirmConnect(): void
     {
+        Gate::authorize('create', DataSource::class);
+
         $this->validate(['connectUrl' => 'nullable|url|max:255']);
 
         if (! $this->connectingPlatform) {
             return;
         }
 
-        app(ConnectPlatformAction::class)->handle(
+        [, $secret] = app(ConnectPlatformAction::class)->handleWithSecret(
             Auth::user()->currentTeam,
             $this->connectingPlatform,
             $this->connectUrl ?: null,
         );
+
+        $this->issuedWebhookSecret = $secret;
+        $this->issuedForPlatform = $secret ? $this->connectingPlatform : null;
 
         $this->connectingPlatform = null;
         $this->connectUrl = '';
         unset($this->platformCatalog, $this->activeEngines, $this->connectedCount);
     }
 
+    public function dismissSecret(): void
+    {
+        $this->issuedWebhookSecret = null;
+        $this->issuedForPlatform = null;
+    }
+
     public function disconnect(string $platform): void
     {
+        Gate::authorize('manage-platforms');
+
         app(DisconnectPlatformAction::class)->handle(
             Auth::user()->currentTeam,
             $platform,

@@ -22,7 +22,7 @@ class DataSourcePolicy
 
     public function create(User $user): bool
     {
-        return $user->currentTeam !== null;
+        return $user->administersTeam($user->currentTeam);
     }
 
     public function update(User $user, DataSource $dataSource): bool
@@ -38,11 +38,7 @@ class DataSourcePolicy
     private function isTeamOwnerOrAdmin(User $user, int $teamId): bool
     {
         $team = $user->currentTeam;
-        if (! $team || $team->id !== $teamId) {
-            return false;
-        }
 
-        return $team->user_id === $user->id
-            || $team->users()->where('user_id', $user->id)->wherePivot('role', 'admin')->exists();
+        return $team && $team->id === $teamId && $user->administersTeam($team);
     }
 }

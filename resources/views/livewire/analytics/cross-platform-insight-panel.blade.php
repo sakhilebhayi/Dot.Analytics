@@ -19,6 +19,7 @@
                 <option value="warning">Warning</option>
                 <option value="info">Info</option>
             </select>
+            @can('run-intelligence-engines')
             <button
                 wire:click="runEngines"
                 wire:loading.attr="disabled"
@@ -29,13 +30,25 @@
                 <span wire:loading.remove wire:target="runEngines">Run Engines</span>
                 <span wire:loading wire:target="runEngines">Running&hellip;</span>
             </button>
+            @endcan
         </div>
     </div>
 
+    @if($notice)
+        <p class="mb-3" style="font-size:0.75rem;color:var(--gold-soft);" data-testid="run-notice">{{ $notice }}</p>
+    @endif
+
     @if($this->insights->isEmpty())
         <div class="text-center py-8">
-            <p style="font-size:0.85rem;color:var(--mist);">No cross-platform insights yet.</p>
-            <p style="font-size:0.75rem;color:var(--mist);margin-top:0.25rem;">Connect at least 2 platforms and click <strong style="color:var(--paper);">Run Engines</strong>.</p>
+            @if(! $this->hasData)
+                <p style="font-size:0.85rem;color:var(--mist);">No data connected yet.</p>
+                <p style="font-size:0.75rem;color:var(--mist);margin-top:0.25rem;">Connect a platform and let it push data. Insights are only ever generated from what it sends.</p>
+            @else
+                <p style="font-size:0.85rem;color:var(--mist);">No insights yet.</p>
+                @foreach($this->unproductiveRuns as $run)
+                    <p style="font-size:0.72rem;color:var(--mist);margin-top:0.25rem;">{{ \App\Services\IntelligenceEngineService::ENGINES[$run->engine]['label'] ?? $run->engine }}: {{ $run->status_reason }}</p>
+                @endforeach
+            @endif
         </div>
     @else
         <div class="space-y-3">
@@ -71,13 +84,23 @@
                             </div>
                             <p style="font-size:0.85rem;font-weight:600;color:var(--paper);margin:0;">{{ $insight->title }}</p>
                             <p style="font-size:0.75rem;color:var(--mist);margin:0.25rem 0 0;line-height:1.5;">{{ $insight->narrative }}</p>
+                            @if(!empty($insight->provenance['snapshot_ids']))
+                                <p class="font-mono" style="font-size:0.62rem;color:var(--mist);opacity:0.8;margin:0.35rem 0 0;">
+                                    Derived from {{ count($insight->provenance['snapshot_ids']) }} snapshot(s)
+                                    @if(!empty($insight->provenance['window_start']))
+                                        &middot; {{ \Carbon\Carbon::parse($insight->provenance['window_start'])->format('d M') }} &ndash; {{ \Carbon\Carbon::parse($insight->provenance['window_end'])->format('d M Y') }}
+                                    @endif
+                                </p>
+                            @endif
                         </div>
+                        @can('update', $insight)
                         <div class="flex gap-1 shrink-0">
                             @if($insight->isNew())
                                 <button wire:click="review({{ $insight->id }})" class="press" style="font-size:0.68rem;padding:0.25rem 0.6rem;border:1px solid var(--line);border-radius:0.3rem;color:var(--paper);background:transparent;">Review</button>
                             @endif
                             <button wire:click="dismiss({{ $insight->id }})" class="press" style="font-size:0.68rem;padding:0.25rem 0.6rem;border:1px solid var(--line);border-radius:0.3rem;color:var(--mist);background:transparent;">Dismiss</button>
                         </div>
+                        @endcan
                     </div>
                 </div>
             @endforeach

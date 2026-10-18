@@ -39,7 +39,7 @@
                             <p style="font-size:0.75rem;color:var(--mist);margin:0.2rem 0 0;">{{ $alert->description }}</p>
                             <p style="font-size:0.68rem;color:var(--mist);opacity:0.7;margin:0.25rem 0 0;">{{ $alert->triggered_at->diffForHumans() }}</p>
                         </div>
-                        @if($alert->isOpen())
+                        @if($alert->isOpen() && auth()->user()->can('manage-alerts'))
                             <div class="flex gap-1 shrink-0">
                                 <button wire:click="acknowledge({{ $alert->id }})" class="press" style="font-size:0.68rem;padding:0.25rem 0.6rem;border:1px solid var(--line);border-radius:0.3rem;color:var(--mist);background:transparent;">Ack</button>
                                 <button wire:click="resolve({{ $alert->id }})" class="press" style="font-size:0.68rem;padding:0.25rem 0.6rem;border:1px solid var(--teal-soft);border-radius:0.3rem;color:var(--teal-soft);background:transparent;">Resolve</button>

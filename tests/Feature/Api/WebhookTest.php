@@ -19,14 +19,23 @@ class WebhookTest extends TestCase
         return [$user, $token];
     }
 
-    private function connectedSource(int $teamId, string $platform = 'dot.fleet', array $config = []): DataSource
+    private const SECRET = 'test-webhook-secret';
+
+    private function connectedSource(int $teamId, string $platform = 'dot.fleet', array $config = [], ?string $secret = self::SECRET): DataSource
     {
         return DataSource::factory()->create([
             'team_id' => $teamId,
             'platform' => $platform,
             'status' => 'connected',
             'config' => $config,
+            'webhook_secret' => $secret,
         ]);
+    }
+
+    /** The HMAC is mandatory, so every accepted request must be signed over the raw body. */
+    private function signedHeaders(array $payload, string $secret = self::SECRET): array
+    {
+        return ['X-Analytics-Signature' => 'sha256='.hash_hmac('sha256', json_encode($payload), $secret)];
     }
 
     public function test_receive_accepts_valid_payload_and_queues_job(): void
@@ -34,9 +43,10 @@ class WebhookTest extends TestCase
         [$user, $token] = $this->actingAsUser();
         $this->connectedSource($user->currentTeam->id);
 
-        $response = $this->withToken($token)->postJson('/api/v1/ingest/dot.fleet', [
-            'vehicles' => [['id' => 'V-001', 'fuel' => 45.2]],
-        ]);
+        $payload = ['vehicles' => [['id' => 'V-001', 'fuel' => 45.2]]];
+
+        $response = $this->withToken($token)->withHeaders($this->signedHeaders($payload))
+            ->postJson('/api/v1/ingest/dot.fleet', $payload);
 
         $response->assertStatus(202)
             ->assertJsonPath('success', true)
@@ -59,7 +69,9 @@ class WebhookTest extends TestCase
         [$user, $token] = $this->actingAsUser();
         $this->connectedSource($user->currentTeam->id);
 
-        $response = $this->withToken($token)->postJson('/api/v1/ingest/dot.fleet');
+        // Signed (so it passes the mandatory HMAC check) but carrying nothing.
+        $response = $this->withToken($token)->withHeaders($this->signedHeaders([]))
+            ->postJson('/api/v1/ingest/dot.fleet');
 
         $response->assertUnprocessable();
     }

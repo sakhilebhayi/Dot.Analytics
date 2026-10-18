@@ -17,6 +17,7 @@ use Laravel\Sanctum\HasApiTokens;
  * @property string $name
  * @property string $email
  * @property Team $currentTeam
+ * @property bool $is_platform_operator
  */
 class User extends Authenticatable
 {
@@ -72,6 +73,37 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_platform_operator' => 'boolean',
         ];
+    }
+
+    /**
+     * Team owner, or a member whose role on the team is 'admin'. Plain members
+     * (editor etc.) are read-only across the intelligence layer.
+     */
+    public function administersTeam(?Team $team): bool
+    {
+        if (! $team) {
+            return false;
+        }
+
+        if ($team->user_id === $this->id) {
+            return true;
+        }
+
+        return $team->users()
+            ->where('user_id', $this->id)
+            ->wherePivot('role', 'admin')
+            ->exists();
+    }
+
+    /**
+     * Platform operators run the Dot.Analytics deployment itself (global feature
+     * flags). This is deliberately unrelated to any team role: owning or
+     * administering a team never makes a user an operator. Not mass assignable.
+     */
+    public function isPlatformOperator(): bool
+    {
+        return $this->is_platform_operator === true;
     }
 }

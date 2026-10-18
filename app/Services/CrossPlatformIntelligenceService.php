@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Events\Analytics\CriticalInsightDiscovered;
+use App\Events\Analytics\IntelligenceEngineCompleted;
 use App\Models\CrossPlatformInsight;
 use App\Models\IntelligenceEngineRun;
 use App\Models\Team;
@@ -10,25 +12,44 @@ use Illuminate\Support\Carbon;
 /**
  * Generates and persists cross-platform intelligence insights.
  *
- * This service is the core differentiator of Dot.Analytics.
- * Traditional BI tools only see data from one source at a time.
- * This service traces relationships across multiple connected Dot
- * platforms to discover insights that no single platform can see.
+ * Integrity contract: an insight exists only if (a) the team has real ingested
+ * snapshots inside the window, (b) an AI provider actually analysed them, and
+ * (c) the model returned something parseable that cites platforms we have data
+ * for. In every other case the engine run is recorded as 'no_data', 'skipped' or
+ * 'failed' with a human-readable reason and NOTHING is written as an insight or
+ * alert. There is deliberately no canned/fallback text.
  */
 class CrossPlatformIntelligenceService
 {
+    private const INSIGHT_TYPES = ['correlation', 'causation', 'prediction', 'risk', 'opportunity'];
+
+    private const SEVERITIES = ['info', 'warning', 'critical'];
+
     public function __construct(
         private readonly IntelligenceEngineService $engineService,
         private readonly AiModelRouter $aiRouter,
+        private readonly SnapshotContextBuilder $contextBuilder = new SnapshotContextBuilder,
     ) {}
 
     /**
-     * Run all active intelligence engines for a team and persist any
-     * cross-platform insights discovered.
-     *
-     * Returns the number of new insights generated.
+     * Run every engine that has at least one connected source platform and
+     * return the number of insights actually persisted.
      */
     public function runForTeam(Team $team): int
+    {
+        return array_sum(array_map(
+            fn (IntelligenceEngineRun $run) => $run->insights_generated,
+            $this->runAllForTeam($team),
+        ));
+    }
+
+    /**
+     * Same as runForTeam() but returns the run records so callers can tell the
+     * user which engines were skipped and why.
+     *
+     * @return list<IntelligenceEngineRun>
+     */
+    public function runAllForTeam(Team $team): array
     {
         $connected = $team->dataSources()
             ->where('status', 'connected')
@@ -36,153 +57,230 @@ class CrossPlatformIntelligenceService
             ->toArray();
 
         if (empty($connected)) {
-            return 0;
+            return [];
         }
 
-        $activeEngines = $this->engineService->getActiveEngines($connected);
-        $total = 0;
-
-        foreach ($activeEngines as $engineKey => $engine) {
-            $run = IntelligenceEngineRun::create([
-                'team_id' => $team->id,
-                'engine' => $engineKey,
-                'status' => 'running',
-                'platforms_consumed' => $engine['connected_sources'],
-                'started_at' => Carbon::now(),
-            ]);
-
-            $insights = $this->generateInsightsForEngine($team, $engineKey, $engine);
-            $count = count($insights);
-
-            foreach ($insights as $insight) {
-                CrossPlatformInsight::create(array_merge($insight, ['team_id' => $team->id]));
+        $runs = [];
+        foreach (array_keys($this->engineService->getActiveEngines($connected)) as $engineKey) {
+            try {
+                if ($run = $this->runEngine($team, $engineKey)) {
+                    $runs[] = $run;
+                }
+            } catch (\Throwable $e) {
+                report($e); // the run row is already marked failed; keep going with other engines
             }
-
-            $run->update([
-                'status' => 'completed',
-                'insights_generated' => $count,
-                'completed_at' => Carbon::now(),
-            ]);
-
-            $total += $count;
         }
 
-        return $total;
+        return $runs;
     }
 
     /**
-     * Generate insights for a specific engine using the AI service.
-     * Falls back to deterministic rule-based insights when AI is unavailable.
+     * Run a single engine for a team and record the outcome.
+     *
+     * @throws \Throwable after marking the run failed, so queued callers can retry
      */
-    private function generateInsightsForEngine(Team $team, string $engineKey, array $engine): array
+    public function runEngine(Team $team, string $engineKey): ?IntelligenceEngineRun
     {
-        $context = $this->engineService->buildEcosystemContext($team);
+        $engine = $this->engineService->getEngine($engineKey);
+        if (! $engine) {
+            return null;
+        }
+
+        $connected = $team->dataSources()
+            ->where('status', 'connected')
+            ->whereIn('platform', $engine['sources'])
+            ->pluck('platform')
+            ->all();
+
+        $run = IntelligenceEngineRun::create([
+            'team_id' => $team->id,
+            'engine' => $engineKey,
+            'status' => 'running',
+            'platforms_consumed' => $connected,
+            'started_at' => Carbon::now(),
+        ]);
+
+        try {
+            return $this->execute($team, $engineKey, $engine, $connected, $run);
+        } catch (\Throwable $e) {
+            $this->finish($run, 'failed', 'Unexpected error while running the engine ('.class_basename($e).').');
+            throw $e;
+        }
+    }
+
+    private function execute(Team $team, string $engineKey, array $engine, array $connected, IntelligenceEngineRun $run): IntelligenceEngineRun
+    {
+        if ($connected === []) {
+            return $this->finish($run, 'no_data', 'None of this engine\'s source platforms are connected.');
+        }
+
+        $context = $this->contextBuilder->build($team, $connected);
+        $provenance = [
+            'engine_run_id' => $run->id,
+            'engine' => $engineKey,
+            'window_start' => $context['window_start'],
+            'window_end' => $context['window_end'],
+            'snapshot_ids' => $context['snapshot_ids'],
+            'platforms_with_data' => $context['platforms_with_data'],
+            'platforms_skipped' => $context['platforms_skipped'],
+        ];
+
+        if (! $context['has_data']) {
+            return $this->finish(
+                $run,
+                'no_data',
+                "No ingested snapshots in the last {$context['window_days']} days for: ".implode(', ', $connected).'. Nothing was analysed.',
+                $provenance,
+            );
+        }
+
+        if (! $this->aiRouter->hasProvider()) {
+            return $this->finish(
+                $run,
+                'skipped',
+                'No AI provider is configured (set ANTHROPIC_API_KEY, OPENAI_API_KEY, GOOGLE_AI_KEY or DEEPSEEK_API_KEY). Nothing was generated.',
+                $provenance,
+            );
+        }
+
+        $raw = $this->aiRouter->completeStrict($this->prompt($team, $engine, $context), 'insight', $team->id, $engineKey, 1500);
+
+        if ($raw === null) {
+            return $this->finish($run, 'failed', 'The AI provider did not return a response. Nothing was generated.', $provenance);
+        }
+
+        $parsed = $this->parse($raw);
+        if ($parsed === null) {
+            return $this->finish($run, 'failed', 'The AI response could not be parsed as insights. Nothing was stored.', $provenance);
+        }
+
+        $count = 0;
+        foreach ($parsed as $candidate) {
+            $insight = $this->persist($team, $candidate, $context, $provenance);
+            if (! $insight) {
+                continue;
+            }
+            $count++;
+
+            if ($insight->severity === 'critical') {
+                CriticalInsightDiscovered::dispatch($insight);
+            }
+        }
+
+        $run->update(['insights_generated' => $count]);
+        $reason = $count === 0 ? 'The model found no pattern that the available data supports.' : null;
+        $this->finish($run, 'completed', $reason, $provenance);
+
+        IntelligenceEngineCompleted::dispatch($team->id, $engineKey, $count, 0, $context['platforms_with_data'], $run->id);
+
+        return $run->refresh();
+    }
+
+    private function finish(IntelligenceEngineRun $run, string $status, ?string $reason, ?array $provenance = null): IntelligenceEngineRun
+    {
+        $run->update(array_filter([
+            'status' => $status,
+            'status_reason' => $reason,
+            'provenance' => $provenance,
+            'completed_at' => Carbon::now(),
+        ], fn ($v) => $v !== null));
+
+        return $run->refresh();
+    }
+
+    private function prompt(Team $team, array $engine, array $context): string
+    {
         $produces = implode(', ', $engine['produces'] ?? []);
+        $allowed = implode(', ', $context['platforms_with_data']);
 
-        $prompt = <<<PROMPT
+        return <<<PROMPT
 You are the {$engine['label']} of Dot.Analytics for {$team->name}.
+Your engine specialises in: {$produces}
 
-Active data sources: {$context}
+Below is the ONLY data you may use: real snapshots pushed by the connected platforms
+between {$context['window_start']} and {$context['window_end']}.
 
-Your engine produces: {$produces}
+{$context['block']}
 
-Identify 1-2 cross-platform intelligence insights that can ONLY be discovered by
-combining data from multiple platforms. Each insight should trace a real causal
-chain across platforms.
+Rules:
+- Base every statement on values that appear above. Do NOT invent numbers, people, events or platforms.
+- A platform marked NO DATA must not appear in any insight.
+- Only cite platforms from this list in "platforms_involved": {$allowed}
+- If the data does not support a genuine insight, return an empty array [].
+- Prefer insights that combine more than one platform when the data supports it.
 
-Return a JSON array only, no markdown:
+Return a JSON array only, no markdown (at most 2 items):
 [
   {
     "title": "...",
-    "narrative": "...",
-    "platforms_involved": ["dot.x", "dot.y"],
+    "narrative": "... quote the figures you relied on ...",
+    "platforms_involved": ["dot.x"],
     "insight_type": "correlation|causation|prediction|risk|opportunity",
-    "confidence": 0.85,
-    "severity": "info|warning|critical"
+    "confidence": 0.0,
+    "severity": "info|warning|critical",
+    "evidence_snapshot_ids": [1, 2]
   }
 ]
 PROMPT;
-
-        $raw = $this->aiRouter->complete($prompt, 'insight', $team->id, $engineKey);
-
-        preg_match('/\[.*\]/s', $raw, $matches);
-        $parsed = json_decode($matches[0] ?? '[]', true);
-
-        if (is_array($parsed) && count($parsed) > 0) {
-            return $parsed;
-        }
-
-        // Deterministic fallback ensures value even without AI
-        return $this->fallbackInsights($team, $engineKey, $engine);
     }
 
     /**
-     * Rule-based fallback insights per engine when AI is unavailable.
+     * @return list<array<string, mixed>>|null null when the output is not a JSON array
      */
-    private function fallbackInsights(Team $team, string $engineKey, array $engine): array
+    private function parse(string $raw): ?array
     {
-        $fallbacks = [
-            'customer' => [
-                [
-                    'title' => 'At-risk customer pattern detected',
-                    'narrative' => 'A customer showing declining CRM engagement also has overdue invoices, increased support tickets, and a contract expiring within 60 days. Combined signals indicate high churn risk that no single platform would catch independently.',
-                    'platforms_involved' => ['dot.crm', 'dot.payments', 'dot.support', 'dot.documents'],
-                    'insight_type' => 'risk',
-                    'confidence' => 0.82,
-                    'severity' => 'warning',
-                ],
-            ],
-            'operational' => [
-                [
-                    'title' => 'Productivity dip linked to staffing and equipment',
-                    'narrative' => 'Output dropped 8% this week. Cross-referencing HR data shows three certified operators on leave, while Fleet data shows elevated idle time on key equipment. The staffing shortfall is the upstream cause of the operational slowdown.',
-                    'platforms_involved' => ['dot.fleet', 'dot.hr'],
-                    'insight_type' => 'causation',
-                    'confidence' => 0.88,
-                    'severity' => 'warning',
-                ],
-            ],
-            'financial' => [
-                [
-                    'title' => 'Payroll spike correlated with fleet overtime',
-                    'narrative' => 'Overtime payroll costs are tracking 18% above budget. Fleet data shows the same drivers accumulating extra hours on routes where scheduled vehicles are under maintenance. Preventative maintenance scheduling would eliminate the cascade.',
-                    'platforms_involved' => ['dot.hr', 'dot.fleet', 'dot.finance'],
-                    'insight_type' => 'causation',
-                    'confidence' => 0.79,
-                    'severity' => 'info',
-                ],
-            ],
-            'risk' => [
-                [
-                    'title' => 'Supplier concentration risk emerging',
-                    'narrative' => 'Inventory data shows 60% of critical stock sourced from one supplier. Payments data shows their invoices becoming inconsistent. Documents show their contract expires in 45 days with no renewal in progress.',
-                    'platforms_involved' => ['dot.inventory', 'dot.payments', 'dot.documents'],
-                    'insight_type' => 'risk',
-                    'confidence' => 0.85,
-                    'severity' => 'critical',
-                ],
-            ],
-            'predictive' => [
-                [
-                    'title' => 'Demand spike predicted in 30 days',
-                    'narrative' => 'CRM pipeline shows a cluster of deals likely to close. Inventory levels are currently below the threshold needed to fulfil anticipated orders. Historical fleet data shows delivery lead times double during high-demand periods.',
-                    'platforms_involved' => ['dot.crm', 'dot.inventory', 'dot.fleet'],
-                    'insight_type' => 'prediction',
-                    'confidence' => 0.74,
-                    'severity' => 'warning',
-                ],
-            ],
-        ];
+        if (! preg_match('/\[.*\]/s', $raw, $matches)) {
+            return null;
+        }
 
-        return $fallbacks[$engineKey] ?? [
-            [
-                'title' => "Cross-platform signal from {$engine['label']}",
-                'narrative' => "Connected platforms are contributing data to the {$engine['label']}. As more historical data accumulates, precise correlations will surface automatically.",
-                'platforms_involved' => $engine['connected_sources'],
-                'insight_type' => 'correlation',
-                'confidence' => 0.60,
-                'severity' => 'info',
-            ],
-        ];
+        $decoded = json_decode($matches[0], true);
+
+        return is_array($decoded) && array_is_list($decoded) ? $decoded : null;
+    }
+
+    /**
+     * Validate one model-proposed insight against the data we actually had.
+     */
+    private function persist(Team $team, mixed $candidate, array $context, array $provenance): ?CrossPlatformInsight
+    {
+        if (! is_array($candidate)) {
+            return null;
+        }
+
+        $title = trim((string) ($candidate['title'] ?? ''));
+        $narrative = trim((string) ($candidate['narrative'] ?? ''));
+        if ($title === '' || $narrative === '') {
+            return null;
+        }
+
+        $platforms = array_values(array_intersect(
+            array_filter((array) ($candidate['platforms_involved'] ?? []), 'is_string'),
+            $context['platforms_with_data'],
+        ));
+        if ($platforms === []) {
+            return null; // cites nothing we hold data for
+        }
+
+        $evidence = array_values(array_intersect(
+            array_filter((array) ($candidate['evidence_snapshot_ids'] ?? []), 'is_int'),
+            $context['snapshot_ids'],
+        ));
+
+        $type = in_array($candidate['insight_type'] ?? null, self::INSIGHT_TYPES, true) ? $candidate['insight_type'] : 'correlation';
+        $severity = in_array($candidate['severity'] ?? null, self::SEVERITIES, true) ? $candidate['severity'] : 'info';
+        $confidence = is_numeric($candidate['confidence'] ?? null) ? max(0.0, min(1.0, (float) $candidate['confidence'])) : 0.5;
+
+        return CrossPlatformInsight::create([
+            'team_id' => $team->id,
+            'title' => mb_substr($title, 0, 255),
+            'narrative' => $narrative,
+            'platforms_involved' => $platforms,
+            'insight_type' => $type,
+            'confidence' => $confidence,
+            'severity' => $severity,
+            'provenance' => array_merge($provenance, [
+                'snapshot_ids' => $evidence !== [] ? $evidence : $context['snapshot_ids'],
+            ]),
+        ]);
     }
 }

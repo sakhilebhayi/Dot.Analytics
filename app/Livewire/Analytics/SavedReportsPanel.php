@@ -7,6 +7,7 @@ use App\Models\ReportRun;
 use App\Services\ReportGenerationService;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
@@ -41,6 +42,8 @@ class SavedReportsPanel extends Component
 
     public function create(): void
     {
+        Gate::authorize('manage-reports');
+
         $this->validate();
 
         if (! Auth::user()->currentTeam) {
@@ -94,6 +97,8 @@ class SavedReportsPanel extends Component
 
     public function delete(int $id): void
     {
+        Gate::authorize('manage-reports');
+
         AnalyticsReport::findOrFail($id)->delete();
 
         unset($this->reports);

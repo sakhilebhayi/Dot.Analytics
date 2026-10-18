@@ -12,7 +12,11 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
 use Laravel\Jetstream\Jetstream;
 
+// Token redemption is brute-forceable if unthrottled: 10 attempts/min per IP.
+// NOTE: this still redeems a bearer token from the query string; moving to the
+// one-time redeem protocol is tracked separately.
 Route::get('/auth/ecosystem', [EcosystemAuthController::class, 'handle'])
+    ->middleware('throttle:ecosystem-auth')
     ->name('ecosystem.auth');
 
 Route::get('/', fn () => view('welcome'));

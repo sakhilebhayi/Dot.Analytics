@@ -103,10 +103,24 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('manage-recommendations', fn ($user) => $this->isTeamOwnerOrAdmin($user)
         );
 
+        Gate::define('manage-alerts', fn ($user) => $user->administersTeam($user->currentTeam)
+        );
+
+        Gate::define('manage-reports', fn ($user) => $user->administersTeam($user->currentTeam)
+        );
+
+        // Feature flags are GLOBAL (every tenant reads the same rows), so mutating
+        // them is reserved for platform operators. A team role must never grant it.
+        Gate::define('manage-feature-flags', fn ($user) => $user->isPlatformOperator()
+        );
+
         Gate::define('view-intelligence', fn ($user) =>
             // All authenticated team members can view intelligence
             $user->currentTeam !== null
         );
+
+        // SSO token redemption: unauthenticated, so key by IP.
+        RateLimiter::for('ecosystem-auth', fn (Request $request) => Limit::perMinute(10)->by($request->ip()));
 
         // API rate limiters
         RateLimiter::for('analytics-api', function (Request $request) {
@@ -136,17 +150,6 @@ class AppServiceProvider extends ServiceProvider
 
     private function isTeamOwnerOrAdmin(User $user): bool
     {
-        $team = $user->currentTeam;
-        if (! $team) {
-            return false;
-        }
-        if ($team->user_id === $user->id) {
-            return true;
-        }
-
-        return $team->users()
-            ->where('user_id', $user->id)
-            ->wherePivot('role', 'admin')
-            ->exists();
+        return $user->administersTeam($user->currentTeam);
     }
 }

@@ -5,6 +5,7 @@ namespace App\Livewire\Analytics;
 use App\Models\BusinessDnaProfile;
 use App\Services\BusinessDnaService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
@@ -28,6 +29,8 @@ class BusinessDnaPanel extends Component
 
     public function compute(): void
     {
+        Gate::authorize('run-intelligence-engines');
+
         $this->computing = true;
 
         $service = app(BusinessDnaService::class);

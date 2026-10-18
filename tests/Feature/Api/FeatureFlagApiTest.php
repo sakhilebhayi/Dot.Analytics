@@ -11,9 +11,14 @@ class FeatureFlagApiTest extends TestCase
 {
     use RefreshDatabase;
 
+    /**
+     * A platform operator. Mutating the global flag table needs this; owning a team
+     * does not (see Integrity\FeatureFlagOperatorTest).
+     */
     private function admin(): array
     {
         $user = User::factory()->withPersonalTeam()->create();
+        $user->forceFill(['is_platform_operator' => true])->save();
         $token = $user->createToken('test')->plainTextToken;
 
         return [$user, $token];

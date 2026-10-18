@@ -5,6 +5,7 @@ namespace App\Livewire\Analytics;
 use App\Models\Recommendation;
 use App\Services\AiModelRouter;
 use App\Services\IntelligenceEngineService;
+use App\Services\SnapshotContextBuilder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
@@ -16,6 +17,8 @@ class RecommendationsPanel extends Component
 {
     public bool $generating = false;
 
+    public ?string $notice = null;
+
     #[Computed]
     public function recommendations(): Collection
     {
@@ -26,51 +29,87 @@ class RecommendationsPanel extends Component
 
     public function generate(): void
     {
+        // Generating spends AI budget: owner/admin only.
+        Gate::authorize('run-intelligence-engines');
+
         $this->generating = true;
+        $this->notice = null;
 
         $team = Auth::user()->currentTeam;
         $router = app(AiModelRouter::class);
-        $engine = app(IntelligenceEngineService::class);
-        $context = $engine->buildEcosystemContext($team);
+
+        $connected = $team->dataSources()->where('status', 'connected')->pluck('platform')->all();
+        $context = app(SnapshotContextBuilder::class)->build($team, $connected);
+
+        if (! $context['has_data']) {
+            $this->notice = 'No data connected yet: no platform has pushed a snapshot in the last '.$context['window_days'].' days, so there is nothing to base recommendations on.';
+        } elseif (! $router->hasProvider()) {
+            $this->notice = 'No AI provider is configured, so nothing was generated.';
+        } else {
+            $this->notice = $this->createFromModel($team, $router, $context);
+        }
+
+        unset($this->recommendations);
+        $this->generating = false;
+    }
+
+    private function createFromModel($team, AiModelRouter $router, array $context): string
+    {
         $engines = implode(', ', array_keys(IntelligenceEngineService::ENGINES));
+        $allowed = implode(', ', $context['platforms_with_data']);
 
         $prompt = <<<PROMPT
-You are Dot.Analytics — the Enterprise Intelligence Platform and central nervous system of the Dot ecosystem for {$team->name}.
+You are Dot.Analytics for {$team->name}.
 
-Ecosystem context:
-{$context}
+The ONLY data you may use is the following real platform snapshots (window {$context['window_start']} to {$context['window_end']}):
+
+{$context['block']}
 
 Available intelligence engines: {$engines}
 
-Generate 3 actionable cross-platform intelligence recommendations. Each must reference at least 2 platforms.
+Generate up to 3 actionable recommendations that the data above directly supports. Do NOT invent figures, people or events.
+Only reference platforms from: {$allowed}. If the data supports none, return [].
 Return JSON array only, no markdown:
 [
   {
     "title": "...",
-    "rationale": "Explain the cross-platform causal chain.",
+    "rationale": "Explain which figures above support this.",
     "priority": "critical|high|medium|low",
     "engine": "one of the engine keys above"
   }
 ]
 PROMPT;
 
-        $raw = $router->complete($prompt, 'recommendation', $team->id);
-        preg_match('/\[.*\]/s', $raw, $matches);
-        $items = json_decode($matches[0] ?? '[]', true) ?? [];
-
-        foreach ($items as $rec) {
-            Recommendation::create([
-                'team_id' => $team->id,
-                'engine' => $rec['engine'] ?? 'decision',
-                'title' => $rec['title'],
-                'rationale' => $rec['rationale'],
-                'priority' => $rec['priority'] ?? 'medium',
-                'status' => 'pending',
-            ]);
+        $raw = $router->completeStrict($prompt, 'recommendation', $team->id);
+        if ($raw === null || ! preg_match('/\[.*\]/s', $raw, $matches)) {
+            return 'The AI provider did not return usable recommendations. Nothing was stored.';
         }
 
-        unset($this->recommendations);
-        $this->generating = false;
+        $items = json_decode($matches[0], true);
+        if (! is_array($items)) {
+            return 'The AI response could not be parsed. Nothing was stored.';
+        }
+
+        $created = 0;
+        foreach ($items as $rec) {
+            if (! is_array($rec) || trim((string) ($rec['title'] ?? '')) === '' || trim((string) ($rec['rationale'] ?? '')) === '') {
+                continue;
+            }
+
+            Recommendation::create([
+                'team_id' => $team->id,
+                'engine' => array_key_exists($rec['engine'] ?? null, IntelligenceEngineService::ENGINES) ? $rec['engine'] : 'decision',
+                'title' => mb_substr(trim($rec['title']), 0, 255),
+                'rationale' => trim($rec['rationale']),
+                'priority' => in_array($rec['priority'] ?? null, ['critical', 'high', 'medium', 'low'], true) ? $rec['priority'] : 'medium',
+                'status' => 'pending',
+            ]);
+            $created++;
+        }
+
+        return $created === 0
+            ? 'The model found nothing in the available data worth recommending.'
+            : "{$created} recommendation(s) generated from your ingested data.";
     }
 
     public function action(int $id): void

@@ -65,8 +65,26 @@ class AiModelRouter
     }
 
     /**
+     * Whether at least one provider API key is configured.
+     */
+    public function hasProvider(): bool
+    {
+        foreach (array_keys(self::MODELS) as $provider) {
+            if ($this->apiKey($provider)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Send a prompt to the best available model for the given capability.
      * Falls back through the priority chain if a model is unavailable.
+     *
+     * Returns a development mock string when no provider answers. Anything that
+     * PERSISTS the result (insights, briefings, recommendations) must call
+     * completeStrict() instead so the mock can never be stored as real output.
      *
      * @param  string  $prompt  The full prompt text.
      * @param  string  $capability  What kind of intelligence this is.
@@ -81,6 +99,21 @@ class AiModelRouter
         ?string $engine = null,
         int $maxTokens = 1024,
     ): string {
+        return $this->completeStrict($prompt, $capability, $teamId, $engine, $maxTokens)
+            ?? $this->mockResponse($capability);
+    }
+
+    /**
+     * Like complete(), but returns null instead of a mock when no configured
+     * provider produced an answer.
+     */
+    public function completeStrict(
+        string $prompt,
+        string $capability = 'query',
+        ?int $teamId = null,
+        ?string $engine = null,
+        int $maxTokens = 1024,
+    ): ?string {
         $requiredTier = self::CAPABILITY_TIERS[$capability] ?? 2;
         $chain = $this->buildFallbackChain($requiredTier);
 
@@ -115,8 +148,7 @@ class AiModelRouter
             }
         }
 
-        // All models failed — return structured mock for development
-        return $this->mockResponse($capability);
+        return null;
     }
 
     // ─── Provider implementations ──────────────────────────────────────────────

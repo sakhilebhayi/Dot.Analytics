@@ -50,6 +50,7 @@ Route::prefix('v1')
             Route::get('connected', [PlatformController::class, 'connected']);
             Route::get('{platform}', [PlatformController::class, 'show']);
             Route::post('{platform}/connect', [PlatformController::class, 'connect']);
+            Route::post('{platform}/webhook-secret', [PlatformController::class, 'rotateWebhookSecret']);
             Route::delete('{platform}', [PlatformController::class, 'disconnect']);
         });
 

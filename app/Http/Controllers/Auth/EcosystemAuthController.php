@@ -13,7 +13,11 @@ class EcosystemAuthController extends Controller
 {
     public function handle(Request $request): RedirectResponse
     {
-        $accessToken = PersonalAccessToken::findToken($request->query('token'));
+        $plain = $request->query('token');
+
+        $accessToken = is_string($plain) && $plain !== ''
+            ? PersonalAccessToken::findToken($plain)
+            : null;
 
         abort_if(
             ! $accessToken
@@ -27,6 +31,19 @@ class EcosystemAuthController extends Controller
         $accessToken->delete();
 
         Auth::login($user);
+
+        // New session id on privilege change (prevents session fixation).
+        $request->session()->regenerate();
+
+        // A user arriving without a valid current team would otherwise land on a
+        // dashboard that has to guess. Keep a valid current team; otherwise fall
+        // back to their personal team, then any team they belong to.
+        if (! $user->currentTeam || ! $user->belongsToTeam($user->currentTeam)) {
+            $team = $user->personalTeam() ?? $user->allTeams()->first();
+            if ($team) {
+                $user->switchTeam($team);
+            }
+        }
 
         return redirect()->route('dashboard');
     }

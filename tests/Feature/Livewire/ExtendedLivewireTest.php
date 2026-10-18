@@ -103,8 +103,17 @@ class ExtendedLivewireTest extends TestCase
         Livewire::test(FeatureFlagsPanel::class)->assertStatus(200);
     }
 
+    /** Flags are global: only a platform operator may mutate them (a team owner may not). */
+    private function actAsOperator(): void
+    {
+        $this->user->forceFill(['is_platform_operator' => true])->save();
+        $this->actingAs($this->user->fresh());
+    }
+
     public function test_feature_flags_panel_create_saves_flag(): void
     {
+        $this->actAsOperator();
+
         Livewire::test(FeatureFlagsPanel::class)
             ->set('newKey', 'test-flag')
             ->set('newName', 'Test Flag')
@@ -115,6 +124,8 @@ class ExtendedLivewireTest extends TestCase
 
     public function test_feature_flags_panel_toggle_enables_flag(): void
     {
+        $this->actAsOperator();
+
         $flag = FeatureFlag::create(['key' => 'toggle', 'name' => 'Toggle', 'enabled_globally' => false]);
 
         Livewire::test(FeatureFlagsPanel::class)->call('toggle', $flag->id);
@@ -124,6 +135,8 @@ class ExtendedLivewireTest extends TestCase
 
     public function test_feature_flags_panel_toggle_disables_active_flag(): void
     {
+        $this->actAsOperator();
+
         $flag = FeatureFlag::create(['key' => 'on-flag', 'name' => 'On', 'enabled_globally' => true]);
 
         Livewire::test(FeatureFlagsPanel::class)->call('toggle', $flag->id);
@@ -133,6 +146,8 @@ class ExtendedLivewireTest extends TestCase
 
     public function test_feature_flags_panel_set_rollout(): void
     {
+        $this->actAsOperator();
+
         $flag = FeatureFlag::create(['key' => 'rollout', 'name' => 'Rollout']);
 
         Livewire::test(FeatureFlagsPanel::class)->call('setRollout', $flag->id, 75.0);

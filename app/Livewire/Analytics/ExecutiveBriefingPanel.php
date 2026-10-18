@@ -3,8 +3,10 @@
 namespace App\Livewire\Analytics;
 
 use App\Actions\Analytics\GenerateExecutiveBriefingAction;
+use App\Models\DataSource;
 use App\Models\ExecutiveBriefing;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
@@ -28,8 +30,19 @@ class ExecutiveBriefingPanel extends Component
             ->first();
     }
 
+    #[Computed]
+    public function hasData(): bool
+    {
+        $team = Auth::user()->currentTeam;
+
+        return $team !== null
+            && DataSource::where('team_id', $team->id)->where('status', 'connected')->exists();
+    }
+
     public function generate(): void
     {
+        Gate::authorize('generate-briefing');
+
         $this->generating = true;
 
         app(GenerateExecutiveBriefingAction::class)

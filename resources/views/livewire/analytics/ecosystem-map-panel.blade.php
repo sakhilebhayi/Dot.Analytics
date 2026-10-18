@@ -10,6 +10,15 @@
         </div>
     </div>
 
+    @if($issuedWebhookSecret)
+        <div class="mb-6 rounded-xl p-4" style="background:var(--panel);border:1px solid var(--gold);" data-testid="issued-secret">
+            <p style="font-size:0.85rem;font-weight:600;color:var(--paper);margin:0 0 0.2rem;">Webhook secret for {{ $issuedForPlatform }}</p>
+            <p style="font-size:0.75rem;color:var(--mist);margin:0 0 0.6rem;">Sign every ingest request with HMAC-SHA256 using this secret. It is shown once and cannot be retrieved later.</p>
+            <code class="font-mono" style="font-size:0.8rem;color:var(--gold-soft);word-break:break-all;">{{ $issuedWebhookSecret }}</code>
+            <div class="mt-3"><button wire:click="dismissSecret" class="press" style="background:transparent;color:var(--mist);border:1px solid var(--line);padding:0.35rem 0.8rem;border-radius:0.35rem;font-size:0.75rem;">I have stored it</button></div>
+        </div>
+    @endif
+
     {{-- Connect modal --}}
     @if($connectingPlatform)
         @php $cp = $this->platformCatalog[$connectingPlatform]; @endphp
@@ -52,7 +61,9 @@
                 </div>
                 <p style="font-size:0.72rem;color:var(--mist);line-height:1.3;">{{ $platform['description'] }}</p>
                 <div class="mt-auto">
-                    @if($connected)
+                    @cannot('manage-platforms')
+                        {{-- Plain members are read-only --}}
+                    @elseif($connected)
                         <button
                             wire:click="disconnect('{{ $key }}')"
                             wire:confirm="Disconnect {{ $platform['label'] }}? Intelligence data already collected will be preserved."

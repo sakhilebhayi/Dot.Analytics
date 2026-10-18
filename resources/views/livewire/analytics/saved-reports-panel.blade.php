@@ -5,11 +5,13 @@
             <h3 class="font-display" style="font-size:1.1rem;font-weight:700;color:var(--paper);margin:0;">Saved Reports</h3>
             <p style="font-size:0.75rem;color:var(--mist);margin:0.3rem 0 0;">Define, run, and re-run analytics reports on demand</p>
         </div>
+        @can('manage-reports')
         <button
             wire:click="$toggle('showCreate')"
             class="press"
             style="font-size:0.72rem;padding:0.4rem 0.85rem;background:{{ $showCreate ? 'transparent' : 'var(--gold)' }};color:{{ $showCreate ? 'var(--paper)' : 'var(--ink)' }};border:1px solid {{ $showCreate ? 'var(--line)' : 'transparent' }};border-radius:0.4rem;font-weight:600;"
         >{{ $showCreate ? 'Cancel' : '+ New Report' }}</button>
+        @endcan
     </div>
 
     @if($showCreate)
@@ -88,12 +90,14 @@
                                 Run
                             @endif
                         </button>
+                        @can('manage-reports')
                         <button
                             wire:click="delete({{ $report->id }})"
                             wire:confirm="Delete '{{ $report->title }}'?"
                             style="font-size:0.75rem;color:var(--mist);background:none;border:none;cursor:pointer;padding:0 0.25rem;"
                             onmouseover="this.style.color='var(--danger)'" onmouseout="this.style.color='var(--mist)'"
                         >&#10005;</button>
+                        @endcan
                     </div>
                 </div>
             @endforeach

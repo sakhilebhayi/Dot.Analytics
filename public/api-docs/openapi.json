@@ -638,6 +638,46 @@
                 ]
             }
         },
+        "/v1/platforms/{platform}/webhook-secret": {
+            "post": {
+                "tags": [
+                    "Platforms"
+                ],
+                "summary": "Rotate the ingest webhook secret (returned once). Owner/admin only.",
+                "operationId": "platform-webhook-secret",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/Unprocessable"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/TooManyRequests"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "platform",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ]
+            }
+        },
         "/v1/platforms/{platform}/connect": {
             "post": {
                 "tags": [

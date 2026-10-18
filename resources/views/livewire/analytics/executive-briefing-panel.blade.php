@@ -15,6 +15,7 @@
                     >{{ $label }}</button>
                 @endforeach
             </div>
+            @can('generate-briefing')
             <button
                 wire:click="generate"
                 wire:loading.attr="disabled"
@@ -25,13 +26,24 @@
                 <span wire:loading.remove wire:target="generate">Generate</span>
                 <span wire:loading wire:target="generate">Queuing&hellip;</span>
             </button>
+            @endcan
         </div>
     </div>
 
     @if(! $this->briefing)
         <div class="text-center py-10 rounded-xl" style="border:1px dashed var(--line);">
-            <p style="font-size:0.85rem;color:var(--mist);">No {{ $period }} briefing available.</p>
-            <p style="font-size:0.75rem;color:var(--mist);margin-top:0.25rem;">Click <strong style="color:var(--paper);">Generate</strong> to create one, or it will run automatically on schedule.</p>
+            @if(! $this->hasData)
+                <p style="font-size:0.85rem;color:var(--mist);">No data connected yet.</p>
+                <p style="font-size:0.75rem;color:var(--mist);margin-top:0.25rem;">Briefings summarise insights derived from your platforms' data. Connect a platform first.</p>
+            @else
+                <p style="font-size:0.85rem;color:var(--mist);">No {{ $period }} briefing available.</p>
+                <p style="font-size:0.75rem;color:var(--mist);margin-top:0.25rem;">Generate one, or it will run automatically on schedule.</p>
+            @endif
+        </div>
+    @elseif($this->briefing->isUnavailable())
+        <div class="text-center py-10 rounded-xl" style="border:1px dashed var(--line);" data-testid="briefing-unavailable">
+            <p style="font-size:0.85rem;color:var(--paper);font-weight:600;">Briefing unavailable</p>
+            <p style="font-size:0.75rem;color:var(--mist);margin-top:0.25rem;">{{ $this->briefing->status_reason ?: 'No briefing could be produced from the available data.' }}</p>
         </div>
     @elseif($this->briefing->status === 'generating')
         <div class="flex items-center gap-3 py-8 justify-center">

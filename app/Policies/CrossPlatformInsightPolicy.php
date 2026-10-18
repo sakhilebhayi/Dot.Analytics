@@ -22,7 +22,10 @@ class CrossPlatformInsightPolicy
 
     public function update(User $user, CrossPlatformInsight $insight): bool
     {
-        return $user->currentTeam?->id === $insight->team_id;
+        // Reviewing/dismissing changes what the whole team sees: owner/admin only.
+        $team = $user->currentTeam;
+
+        return $team?->id === $insight->team_id && $user->administersTeam($team);
     }
 
     public function delete(User $user, CrossPlatformInsight $insight): bool

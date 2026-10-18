@@ -4,6 +4,7 @@
             <p class="font-mono" style="font-size:0.65rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--gold-soft);margin:0 0 0.35rem;">Recommendations</p>
             <h3 class="font-display" style="font-size:1.1rem;font-weight:700;color:var(--paper);margin:0;">AI Recommendations</h3>
         </div>
+        @can('run-intelligence-engines')
         <button
             wire:click="generate"
             class="press"
@@ -14,10 +15,15 @@
             <span wire:loading.remove wire:target="generate">Generate</span>
             <span wire:loading wire:target="generate">Analysing&hellip;</span>
         </button>
+        @endcan
     </div>
 
+    @if($notice)
+        <p class="mb-3" style="font-size:0.75rem;color:var(--gold-soft);" data-testid="generate-notice">{{ $notice }}</p>
+    @endif
+
     @if($this->recommendations->isEmpty())
-        <p style="font-size:0.85rem;color:var(--mist);padding:1rem 0;text-align:center;">No pending recommendations. Click Generate to run the intelligence engines.</p>
+        <p style="font-size:0.85rem;color:var(--mist);padding:1rem 0;text-align:center;">No pending recommendations.</p>
     @else
         <ul class="space-y-3">
             @foreach($this->recommendations as $rec)

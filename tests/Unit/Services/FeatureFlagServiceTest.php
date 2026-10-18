@@ -25,6 +25,15 @@ class FeatureFlagServiceTest extends TestCase
         return User::factory()->withPersonalTeam()->create();
     }
 
+    /** Mutations require a platform operator (see FeatureFlagOperatorTest for the refusal cases). */
+    private function operator(): User
+    {
+        $user = $this->user();
+        $user->forceFill(['is_platform_operator' => true])->save();
+
+        return $user->fresh();
+    }
+
     public function test_is_enabled_returns_false_for_nonexistent_flag(): void
     {
         $this->assertFalse($this->service->isEnabled('nonexistent'));
@@ -101,7 +110,7 @@ class FeatureFlagServiceTest extends TestCase
     {
         FeatureFlag::create(['key' => 'toggle', 'name' => 'Toggle']);
 
-        $this->service->enable('toggle');
+        $this->service->enable('toggle', $this->operator());
 
         $this->assertDatabaseHas('feature_flags', ['key' => 'toggle', 'enabled_globally' => true]);
     }
@@ -110,7 +119,7 @@ class FeatureFlagServiceTest extends TestCase
     {
         FeatureFlag::create(['key' => 'on', 'name' => 'On', 'enabled_globally' => true]);
 
-        $this->service->disable('on');
+        $this->service->disable('on', $this->operator());
 
         $this->assertDatabaseHas('feature_flags', ['key' => 'on', 'enabled_globally' => false]);
     }
@@ -119,7 +128,7 @@ class FeatureFlagServiceTest extends TestCase
     {
         FeatureFlag::create(['key' => 'grad', 'name' => 'Gradual']);
 
-        $this->service->setRollout('grad', 75.0);
+        $this->service->setRollout('grad', 75.0, $this->operator());
 
         $this->assertDatabaseHas('feature_flags', ['key' => 'grad', 'rollout_percentage' => 75.0]);
     }
@@ -127,7 +136,7 @@ class FeatureFlagServiceTest extends TestCase
     public function test_set_rollout_clamps_to_100(): void
     {
         FeatureFlag::create(['key' => 'clamp', 'name' => 'Clamp']);
-        $this->service->setRollout('clamp', 150.0);
+        $this->service->setRollout('clamp', 150.0, $this->operator());
 
         $this->assertDatabaseHas('feature_flags', ['key' => 'clamp', 'rollout_percentage' => 100.0]);
     }

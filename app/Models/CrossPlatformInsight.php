@@ -19,6 +19,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string $severity
  * @property string $status
  * @property array|null $supporting_metrics
+ * @property array|null $provenance Snapshot ids / window / engine run the insight was derived from
  */
 class CrossPlatformInsight extends Model
 {
@@ -27,13 +28,14 @@ class CrossPlatformInsight extends Model
     protected $fillable = [
         'team_id', 'title', 'narrative', 'platforms_involved',
         'entities_involved', 'insight_type', 'confidence', 'severity',
-        'status', 'supporting_metrics',
+        'status', 'supporting_metrics', 'provenance',
     ];
 
     protected $casts = [
         'platforms_involved' => 'array',
         'entities_involved' => 'array',
         'supporting_metrics' => 'array',
+        'provenance' => 'array',
         'confidence' => 'float',
     ];
 

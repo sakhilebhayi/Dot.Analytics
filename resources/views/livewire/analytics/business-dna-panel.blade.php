@@ -10,6 +10,7 @@
                 @endif
             </p>
         </div>
+        @can('run-intelligence-engines')
         <button
             wire:click="compute"
             wire:loading.attr="disabled"
@@ -20,12 +21,13 @@
             <span wire:loading.remove wire:target="compute">Recompute DNA</span>
             <span wire:loading wire:target="compute">Computing&hellip;</span>
         </button>
+        @endcan
     </div>
 
     @if(! $this->profile)
         <div class="text-center py-8">
-            <p style="font-size:0.85rem;color:var(--mist);">No DNA profile computed yet.</p>
-            <p style="font-size:0.75rem;color:var(--mist);margin-top:0.25rem;">Connect at least one platform and click <strong style="color:var(--paper);">Recompute DNA</strong>.</p>
+            <p style="font-size:0.85rem;color:var(--mist);">No data connected yet.</p>
+            <p style="font-size:0.75rem;color:var(--mist);margin-top:0.25rem;">Connect a platform and let it push data, then an owner or admin can recompute the DNA profile.</p>
         </div>
     @else
         @php $profile = $this->profile; @endphp

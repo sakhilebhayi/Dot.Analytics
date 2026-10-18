@@ -8,6 +8,7 @@ use App\Services\ReportGenerationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 
 /**
  * Saved Reports Controller — v1
@@ -30,6 +31,8 @@ class SavedReportController extends BaseApiController
      */
     public function index(): JsonResponse
     {
+        $this->currentTeam();
+
         $reports = AnalyticsReport::with('latestRun')
             ->orderByDesc('created_at')
             ->get();
@@ -45,6 +48,8 @@ class SavedReportController extends BaseApiController
      */
     public function store(Request $request): JsonResponse
     {
+        Gate::authorize('manage-reports');
+
         $validated = $request->validate([
             'title' => 'required|string|max:120',
             'type' => 'required|string|in:'.implode(',', self::VALID_TYPES),
@@ -104,6 +109,8 @@ class SavedReportController extends BaseApiController
      */
     public function runs(int $id): JsonResponse
     {
+        $this->currentTeam();
+
         $report = AnalyticsReport::findOrFail($id);
 
         $runs = ReportRun::where('analytics_report_id', $report->id)
@@ -119,6 +126,8 @@ class SavedReportController extends BaseApiController
      */
     public function destroy(int $id): JsonResponse
     {
+        Gate::authorize('manage-reports');
+
         $report = AnalyticsReport::findOrFail($id);
         $report->delete();
 

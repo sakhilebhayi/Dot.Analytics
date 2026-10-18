@@ -6,6 +6,7 @@ use App\Models\DataConnector;
 use App\Services\AiSqlService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 /**
  * AI SQL Controller — v1
@@ -30,6 +31,8 @@ class SqlController extends BaseApiController
      */
     public function query(Request $request): JsonResponse
     {
+        Gate::authorize('execute-sql-query');
+
         $validated = $request->validate([
             'question' => 'required|string|min:5|max:500',
             'connector_id' => 'required|integer|exists:data_connectors,id',
@@ -67,6 +70,8 @@ class SqlController extends BaseApiController
      */
     public function generate(Request $request): JsonResponse
     {
+        Gate::authorize('execute-sql-query');
+
         $validated = $request->validate([
             'question' => 'required|string|min:5|max:500',
             'connector_id' => 'required|integer|exists:data_connectors,id',

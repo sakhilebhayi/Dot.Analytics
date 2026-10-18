@@ -177,6 +177,7 @@ class GenerateOpenApiCommand extends Command
             '/v1/platforms' => $this->get('Platforms', 'List the full Dot platform catalog with connection status.', 'platforms-catalog'),
             '/v1/platforms/connected' => $this->get('Platforms', 'List only connected platforms.', 'platforms-connected'),
             '/v1/platforms/{platform}' => $this->getParam('Platforms', 'Get a connected platform by key.', 'platform-show', 'platform'),
+            '/v1/platforms/{platform}/webhook-secret' => $this->postParam('Platforms', 'Rotate the ingest webhook secret (returned once). Owner/admin only.', 'platform-webhook-secret', 'platform', []),
             '/v1/platforms/{platform}/connect' => $this->postParam('Platforms', 'Connect a Dot platform.', 'platform-connect', 'platform', ['base_url' => ['type' => 'string', 'format' => 'uri']]),
 
             // Metrics

@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\FeatureFlag;
 use App\Models\User;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 
@@ -17,6 +18,10 @@ use Illuminate\Support\Facades\Cache;
  *  - Per-user enablement
  *  - Gradual rollout by percentage (deterministic via user ID hash)
  *  - Environment-scoped flags
+ *
+ * Flags are GLOBAL (one row set shared by every tenant), so every mutation
+ * requires a platform operator ($actor->is_platform_operator); a team role
+ * (owner/admin) never qualifies. Reads are open to any caller.
  *
  * Results are cached per-flag for 60 seconds to reduce database load.
  */
@@ -72,30 +77,63 @@ class FeatureFlagService
     }
 
     /**
-     * Enable a flag globally.
+     * Create a flag. Platform operators only.
+     *
+     * @param  array<string, mixed>  $attributes
+     *
+     * @throws AuthorizationException
      */
-    public function enable(string $key): void
+    public function create(array $attributes, User $actor): FeatureFlag
     {
+        $this->assertOperator($actor);
+
+        return FeatureFlag::create($attributes);
+    }
+
+    /**
+     * Enable a flag globally. Platform operators only.
+     *
+     * @throws AuthorizationException
+     */
+    public function enable(string $key, User $actor): void
+    {
+        $this->assertOperator($actor);
+
         FeatureFlag::where('key', $key)->update(['enabled_globally' => true]);
         $this->bust($key);
     }
 
     /**
-     * Disable a flag globally.
+     * Disable a flag globally. Platform operators only.
+     *
+     * @throws AuthorizationException
      */
-    public function disable(string $key): void
+    public function disable(string $key, User $actor): void
     {
+        $this->assertOperator($actor);
+
         FeatureFlag::where('key', $key)->update(['enabled_globally' => false]);
         $this->bust($key);
     }
 
     /**
-     * Set the rollout percentage for gradual deployment.
+     * Set the rollout percentage for gradual deployment. Platform operators only.
+     *
+     * @throws AuthorizationException
      */
-    public function setRollout(string $key, float $percentage): void
+    public function setRollout(string $key, float $percentage, User $actor): void
     {
+        $this->assertOperator($actor);
+
         FeatureFlag::where('key', $key)->update(['rollout_percentage' => min(100, max(0, $percentage))]);
         $this->bust($key);
+    }
+
+    private function assertOperator(User $actor): void
+    {
+        if (! $actor->isPlatformOperator()) {
+            throw new AuthorizationException('Only platform operators can change feature flags.');
+        }
     }
 
     /**
