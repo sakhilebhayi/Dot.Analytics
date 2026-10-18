@@ -388,7 +388,7 @@ class ViewerRoleMatrixTest extends TestCase
                     'create dashboard' => Livewire::actingAs($user)->test(DashboardBuilderPanel::class)->set('newDashboardTitle', 'Sneaky Board')->call('createDashboard'),
                     'set default dashboard' => Livewire::actingAs($user)->test(DashboardBuilderPanel::class)->call('setDefault', $r['dashboard']->id),
                     'delete dashboard' => Livewire::actingAs($user)->test(DashboardBuilderPanel::class)->call('deleteDashboard', $r['dashboard']->id),
-                    'add widget' => Livewire::actingAs($user)->test(DashboardBuilderPanel::class)->set('activeDashboardId', $r['dashboard']->id)->set('widgetType', 'chart')->call('addWidget'),
+                    'add widget' => Livewire::actingAs($user)->test(DashboardBuilderPanel::class)->set('activeDashboardId', $r['dashboard']->id)->set('widgetType', 'kpi')->set('widgetMetric', 'tasks.open')->call('addWidget'),
                     'remove widget' => Livewire::actingAs($user)->test(DashboardBuilderPanel::class)->call('removeWidget', $r['widget']->id),
                     'ask intelligence' => Livewire::actingAs($user)->test(IntelligenceDashboard::class)->set('intelligenceQuery', 'Why are orders down this month?')->call('askIntelligence'),
                     'create flag' => Livewire::actingAs($user)->test(FeatureFlagsPanel::class)->set('newKey', 'sneaky.flag')->set('newName', 'Sneaky')->call('create'),

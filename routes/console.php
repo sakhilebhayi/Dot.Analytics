@@ -4,6 +4,7 @@ use App\Console\Commands\ComputeMetricsCommand;
 use App\Console\Commands\GenerateBriefingsCommand;
 use App\Console\Commands\RecomputeDnaCommand;
 use App\Console\Commands\RunIntelligenceEnginesCommand;
+use App\Console\Commands\RunScheduledReportsCommand;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -54,3 +55,10 @@ Schedule::command(RecomputeDnaCommand::class)
     ->withoutOverlapping()
     ->onOneServer()
     ->description('Recompute Business DNA profiles');
+
+// Run saved reports whose cron_expression is due. Every minute, so a schedule is
+// honoured to the minute; the command itself runs a report at most once per minute.
+Schedule::command(RunScheduledReportsCommand::class)->everyMinute()
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->description('Run due scheduled reports');

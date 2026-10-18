@@ -43,4 +43,15 @@ class MetricFormatTest extends TestCase
         $this->assertSame('-12.5%', MetricFormat::percent(-12.5));
         $this->assertSame('0%', MetricFormat::percent(0));
     }
+
+    public function test_axis_labels_are_short(): void
+    {
+        $this->assertSame('0', MetricFormat::axis(0, 'count'));
+        $this->assertSame('42', MetricFormat::axis(42, 'count'));
+        $this->assertSame('12.5k', MetricFormat::axis(12500, 'count'));
+        $this->assertSame('1.2M', MetricFormat::axis(1_234_567, 'count'));
+        $this->assertSame('1,250', MetricFormat::axis(125000, 'cents'));
+        $this->assertSame('4.5', MetricFormat::axis(4.5, 'rating'));
+        $this->assertSame('2.5', MetricFormat::axis(2.5, 'quantity'));
+    }
 }

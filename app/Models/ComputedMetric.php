@@ -34,21 +34,25 @@ class ComputedMetric extends Model
         'is_demo' => 'boolean',
     ];
 
+    /** @return BelongsTo<Team, $this> */
     public function team(): BelongsTo
     {
         return $this->belongsTo(Team::class);
     }
 
+    /** @return BelongsTo<MetricDefinition, $this> */
     public function metricDefinition(): BelongsTo
     {
         return $this->belongsTo(MetricDefinition::class, 'metric_definition_id');
     }
 
+    /** @return BelongsTo<MetricDefinition, $this> */
     public function definition(): BelongsTo
     {
         return $this->metricDefinition();
     }
 
+    /** @return BelongsTo<AnalyticsSnapshot, $this> */
     public function snapshot(): BelongsTo
     {
         return $this->belongsTo(AnalyticsSnapshot::class, 'snapshot_id');

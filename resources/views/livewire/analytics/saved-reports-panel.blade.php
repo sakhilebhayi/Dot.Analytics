@@ -36,12 +36,18 @@
                 <label class="font-mono" style="display:block;font-size:0.62rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--mist);margin-bottom:0.35rem;">Description (optional)</label>
                 <input wire:model="description" type="text" placeholder="Brief description of this report" class="w-full rounded-lg px-3 py-2 text-sm focus:outline-none" style="background:var(--ink-soft);border:1px solid var(--line);color:var(--paper);" />
             </div>
+            <div>
+                <label class="font-mono" style="display:block;font-size:0.62rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--mist);margin-bottom:0.35rem;">Schedule (optional)</label>
+                <input wire:model="schedule" type="text" placeholder="0 6 * * 1" class="font-mono w-full rounded-lg px-3 py-2 text-sm focus:outline-none" style="background:var(--ink-soft);border:1px solid var(--line);color:var(--paper);" />
+                <p style="font-size:0.68rem;color:var(--mist);margin:0.3rem 0 0;">A cron expression, read in your team's timezone. <span class="font-mono">0 6 * * 1</span> is Mondays at 06:00. Each scheduled run is kept in the report's run history; nothing is emailed. Leave blank to run on demand only.</p>
+                @error('schedule') <p style="color:var(--danger);font-size:0.7rem;margin-top:0.25rem;">{{ $message }}</p> @enderror
+            </div>
             <button type="submit" class="press" style="background:var(--gold);color:var(--ink);padding:0.5rem 1rem;border-radius:0.4rem;font-size:0.8rem;font-weight:600;">Save Report</button>
         </form>
     @endif
 
     @if($this->reports->isEmpty())
-        <p style="font-size:0.85rem;color:var(--mist);text-align:center;padding:1.5rem 0;">No saved reports yet. Create one to enable scheduled runs and history tracking.</p>
+        <p style="font-size:0.85rem;color:var(--mist);text-align:center;padding:1.5rem 0;">No saved reports yet. Create one to run it on demand or on a schedule, with its history kept.</p>
     @else
         <div class="space-y-2">
             @foreach($this->reports as $report)
@@ -54,6 +60,9 @@
                                 {{ ucfirst($report->config['report_type'] ?? 'insights') }}
                             </span>
                         </div>
+                        @if($report->cron_expression)
+                            <p style="font-size:0.7rem;color:var(--mist);margin:0.1rem 0 0;">Runs on schedule: <span class="font-mono" style="color:var(--paper);">{{ $report->cron_expression }}</span> ({{ $report->team?->timezone ?? 'UTC' }})</p>
+                        @endif
                         @if($report->description)
                             <p style="font-size:0.72rem;color:var(--mist);opacity:0.8;" class="truncate">{{ $report->description }}</p>
                         @endif

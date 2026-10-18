@@ -49,6 +49,22 @@ final class MetricFormat
         return ($number > 0 ? '+' : ($number < 0 ? '-' : '')).self::trimmed(abs($number), 1).'%';
     }
 
+    /** A short label for a chart axis: no currency symbol (the chart says it once), 1.2k / 3.4M. */
+    public static function axis(float|int $value, ?string $type): string
+    {
+        $number = $type === 'cents' ? $value / 100 : (float) $value;
+        $abs = abs($number);
+
+        $text = match (true) {
+            $abs >= 1_000_000 => self::trimmed($number / 1_000_000, 1).'M',
+            $abs >= 10_000 => self::trimmed($number / 1_000, 1).'k',
+            $type === 'rating' => number_format($number, 1),
+            default => self::trimmed($number, $abs < 10 && floor($abs) !== $abs ? 1 : 0),
+        };
+
+        return $text;
+    }
+
     private static function trimmed(float $number, int $decimals): string
     {
         $text = number_format($number, $decimals);

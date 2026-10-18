@@ -33,12 +33,12 @@
                     <div>
                         <div class="font-display" style="font-size:2rem;font-weight:700;color:var(--paper);line-height:1;">{{ $connectedCount }}</div>
                         <p class="font-mono" style="font-size:0.62rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--gold-soft);margin:0.5rem 0 0.2rem;">Platforms</p>
-                        <p style="font-size:0.72rem;color:var(--mist);margin:0;">of 15 connected</p>
+                        <p style="font-size:0.72rem;color:var(--mist);margin:0;">of {{ $platformTotal }} connected</p>
                     </div>
                     <div>
                         <div class="font-display" style="font-size:2rem;font-weight:700;color:var(--paper);line-height:1;">{{ $activeEngineCount }}</div>
                         <p class="font-mono" style="font-size:0.62rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--gold-soft);margin:0.5rem 0 0.2rem;">Engines</p>
-                        <p style="font-size:0.72rem;color:var(--mist);margin:0;">of 17 active</p>
+                        <p style="font-size:0.72rem;color:var(--mist);margin:0;">active, of {{ $engineTotal }} possible</p>
                     </div>
                     <div>
                         <div class="font-display" style="font-size:2rem;font-weight:700;color:{{ $openAlertCount > 0 ? '#f08a6c' : 'var(--paper)' }};line-height:1;">{{ $openAlertCount }}</div>
@@ -53,8 +53,18 @@
                 </div>
             </div>
 
-            {{-- Ecosystem Intelligence Map --}}
+            {{-- Platform metrics: the real numbers, first --}}
             <div style="background:var(--ink-soft);">
+                <livewire:analytics.metrics-panel />
+            </div>
+
+            {{-- Saved dashboards built from those metrics --}}
+            <div style="background:var(--ink-soft);">
+                <livewire:analytics.dashboard-builder-panel />
+            </div>
+
+            {{-- Ecosystem Intelligence Map: where platforms are connected --}}
+            <div id="connected-platforms" style="background:var(--ink-soft);">
                 <livewire:analytics.ecosystem-map-panel />
             </div>
 

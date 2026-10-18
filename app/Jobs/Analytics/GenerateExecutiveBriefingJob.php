@@ -6,6 +6,7 @@ use App\Models\ExecutiveBriefing;
 use App\Models\Team;
 use App\Services\AiModelRouter;
 use App\Services\IntelligenceEngineService;
+use App\Services\Metrics\MetricsContextBuilder;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 
@@ -28,7 +29,7 @@ class GenerateExecutiveBriefingJob implements ShouldQueue
         public readonly string $periodDate = '',
     ) {}
 
-    public function handle(AiModelRouter $aiRouter, IntelligenceEngineService $engineService): void
+    public function handle(AiModelRouter $aiRouter, IntelligenceEngineService $engineService, ?MetricsContextBuilder $metricsBuilder = null): void
     {
         $team = Team::find($this->teamId);
         if (! $team) {
@@ -55,11 +56,13 @@ class GenerateExecutiveBriefingJob implements ShouldQueue
             ->limit(10)
             ->get();
 
-        // A briefing summarises insights that were derived from real data. With
-        // none (or no provider) there is nothing truthful to say: record that the
-        // briefing is unavailable rather than storing placeholder text as one.
-        if ($insights->isEmpty()) {
-            $this->markUnavailable($briefing, 'No data connected yet: there are no insights to summarise. Connect a platform, let it push data, then run the engines.');
+        $metrics = ($metricsBuilder ?? new MetricsContextBuilder)->build($team);
+
+        // A briefing summarises real insights and real computed metrics. With neither
+        // (or no provider) there is nothing truthful to say: record that the briefing
+        // is unavailable rather than storing placeholder text as one.
+        if ($insights->isEmpty() && ! $metrics['has_data']) {
+            $this->markUnavailable($briefing, 'No data yet: there are no insights and no reported metrics to summarise. Connect a platform and let it send a snapshot.');
 
             return;
         }
@@ -70,19 +73,22 @@ class GenerateExecutiveBriefingJob implements ShouldQueue
             return;
         }
 
-        $recentInsights = $insights
-            ->map(fn ($i) => "- [{$i->severity}] {$i->title}: {$i->narrative}")
-            ->join("\n");
+        $recentInsights = $insights->isEmpty()
+            ? '(none)'
+            : $insights->map(fn ($i) => "- [{$i->severity}] {$i->title}: {$i->narrative}")->join("\n");
 
         $prompt = <<<PROMPT
 You are Dot.Analytics preparing an executive {$this->period} intelligence briefing for {$team->name}.
 
 Organisation has {$this->countOf($connected)} connected platforms and {$this->countOf(array_keys($activeEngines))} active intelligence engines.
 
-Insights derived from the organisation's real ingested data (use ONLY these; do not invent facts):
+Insights derived from the organisation's real ingested data (use ONLY these and the metrics below; do not invent facts):
 {$recentInsights}
 
-Generate a concise executive briefing grounded strictly in the insights above. Return JSON only:
+Real computed metrics (latest value and change since the previous report; "no data yet" and STALE entries must not be treated as current):
+{$metrics['block']}
+
+Generate a concise executive briefing grounded strictly in the insights and metrics above. Return JSON only:
 {
   "summary": "2-3 sentence executive summary",
   "highlights": ["positive signal 1", "positive signal 2"],
@@ -119,6 +125,8 @@ PROMPT;
             'insight_count' => $insights->count(),
             'provenance' => [
                 'insight_ids' => $insights->pluck('id')->sort()->values()->all(),
+                'metric_keys' => $metrics['metric_keys'],
+                'alert_ids' => $metrics['alert_ids'],
                 'generated_at' => now()->toIso8601String(),
             ],
         ]);

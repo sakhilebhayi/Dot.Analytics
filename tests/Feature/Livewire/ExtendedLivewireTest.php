@@ -10,6 +10,7 @@ use App\Livewire\Analytics\SavedReportsPanel;
 use App\Models\AnalyticsDashboard;
 use App\Models\AnalyticsReport;
 use App\Models\DashboardWidget;
+use App\Models\DataSource;
 use App\Models\FeatureFlag;
 use App\Models\Recommendation;
 use App\Models\User;
@@ -289,14 +290,17 @@ class ExtendedLivewireTest extends TestCase
             'is_default' => true,
         ]);
 
+        DataSource::factory()->create(['team_id' => $this->team()->id, 'platform' => 'tasks', 'status' => 'connected']);
+
         Livewire::test(DashboardBuilderPanel::class)
             ->set('activeDashboardId', $dashboard->id)
-            ->set('widgetType', 'metric_card')
+            ->set('widgetType', 'kpi')
+            ->set('widgetMetric', 'tasks.open')
             ->call('addWidget');
 
         $this->assertDatabaseHas('dashboard_widgets', [
             'analytics_dashboard_id' => $dashboard->id,
-            'widget_type' => 'metric_card',
+            'widget_type' => 'kpi',
         ]);
     }
 

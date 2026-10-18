@@ -216,8 +216,12 @@ median, MAD, threshold, the prior points used). No AI is involved.
 
 ## Cron and queue requirements
 
-* The Laravel scheduler must run every minute (`* * * * * php artisan schedule:run`). It runs `analytics:compute-metrics` hourly, which computes metrics and then checks them for anomalies.
+* The Laravel scheduler must run every minute (`* * * * * php artisan schedule:run`). It runs `analytics:compute-metrics` hourly, which computes metrics and then checks them for anomalies, and `analytics:run-scheduled-reports` every minute, which runs saved reports whose cron expression is due (read in the team timezone; each run is kept in the report's run history, nothing is emailed).
 * A queue worker must run for the `ComputeMetricsJob` that refreshes a team's tiles right after a snapshot arrives. Without a worker the hourly run still computes everything.
+
+## Who reads the numbers
+
+The dashboard (KPI tiles, trends, saved dashboards) reads computed metrics. Executive briefings and Business DNA are written by an AI model from these same computed metrics and the real snapshots, only when a provider is configured; with no data, or no provider, they say so and store nothing. A metric that was never reported reaches the model as "no data yet", a stale one as STALE.
 
 ## Not part of this contract
 

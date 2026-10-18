@@ -67,7 +67,7 @@ class ComputeMetrics
     }
 
     /**
-     * @return array<string, array{metrics_written: int, metrics_seen: int, stale_metrics: int, platforms: int}>
+     * @return array<int, array{metrics_written: int, metrics_seen: int, stale_metrics: int, platforms: int}> keyed by team id
      */
     public function forAllTeams(): array
     {

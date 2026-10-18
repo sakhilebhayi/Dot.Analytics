@@ -12,6 +12,9 @@ class AnalyticsReport extends Model
 {
     use HasTeamScope;
 
+    /** The kinds of data a report can contain. */
+    public const REPORT_TYPES = ['insights', 'alerts', 'recommendations', 'metrics'];
+
     protected $table = 'analytics_reports';
 
     protected $fillable = [
@@ -22,6 +25,22 @@ class AnalyticsReport extends Model
         'config' => 'array',
     ];
 
+    /**
+     * What this report contains. The panel stores it in config.report_type; the
+     * API stores it in `type` (insights, alerts ...). Null when neither says.
+     */
+    public function reportType(): ?string
+    {
+        foreach ([$this->config['report_type'] ?? null, $this->type] as $candidate) {
+            if (is_string($candidate) && in_array($candidate, self::REPORT_TYPES, true)) {
+                return $candidate;
+            }
+        }
+
+        return is_string($this->config['report_type'] ?? null) ? null : 'insights';
+    }
+
+    /** @return BelongsTo<Team, $this> */
     public function team(): BelongsTo
     {
         return $this->belongsTo(Team::class);

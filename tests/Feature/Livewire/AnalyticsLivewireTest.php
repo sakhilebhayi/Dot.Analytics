@@ -249,12 +249,13 @@ class AnalyticsLivewireTest extends TestCase
         Livewire::test(BusinessDnaPanel::class)->assertStatus(200);
     }
 
-    public function test_business_dna_panel_compute_creates_profile(): void
+    public function test_business_dna_panel_compute_without_data_creates_no_profile(): void
     {
         Livewire::test(BusinessDnaPanel::class)
-            ->call('compute');
+            ->call('compute')
+            ->assertSee('No data yet');
 
-        $this->assertDatabaseHas('business_dna_profiles', [
+        $this->assertDatabaseMissing('business_dna_profiles', [
             'team_id' => $this->team()->id,
         ]);
     }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Models\AnalyticsReport;
 use App\Models\ReportRun;
 use App\Services\ReportGenerationService;
+use Cron\CronExpression;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -54,7 +55,11 @@ class SavedReportController extends BaseApiController
             'title' => 'required|string|max:120',
             'type' => 'required|string|in:'.implode(',', self::VALID_TYPES),
             'description' => 'nullable|string|max:500',
-            'cron_expression' => 'nullable|string|max:100',
+            'cron_expression' => ['nullable', 'string', 'max:100', function (string $attribute, mixed $value, \Closure $fail) {
+                if (! CronExpression::isValidExpression($value)) {
+                    $fail('The cron expression is not valid (five fields, e.g. "0 6 * * 1").');
+                }
+            }],
             'config' => 'nullable|array',
         ]);
 
@@ -87,7 +92,7 @@ class SavedReportController extends BaseApiController
         try {
             $output = $this->reportService->generateJson(
                 $team,
-                $report->type ?? 'insights',
+                $report->reportType() ?? 'insights',
                 $report->config ?? [],
             );
 

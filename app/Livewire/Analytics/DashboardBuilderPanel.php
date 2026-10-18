@@ -4,6 +4,7 @@ namespace App\Livewire\Analytics;
 
 use App\Models\AnalyticsDashboard;
 use App\Models\DashboardWidget;
+use App\Services\Metrics\MetricReader;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
@@ -14,12 +15,18 @@ use Livewire\Component;
 /**
  * Dashboard Builder Panel
  *
- * Allows teams to compose custom intelligence dashboards by adding,
- * configuring, and removing widgets. Supports metric cards, chart
- * placeholders, alert feeds, and recommendation feeds.
+ * Saved dashboards made of real metric widgets, and nothing else:
  *
- * Drag-and-drop reordering is handled client-side via Alpine.js + Sortable.js
- * and persists position via the `updatePositions` action.
+ *   kpi    one metric as a tile: value, change since the previous report, sparkline
+ *   trend  one metric's stored daily points as a chart
+ *
+ * Both read computed_metrics through MetricReader, so a widget can only ever show
+ * what a connected platform reported ("no data yet" otherwise). The earlier
+ * placeholder types (metric_card, chart, alert_feed ... ) rendered only their own
+ * name; they cannot be added any more and any that remain say they were retired.
+ *
+ * Everyone on the team reads; arranging needs the edit-dashboards gate (owner,
+ * admin, editor; not the read-only viewer).
  */
 class DashboardBuilderPanel extends Component
 {
@@ -30,25 +37,21 @@ class DashboardBuilderPanel extends Component
     public bool $showNewDashboard = false;
 
     // Widget form state
-    public string $widgetType = 'metric_card';
+    public string $widgetType = 'kpi';
+
+    public string $widgetMetric = '';
 
     public string $widgetTitle = '';
 
     public bool $showAddWidget = false;
 
     public const WIDGET_TYPES = [
-        'metric_card' => 'Metric Card',
-        'chart' => 'Chart',
-        'alert_feed' => 'Alert Feed',
-        'recommendation_feed' => 'Recommendation Feed',
-        'insight_feed' => 'Cross-Platform Insights',
-        'dna_snapshot' => 'Business DNA Snapshot',
-        'briefing_summary' => 'Executive Briefing Summary',
+        'kpi' => 'KPI tile',
+        'trend' => 'Trend chart',
     ];
 
     protected array $rules = [
         'newDashboardTitle' => 'required|string|max:120',
-        'widgetType' => 'required|string',
         'widgetTitle' => 'nullable|string|max:120',
     ];
 
@@ -75,9 +78,56 @@ class DashboardBuilderPanel extends Component
     {
         return $this->activeDashboard
             ? DashboardWidget::where('analytics_dashboard_id', $this->activeDashboard->id)
-                ->orderBy('row')->orderBy('col')
+                ->orderBy('row')->orderBy('col')->orderBy('id')
                 ->get()
             : collect();
+    }
+
+    /**
+     * What each widget currently shows, keyed by widget id. A widget whose
+     * metric is gone (platform disconnected) gets 'unavailable'; an old
+     * placeholder type gets 'retired'. Nothing is ever filled in.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    #[Computed]
+    public function rendered(): array
+    {
+        $team = Auth::user()?->currentTeam;
+        $reader = app(MetricReader::class);
+        $out = [];
+
+        foreach ($this->widgets as $widget) {
+            if (! array_key_exists($widget->widget_type, self::WIDGET_TYPES)) {
+                $out[$widget->id] = ['kind' => 'retired'];
+
+                continue;
+            }
+
+            $key = (string) ($widget->config['metric_key'] ?? '');
+            $tile = $team ? $reader->tile($team, $key) : null;
+
+            if ($tile === null) {
+                $out[$widget->id] = ['kind' => 'unavailable', 'metric_key' => $key];
+
+                continue;
+            }
+
+            $out[$widget->id] = $widget->widget_type === 'trend'
+                ? ['kind' => 'trend', 'tile' => $tile, 'series' => $reader->series($team, $key, (int) ($widget->config['days'] ?? 30))]
+                : ['kind' => 'kpi', 'tile' => $tile];
+        }
+
+        return $out;
+    }
+
+    /** @return array<string, array<string, string>> platform label => [metric key => label] */
+    #[Computed]
+    public function pickable(): array
+    {
+        $team = Auth::user()?->currentTeam;
+
+        return $team ? app(MetricReader::class)->pickable($team) : [];
     }
 
     public function createDashboard(): void
@@ -104,7 +154,7 @@ class DashboardBuilderPanel extends Component
     public function selectDashboard(int $id): void
     {
         $this->activeDashboardId = $id;
-        unset($this->activeDashboard, $this->widgets);
+        unset($this->activeDashboard, $this->widgets, $this->rendered);
     }
 
     public function setDefault(int $id): void
@@ -126,38 +176,50 @@ class DashboardBuilderPanel extends Component
             $this->activeDashboardId = null;
         }
 
-        unset($this->dashboards, $this->activeDashboard, $this->widgets);
+        unset($this->dashboards, $this->activeDashboard, $this->widgets, $this->rendered);
     }
 
     public function addWidget(): void
     {
         Gate::authorize('edit-dashboards');
 
-        $this->validateOnly('widgetType');
+        $this->validate([
+            'widgetType' => 'required|in:'.implode(',', array_keys(self::WIDGET_TYPES)),
+            'widgetMetric' => 'required|string',
+            'widgetTitle' => 'nullable|string|max:120',
+        ], [
+            'widgetType.in' => 'Choose KPI tile or Trend chart.',
+            'widgetMetric.required' => 'Choose a metric.',
+        ]);
+
+        $label = $this->labelFor($this->widgetMetric);
+        if ($label === null) {
+            $this->addError('widgetMetric', 'That metric is not available: only metrics from connected platforms can be shown.');
+
+            return;
+        }
 
         $dashboard = $this->activeDashboard;
         if (! $dashboard) {
             return;
         }
 
-        // Place widget in next available grid position
-        $existingCount = DashboardWidget::where('analytics_dashboard_id', $dashboard->id)->count();
-        $col = ($existingCount * 4) % 12;
-        $row = (int) floor(($existingCount * 4) / 12);
+        // Place the widget in the next free slot of a three-wide grid
+        $position = DashboardWidget::where('analytics_dashboard_id', $dashboard->id)->count();
 
         DashboardWidget::create([
             'analytics_dashboard_id' => $dashboard->id,
             'widget_type' => $this->widgetType,
-            'title' => $this->widgetTitle ?: self::WIDGET_TYPES[$this->widgetType] ?? $this->widgetType,
-            'col' => $col,
-            'row' => $row,
-            'width' => 4,
+            'title' => $this->widgetTitle ?: $label,
+            'col' => ($position % 3) * 4,
+            'row' => intdiv($position, 3),
+            'width' => $this->widgetType === 'trend' ? 8 : 4,
             'height' => 2,
-            'config' => ['type' => $this->widgetType],
+            'config' => ['metric_key' => $this->widgetMetric],
         ]);
 
-        $this->reset(['widgetType', 'widgetTitle', 'showAddWidget']);
-        unset($this->widgets);
+        $this->reset(['widgetType', 'widgetMetric', 'widgetTitle', 'showAddWidget']);
+        unset($this->widgets, $this->rendered);
     }
 
     public function removeWidget(int $id): void
@@ -168,31 +230,55 @@ class DashboardBuilderPanel extends Component
             ->findOrFail($id)
             ->delete();
 
-        unset($this->widgets);
+        unset($this->widgets, $this->rendered);
     }
 
     /**
-     * Persist widget positions after drag-and-drop reorder.
-     * Called from Alpine.js with the new order as an array of IDs.
-     *
-     * @param  array<int, int>  $orderedIds
+     * Move a widget one place earlier or later. Positions are renumbered into a
+     * three-wide grid so the order is always unambiguous.
      */
-    public function updatePositions(array $orderedIds): void
+    public function moveWidget(int $id, string $direction): void
     {
         Gate::authorize('edit-dashboards');
 
-        foreach ($orderedIds as $position => $widgetId) {
-            DashboardWidget::whereHas('dashboard')->where('id', $widgetId)->update([
-                'row' => (int) floor($position / 3),
+        $widget = DashboardWidget::whereHas('dashboard')->findOrFail($id);
+
+        $ordered = DashboardWidget::where('analytics_dashboard_id', $widget->analytics_dashboard_id)
+            ->orderBy('row')->orderBy('col')->orderBy('id')
+            ->pluck('id')->all();
+
+        $index = array_search($widget->id, $ordered, true);
+        $target = $direction === 'earlier' ? $index - 1 : ($direction === 'later' ? $index + 1 : $index);
+
+        if ($index === false || $target === $index || $target < 0 || $target >= count($ordered)) {
+            return;
+        }
+
+        [$ordered[$index], $ordered[$target]] = [$ordered[$target], $ordered[$index]];
+
+        foreach ($ordered as $position => $widgetId) {
+            DashboardWidget::where('id', $widgetId)->update([
+                'row' => intdiv($position, 3),
                 'col' => ($position % 3) * 4,
             ]);
         }
 
-        unset($this->widgets);
+        unset($this->widgets, $this->rendered);
     }
 
     public function render(): View
     {
         return view('livewire.analytics.dashboard-builder-panel');
+    }
+
+    private function labelFor(string $key): ?string
+    {
+        foreach ($this->pickable as $metrics) {
+            if (array_key_exists($key, $metrics)) {
+                return $metrics[$key];
+            }
+        }
+
+        return null;
     }
 }

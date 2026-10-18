@@ -24,10 +24,14 @@
         @endcan
     </div>
 
+    @if($notice)
+        <p data-testid="dna-notice" style="font-size:0.78rem;color:var(--gold-soft);margin:0 0 1rem;border:1px solid var(--line);padding:0.6rem 0.8rem;">{{ $notice }}</p>
+    @endif
+
     @if(! $this->profile)
         <div class="text-center py-8">
-            <p style="font-size:0.85rem;color:var(--mist);">No data connected yet.</p>
-            <p style="font-size:0.75rem;color:var(--mist);margin-top:0.25rem;">Connect a platform and let it push data, then an owner or admin can recompute the DNA profile.</p>
+            <p style="font-size:0.85rem;color:var(--mist);">No data yet.</p>
+            <p style="font-size:0.75rem;color:var(--mist);margin-top:0.25rem;">The profile is written from what your connected platforms actually report. Connect a platform and let it send a snapshot, then an owner or admin can compute it.</p>
         </div>
     @else
         @php $profile = $this->profile; @endphp

@@ -5,6 +5,7 @@ namespace App\Livewire\Analytics;
 use App\Models\AnalyticsReport;
 use App\Models\ReportRun;
 use App\Services\ReportGenerationService;
+use Cron\CronExpression;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
@@ -22,6 +23,9 @@ class SavedReportsPanel extends Component
 
     public string $description = '';
 
+    /** Optional cron expression (five fields, read in the team's timezone). Blank = run on demand only. */
+    public string $schedule = '';
+
     public bool $running = false;
 
     public ?int $runningId = null;
@@ -30,6 +34,7 @@ class SavedReportsPanel extends Component
         'title' => 'required|string|max:120',
         'reportType' => 'required|in:insights,alerts,recommendations,metrics',
         'description' => 'nullable|string|max:500',
+        'schedule' => 'nullable|string|max:100',
     ];
 
     #[Computed]
@@ -46,6 +51,13 @@ class SavedReportsPanel extends Component
 
         $this->validate();
 
+        $schedule = trim($this->schedule);
+        if ($schedule !== '' && ! CronExpression::isValidExpression($schedule)) {
+            $this->addError('schedule', 'That is not a valid cron expression (five fields, e.g. 0 6 * * 1).');
+
+            return;
+        }
+
         if (! Auth::user()->currentTeam) {
             $this->addError('title', 'You need a team before creating reports.');
 
@@ -57,11 +69,12 @@ class SavedReportsPanel extends Component
             'user_id' => Auth::id(),
             'title' => $this->title,
             'description' => $this->description ?: null,
-            'type' => 'ad_hoc',
+            'type' => $schedule === '' ? 'ad_hoc' : 'scheduled',
+            'cron_expression' => $schedule === '' ? null : $schedule,
             'config' => ['report_type' => $this->reportType],
         ]);
 
-        $this->reset(['title', 'description', 'showCreate']);
+        $this->reset(['title', 'description', 'schedule', 'showCreate']);
         unset($this->reports);
     }
 
@@ -84,7 +97,7 @@ class SavedReportsPanel extends Component
         try {
             $output = app(ReportGenerationService::class)->generateJson(
                 $team,
-                $report->config['report_type'] ?? 'insights',
+                $report->reportType() ?? 'insights',
             );
 
             $run->update(['status' => 'completed', 'output' => $output, 'completed_at' => now()]);

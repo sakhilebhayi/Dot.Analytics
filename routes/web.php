@@ -58,7 +58,10 @@ Route::middleware([
 
         return view('dashboard', [
             'connectedCount' => count($connectedPlatforms),
+            'platformTotal' => count(IntelligenceEngineService::PLATFORMS),
             'activeEngineCount' => $activeEngineCount,
+            // Engines with no real platform able to feed them are dormant and not counted.
+            'engineTotal' => count(array_filter(IntelligenceEngineService::ENGINES, fn ($e) => $e['sources'] !== [])),
             'openAlertCount' => AnalyticsAlert::where('team_id', $team->id)->where('status', 'open')->count(),
             'pendingRecommendationCount' => Recommendation::where('team_id', $team->id)->where('status', 'pending')->count(),
         ]);
