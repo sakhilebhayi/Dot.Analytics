@@ -59,4 +59,52 @@ class SecurityHeadersTest extends TestCase
         $this->assertStringContainsString("default-src 'self'", $csp);
         $this->assertStringContainsString("frame-ancestors 'none'", $csp);
     }
+
+    public function test_csp_names_no_websocket_origin_and_no_echo_cdn_while_realtime_is_off(): void
+    {
+        config(['echo.enabled' => false]);
+
+        $csp = $this->get('/')->headers->get('Content-Security-Policy');
+
+        $this->assertStringContainsString("connect-src 'self';", $csp);
+        $this->assertStringNotContainsString('ws://', $csp);
+        $this->assertStringNotContainsString('wss://', $csp);
+        $this->assertStringNotContainsString('cdn.jsdelivr.net', $csp);
+    }
+
+    public function test_csp_connect_src_matches_the_echo_client_host_exactly(): void
+    {
+        // The Reverb server's *bind* address (0.0.0.0 in this environment) is not what a
+        // browser connects to; the client-facing host in config/echo.php is.
+        config([
+            'echo.enabled' => true,
+            'echo.host' => 'ws.example.test',
+            'echo.port' => 8081,
+            'echo.scheme' => 'http',
+            'reverb.servers.reverb.host' => '0.0.0.0',
+        ]);
+
+        $csp = $this->get('/')->headers->get('Content-Security-Policy');
+
+        $this->assertStringContainsString("connect-src 'self' ws://ws.example.test:8081;", $csp);
+        $this->assertStringNotContainsString('0.0.0.0', $csp);
+    }
+
+    public function test_csp_uses_wss_for_an_https_echo_scheme(): void
+    {
+        config(['echo.enabled' => true, 'echo.host' => 'ws.example.test', 'echo.port' => 443, 'echo.scheme' => 'https']);
+
+        $csp = $this->get('/')->headers->get('Content-Security-Policy');
+
+        $this->assertStringContainsString('wss://ws.example.test:443', $csp);
+    }
+
+    public function test_csp_allows_the_cdn_the_echo_and_pusher_scripts_load_from_when_realtime_is_on(): void
+    {
+        config(['echo.enabled' => true]);
+
+        $csp = $this->get('/')->headers->get('Content-Security-Policy');
+
+        $this->assertStringContainsString('https://cdn.jsdelivr.net', $csp);
+    }
 }

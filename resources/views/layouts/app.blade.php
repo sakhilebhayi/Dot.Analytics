@@ -70,6 +70,42 @@
          the server-side component state (confirmed via Livewire's own JS
          API) but never morphed the DOM to show it, e.g. clicking "+ Connect"
          set connectingPlatform without ever rendering the connect form. --}}
+    {{-- Real-time bell updates. Optional: rendered only for signed-in users and only when
+         config/echo.php says Reverb is on. Off (e.g. the shared cPanel host, which cannot run
+         a WebSocket server) the bell polls instead and nothing is loaded from the CDN.
+         Only the public app key is emitted, never the Reverb app secret. --}}
+    @auth
+    @if (config('echo.enabled'))
+    <script src="https://cdn.jsdelivr.net/npm/pusher-js@8.5.0/dist/web/pusher.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/laravel-echo@2.4.0/dist/echo.iife.js"></script>
+    <script>
+        {{-- laravel-echo@2.4.0's IIFE build assigns the global `Echo` to the
+             whole ES-module namespace object ({ Channel, Connector,
+             EventFormatter, default, __esModule }), not the Echo class
+             itself -- the class is at Echo.default. --}}
+        try {
+            window.Echo = new Echo.default({
+                broadcaster: 'reverb',
+                key: @js(config('echo.key')),
+                wsHost: @js(config('echo.host')),
+                wsPort: @js((int) config('echo.port')),
+                wssPort: @js((int) config('echo.port')),
+                forceTLS: @js(config('echo.scheme') === 'https'),
+                enabledTransports: ['ws', 'wss'],
+            });
+
+            document.addEventListener('livewire:init', () => {
+                window.Echo.private(@js('App.Models.User.'.Auth::id()))
+                    .notification(() => {
+                        Livewire.dispatch('notification-received');
+                    });
+            });
+        } catch (e) {
+            // Real-time is a nicety: the bell's polling keeps working without it.
+        }
+    </script>
+    @endif
+    @endauth
 </head>
 <body class="antialiased">
     <x-banner />

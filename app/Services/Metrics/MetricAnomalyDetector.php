@@ -5,6 +5,7 @@ namespace App\Services\Metrics;
 use App\Models\AnalyticsAlert;
 use App\Models\ComputedMetric;
 use App\Models\Team;
+use App\Services\Notifications\TeamNotifier;
 use App\Support\MetricFormat;
 use Carbon\CarbonInterface;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -198,6 +199,11 @@ class MetricAnomalyDetector
             );
         } catch (UniqueConstraintViolationException) {
             return false; // another run raised it first
+        }
+
+        if ($alert->wasRecentlyCreated) {
+            // Critical, non-demo anomalies only; the notifier decides. Never fails detection.
+            app(TeamNotifier::class)->criticalAlert($alert);
         }
 
         return $alert->wasRecentlyCreated;

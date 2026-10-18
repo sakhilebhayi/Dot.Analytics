@@ -43,7 +43,7 @@ class SecurityHeaders
 
         // Content Security Policy
         //
-        // Three real mismatches found while first loading the real
+        // Four real mismatches found while first loading the real
         // authenticated dashboard in a browser (every prior
         // browser-verification pass this platform went through only ever
         // checked guest-facing pages, which don't exercise any of these):
@@ -77,13 +77,22 @@ class SecurityHeaders
         //    system fonts everywhere rather than breaking layout, so this
         //    one was never visually obvious. fonts.bunny.net kept in case
         //    something else legitimately depends on it.
+        // 4. Real-time (Echo/Reverb) is optional (config/echo.php). Only when it is on does the
+        //    page load laravel-echo/pusher-js from cdn.jsdelivr.net and open a WebSocket, so
+        //    only then does the CSP name that CDN (script-src) and the WebSocket origin
+        //    (connect-src); with it off neither is allowed. The origin must be the host the
+        //    browser's Echo client connects to (config/echo.php, the same source the layout
+        //    reads), not the Reverb server's bind address: reverbWsOrigin() used to read
+        //    config('reverb.servers.reverb.host'), which is 0.0.0.0 in containers.
+        $realtime = (bool) config('echo.enabled');
+
         $csp = implode('; ', [
             "default-src 'self'",
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://fonts.bunny.net https://cdn.tailwindcss.com https://unpkg.com",
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://fonts.bunny.net https://cdn.tailwindcss.com https://unpkg.com".($realtime ? ' https://cdn.jsdelivr.net' : ''),
             "style-src 'self' 'unsafe-inline' https://fonts.bunny.net https://fonts.googleapis.com",
             "font-src 'self' https://fonts.bunny.net https://fonts.gstatic.com",
             "img-src 'self' data: blob:",
-            "connect-src 'self' ".$this->reverbWsOrigin(),
+            "connect-src 'self'".($realtime ? ' '.$this->reverbWsOrigin() : ''),
             "frame-ancestors 'none'",
             "base-uri 'self'",
             "form-action 'self'",
@@ -107,9 +116,9 @@ class SecurityHeaders
 
     private function reverbWsOrigin(): string
     {
-        $scheme = config('reverb.servers.reverb.options.tls', false) ? 'wss' : 'ws';
-        $host = config('reverb.servers.reverb.host', 'localhost');
-        $port = config('reverb.servers.reverb.port', 8080);
+        $scheme = config('echo.scheme') === 'https' ? 'wss' : 'ws';
+        $host = config('echo.host');
+        $port = config('echo.port');
 
         return "{$scheme}://{$host}:{$port}";
     }

@@ -97,6 +97,9 @@ platform --signed daily snapshot--> POST /api/ingest/snapshots        (server to
 * **Strictly one company.** Every search states its team explicitly (`App\Services\Search\GlobalSearch`, backed by `App\Models\Concerns\SearchesWithinTeam`); a search that does not matches nothing, so a queue worker or a command with nobody signed in cannot search across companies. Only members of the team being searched can search it.
 * **Nothing sensitive is searchable.** Only title/description-style columns of those six models are matched (each model declares them). Data sources, their webhook secrets and `config`, alert `context`, provenance, snapshot payloads and node `attributes` are not.
 * At least 2 characters, at most 100, ten results per type, newest first. Only the `database` driver is supported (`SCOUT_DRIVER=database`, the default).
+### Notifications
+
+Members of a team are told (in-app bell, email, and an instant push when Reverb runs) about a critical alert or a ready briefing, only when it comes from real data, and only members of that team (viewers included). Every channel is queued, so **a queue worker is needed for them to be sent**; **Reverb is optional** and cannot run on the shared cPanel host, where the bell polls every 60 seconds instead. What notifies, the payload rules and every degradation are in [`docs/notifications.md`](docs/notifications.md).
 
 ### Not wired
 

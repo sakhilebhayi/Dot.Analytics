@@ -8,6 +8,8 @@ use App\Models\CrossPlatformInsight;
 use App\Models\IntelligenceEngineRun;
 use App\Models\Team;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 /**
  * Generates and persists cross-platform intelligence insights.
@@ -66,7 +68,7 @@ class CrossPlatformIntelligenceService
                 if ($run = $this->runEngine($team, $engineKey)) {
                     $runs[] = $run;
                 }
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 report($e); // the run row is already marked failed; keep going with other engines
             }
         }
@@ -77,7 +79,7 @@ class CrossPlatformIntelligenceService
     /**
      * Run a single engine for a team and record the outcome.
      *
-     * @throws \Throwable after marking the run failed, so queued callers can retry
+     * @throws Throwable after marking the run failed, so queued callers can retry
      */
     public function runEngine(Team $team, string $engineKey): ?IntelligenceEngineRun
     {
@@ -102,7 +104,7 @@ class CrossPlatformIntelligenceService
 
         try {
             return $this->execute($team, $engineKey, $engine, $connected, $run);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $this->finish($run, 'failed', 'Unexpected error while running the engine ('.class_basename($e).').');
             throw $e;
         }
@@ -171,9 +173,24 @@ class CrossPlatformIntelligenceService
         $reason = $count === 0 ? 'The model found no pattern that the available data supports.' : null;
         $this->finish($run, 'completed', $reason, $provenance);
 
-        IntelligenceEngineCompleted::dispatch($team->id, $engineKey, $count, 0, $context['platforms_with_data'], $run->id);
+        $this->announceCompletion($team, $engineKey, $count, $context['platforms_with_data'], $run);
 
         return $run->refresh();
+    }
+
+    /**
+     * Push "engine finished" to the dashboard. Real-time is a nicety: with no WebSocket server
+     * (Reverb is not running, or cannot run on this host) the broadcast throws, and a finished,
+     * recorded run must not turn into a failed job because of it.
+     */
+    private function announceCompletion(Team $team, string $engineKey, int $count, array $platforms, IntelligenceEngineRun $run): void
+    {
+        try {
+            IntelligenceEngineCompleted::dispatch($team->id, $engineKey, $count, 0, $platforms, $run->id);
+        } catch (Throwable $e) {
+            // Class only: the message can embed the broadcaster's request URL.
+            Log::warning('Real-time engine-completed push skipped.', ['exception' => class_basename($e)]);
+        }
     }
 
     private function finish(IntelligenceEngineRun $run, string $status, ?string $reason, ?array $provenance = null): IntelligenceEngineRun
