@@ -51,7 +51,7 @@ class SearchPanelTest extends TestCase
         $this->assertCount(10, $component->get('recommendations'));
     }
 
-    public function test_dashboard_results_exclude_another_members_private_dashboard(): void
+    public function test_dashboard_results_include_a_colleagues_dashboard_because_dashboards_are_team_wide(): void
     {
         $owner = User::factory()->withPersonalTeam()->create();
         $member = User::factory()->create();
@@ -61,21 +61,12 @@ class SearchPanelTest extends TestCase
         AnalyticsDashboard::factory()->create([
             'team_id' => $owner->currentTeam->id,
             'user_id' => $owner->id,
-            'title' => 'Ops Private View',
-            'visibility' => 'private',
-        ]);
-        AnalyticsDashboard::factory()->create([
-            'team_id' => $owner->currentTeam->id,
-            'user_id' => $owner->id,
             'title' => 'Ops Shared View',
-            'visibility' => 'team',
         ]);
 
         $component = Livewire::actingAs($member)->test(SearchPanel::class)->set('query', 'Ops');
 
-        $titles = $component->get('dashboards')->pluck('title');
-        $this->assertFalse($titles->contains('Ops Private View'));
-        $this->assertTrue($titles->contains('Ops Shared View'));
+        $this->assertSame(['Ops Shared View'], $component->get('dashboards')->pluck('title')->all());
     }
 
     public function test_mount_accepts_an_initial_query_from_the_route(): void

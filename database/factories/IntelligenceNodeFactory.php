@@ -22,7 +22,7 @@ class IntelligenceNodeFactory extends Factory
             'entity_type' => $this->faker->randomElement($types),
             'entity_id' => strtoupper($this->faker->bothify('???-####')),
             'label' => $this->faker->company(),
-            'source_platform' => $this->faker->randomElement(['dot.fleet', 'dot.crm', 'dot.hr']),
+            'source_platform' => $this->faker->randomElement(['tasks', 'billing', 'hr']),
             'attributes' => [],
         ];
     }

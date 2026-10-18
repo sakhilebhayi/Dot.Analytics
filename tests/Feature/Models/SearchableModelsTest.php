@@ -25,7 +25,7 @@ class SearchableModelsTest extends TestCase
         IntelligenceNode::factory()->create(['team_id' => $user->currentTeam->id, 'label' => 'Acme Logistics Ltd']);
         IntelligenceNode::factory()->create(['team_id' => $user->currentTeam->id, 'label' => 'Unrelated Entity']);
 
-        $results = IntelligenceNode::search('Acme')->get();
+        $results = IntelligenceNode::search('Acme')->where('team_id', $user->currentTeam->id)->get();
 
         $this->assertCount(1, $results);
         $this->assertSame('Acme Logistics Ltd', $results->first()->label);
@@ -39,7 +39,7 @@ class SearchableModelsTest extends TestCase
 
         $this->actingAs($user);
 
-        $results = IntelligenceNode::search('Acme')->get();
+        $results = IntelligenceNode::search('Acme')->where('team_id', $user->currentTeam->id)->get();
 
         $this->assertCount(0, $results);
     }
@@ -60,7 +60,7 @@ class SearchableModelsTest extends TestCase
             'title' => 'Unrelated Report',
         ]);
 
-        $results = AnalyticsReport::search('Risk')->get();
+        $results = AnalyticsReport::search('Risk')->where('team_id', $user->currentTeam->id)->get();
 
         $this->assertCount(1, $results);
         $this->assertSame('Weekly Risk Summary', $results->first()->title);
@@ -76,7 +76,7 @@ class SearchableModelsTest extends TestCase
             'title' => 'Productivity dropped 8% this month',
         ]);
 
-        $results = CrossPlatformInsight::search('Productivity')->get();
+        $results = CrossPlatformInsight::search('Productivity')->where('team_id', $user->currentTeam->id)->get();
 
         $this->assertCount(1, $results);
     }
@@ -92,7 +92,7 @@ class SearchableModelsTest extends TestCase
             'description' => 'Overtime costs spiked in the fleet division',
         ]);
 
-        $results = AnalyticsAlert::search('Overtime')->get();
+        $results = AnalyticsAlert::search('Overtime')->where('team_id', $user->currentTeam->id)->get();
 
         $this->assertCount(1, $results);
     }
@@ -107,7 +107,7 @@ class SearchableModelsTest extends TestCase
             'title' => 'Reassign three certified operators',
         ]);
 
-        $results = Recommendation::search('operators')->get();
+        $results = Recommendation::search('operators')->where('team_id', $user->currentTeam->id)->get();
 
         $this->assertCount(1, $results);
     }
@@ -121,9 +121,38 @@ class SearchableModelsTest extends TestCase
         $this->actingAs($user);
         AnalyticsDashboard::factory()->create(['team_id' => $user->currentTeam->id, 'user_id' => $user->id, 'title' => 'Ops Overview']);
 
-        $results = AnalyticsDashboard::search('Ops Overview')->get();
+        $results = AnalyticsDashboard::search('Ops Overview')->where('team_id', $user->currentTeam->id)->get();
 
         $this->assertCount(1, $results);
         $this->assertSame($user->currentTeam->id, $results->first()->team_id);
+    }
+
+    public function test_every_searchable_model_returns_nothing_unless_the_search_names_a_team(): void
+    {
+        $user = User::factory()->withPersonalTeam()->create();
+        $team = $user->currentTeam;
+        IntelligenceNode::factory()->create(['team_id' => $team->id, 'label' => 'Needle one']);
+        CrossPlatformInsight::factory()->create(['team_id' => $team->id, 'title' => 'Needle two']);
+        AnalyticsAlert::factory()->create(['team_id' => $team->id, 'title' => 'Needle three']);
+        Recommendation::factory()->create(['team_id' => $team->id, 'title' => 'Needle four']);
+        AnalyticsReport::factory()->create(['team_id' => $team->id, 'user_id' => $user->id, 'title' => 'Needle five']);
+        AnalyticsDashboard::factory()->create(['team_id' => $team->id, 'user_id' => $user->id, 'title' => 'Needle six']);
+
+        // Even signed in as a member of that very team (so the global scope would allow them),
+        // a search that does not state its team is refused rather than trusted to ambient state.
+        $this->actingAs($user);
+        foreach ([IntelligenceNode::class, CrossPlatformInsight::class, AnalyticsAlert::class, Recommendation::class, AnalyticsReport::class, AnalyticsDashboard::class] as $model) {
+            $this->assertCount(0, $model::search('Needle')->get(), $model);
+            $this->assertCount(1, $model::search('Needle')->where('team_id', $team->id)->get(), $model);
+        }
+    }
+
+    public function test_a_search_constrained_to_my_team_ignores_a_foreign_teams_matching_row(): void
+    {
+        $user = User::factory()->withPersonalTeam()->create();
+        $other = Team::factory()->create();
+        Recommendation::factory()->create(['team_id' => $other->id, 'title' => 'Needle foreign']);
+
+        $this->assertCount(0, Recommendation::search('Needle')->where('team_id', $user->currentTeam->id)->get());
     }
 }
