@@ -20,16 +20,58 @@ class IntelligenceEngineServiceTest extends TestCase
         $this->service = new IntelligenceEngineService;
     }
 
-    public function test_platform_catalog_contains_all_fifteen_platforms(): void
+    public function test_platform_catalog_is_exactly_the_real_platforms_with_a_metric_catalogue(): void
     {
         $platforms = $this->service->getPlatformCatalog();
 
-        $this->assertCount(15, $platforms);
-        $this->assertArrayHasKey('dot.fleet', $platforms);
-        $this->assertArrayHasKey('dot.crm', $platforms);
-        $this->assertArrayHasKey('dot.hr', $platforms);
-        $this->assertArrayHasKey('dot.hear', $platforms);
-        $this->assertArrayHasKey('dot.vault', $platforms);
+        $this->assertEqualsCanonicalizing(array_keys(config('metrics.platforms')), array_keys($platforms));
+        $this->assertCount(11, $platforms);
+        foreach (['tasks', 'auction', 'ehail', 'hr', 'farms', 'billing', 'emall', 'tutor', 'pulse', 'notify', 'design'] as $key) {
+            $this->assertArrayHasKey($key, $platforms);
+        }
+    }
+
+    public function test_platform_keys_and_names_are_the_ecosystem_registry_ones_not_the_retired_roster(): void
+    {
+        foreach ($this->service->getPlatformCatalog() as $key => $platform) {
+            $this->assertArrayHasKey($key, config('ecosystem.platforms'), "{$key} is not a platform in config/ecosystem.php");
+            $this->assertSame(config("ecosystem.platforms.{$key}.name"), $platform['label']);
+            $this->assertStringStartsNotWith('dot.', $key);
+        }
+
+        foreach (['dot.fleet', 'dot.crm', 'dot.documents', 'dot.hear', 'dot.vault', 'dot.security'] as $retired) {
+            $this->assertNull($this->service->getPlatform($retired));
+        }
+    }
+
+    public function test_every_engine_source_is_a_real_platform_and_platform_engines_agree(): void
+    {
+        $platforms = $this->service->getPlatformCatalog();
+
+        foreach ($this->service->getEngineRegistry() as $engineKey => $engine) {
+            foreach ($engine['sources'] as $source) {
+                $this->assertArrayHasKey($source, $platforms, "Engine {$engineKey} consumes unknown platform {$source}");
+                $this->assertContains($engineKey, $platforms[$source]['engines'], "{$source} does not list the {$engineKey} engine it feeds");
+            }
+        }
+
+        foreach ($platforms as $key => $platform) {
+            foreach ($platform['engines'] as $engineKey) {
+                $this->assertContains($key, $this->service->getEngine($engineKey)['sources'], "{$engineKey} does not list {$key}");
+            }
+        }
+    }
+
+    public function test_an_engine_no_real_platform_can_feed_is_never_active(): void
+    {
+        $everything = array_keys($this->service->getPlatformCatalog());
+        $active = $this->service->getActiveEngines($everything);
+
+        foreach ($this->service->getEngineRegistry() as $engineKey => $engine) {
+            if ($engine['sources'] === []) {
+                $this->assertArrayNotHasKey($engineKey, $active, "{$engineKey} has no source but is active");
+            }
+        }
     }
 
     public function test_each_platform_has_required_keys(): void
@@ -62,13 +104,13 @@ class IntelligenceEngineServiceTest extends TestCase
             $this->assertArrayHasKey('label', $engine, "Engine {$key} missing 'label'");
             $this->assertArrayHasKey('sources', $engine, "Engine {$key} missing 'sources'");
             $this->assertArrayHasKey('produces', $engine, "Engine {$key} missing 'produces'");
-            $this->assertNotEmpty($engine['sources'], "Engine {$key} has empty sources");
+            $this->assertIsArray($engine['sources'], "Engine {$key} sources must be a list (empty means dormant)");
         }
     }
 
     public function test_get_active_engines_returns_engines_with_at_least_one_connected_platform(): void
     {
-        $active = $this->service->getActiveEngines(['dot.fleet', 'dot.hr']);
+        $active = $this->service->getActiveEngines(['tasks', 'hr']);
 
         $this->assertNotEmpty($active);
         foreach ($active as $engineKey => $engine) {
@@ -87,8 +129,8 @@ class IntelligenceEngineServiceTest extends TestCase
 
     public function test_get_active_engines_coverage_is_100_when_all_sources_connected(): void
     {
-        // The 'community' engine only uses dot.hear
-        $active = $this->service->getActiveEngines(['dot.hear']);
+        // The 'community' engine only uses pulse
+        $active = $this->service->getActiveEngines(['pulse']);
 
         $this->assertArrayHasKey('community', $active);
         $this->assertEquals(100, $active['community']['coverage']);
@@ -96,10 +138,10 @@ class IntelligenceEngineServiceTest extends TestCase
 
     public function test_get_platform_returns_correct_definition(): void
     {
-        $platform = $this->service->getPlatform('dot.fleet');
+        $platform = $this->service->getPlatform('tasks');
 
         $this->assertNotNull($platform);
-        $this->assertEquals('Dot.Fleet', $platform['label']);
+        $this->assertEquals('Dot.Tasks', $platform['label']);
     }
 
     public function test_get_platform_returns_null_for_unknown_key(): void
@@ -109,8 +151,8 @@ class IntelligenceEngineServiceTest extends TestCase
 
     public function test_get_platform_label_returns_label(): void
     {
-        $label = $this->service->getPlatformLabel('dot.crm');
-        $this->assertEquals('Dot.CRM', $label);
+        $label = $this->service->getPlatformLabel('emall');
+        $this->assertEquals('Dot.Emall', $label);
     }
 
     public function test_get_platform_label_returns_key_for_unknown_platform(): void
@@ -121,7 +163,7 @@ class IntelligenceEngineServiceTest extends TestCase
 
     public function test_get_platform_color_classes_returns_valid_tailwind_classes(): void
     {
-        $classes = $this->service->getPlatformColorClasses('dot.fleet');
+        $classes = $this->service->getPlatformColorClasses('tasks');
 
         $this->assertArrayHasKey('bg', $classes);
         $this->assertArrayHasKey('text', $classes);
@@ -137,13 +179,13 @@ class IntelligenceEngineServiceTest extends TestCase
 
         DataSource::factory()->create([
             'team_id' => $team->id,
-            'platform' => 'dot.fleet',
+            'platform' => 'tasks',
             'status' => 'connected',
         ]);
 
         $context = $this->service->buildEcosystemContext($team);
 
-        $this->assertStringContainsString('Dot.Fleet', $context);
+        $this->assertStringContainsString('Dot.Tasks', $context);
         $this->assertStringContainsString($team->name, $context);
     }
 

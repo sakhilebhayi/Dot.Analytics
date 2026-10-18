@@ -42,20 +42,20 @@ class AnalyticsLivewireTest extends TestCase
     {
         Livewire::test(EcosystemMapPanel::class)
             ->assertStatus(200)
-            ->assertSee('Dot.Fleet');
+            ->assertSee('Dot.Tasks');
     }
 
     public function test_ecosystem_map_start_connect_shows_form(): void
     {
         Livewire::test(EcosystemMapPanel::class)
-            ->call('startConnect', 'dot.fleet')
-            ->assertSet('connectingPlatform', 'dot.fleet');
+            ->call('startConnect', 'tasks')
+            ->assertSet('connectingPlatform', 'tasks');
     }
 
     public function test_ecosystem_map_cancel_connect_clears_state(): void
     {
         Livewire::test(EcosystemMapPanel::class)
-            ->call('startConnect', 'dot.fleet')
+            ->call('startConnect', 'tasks')
             ->call('cancelConnect')
             ->assertSet('connectingPlatform', null);
     }
@@ -63,13 +63,13 @@ class AnalyticsLivewireTest extends TestCase
     public function test_ecosystem_map_confirm_connect_creates_source(): void
     {
         Livewire::test(EcosystemMapPanel::class)
-            ->call('startConnect', 'dot.fleet')
+            ->call('startConnect', 'tasks')
             ->set('connectUrl', 'https://fleet.infodot.app')
             ->call('confirmConnect');
 
         $this->assertDatabaseHas('data_sources', [
             'team_id' => $this->team()->id,
-            'platform' => 'dot.fleet',
+            'platform' => 'tasks',
             'status' => 'connected',
         ]);
     }
@@ -78,16 +78,16 @@ class AnalyticsLivewireTest extends TestCase
     {
         DataSource::factory()->create([
             'team_id' => $this->team()->id,
-            'platform' => 'dot.fleet',
+            'platform' => 'tasks',
             'status' => 'connected',
         ]);
 
         Livewire::test(EcosystemMapPanel::class)
-            ->call('disconnect', 'dot.fleet');
+            ->call('disconnect', 'tasks');
 
         $this->assertDatabaseMissing('data_sources', [
             'team_id' => $this->team()->id,
-            'platform' => 'dot.fleet',
+            'platform' => 'tasks',
         ]);
     }
 
@@ -249,12 +249,13 @@ class AnalyticsLivewireTest extends TestCase
         Livewire::test(BusinessDnaPanel::class)->assertStatus(200);
     }
 
-    public function test_business_dna_panel_compute_creates_profile(): void
+    public function test_business_dna_panel_compute_without_data_creates_no_profile(): void
     {
         Livewire::test(BusinessDnaPanel::class)
-            ->call('compute');
+            ->call('compute')
+            ->assertSee('No data yet');
 
-        $this->assertDatabaseHas('business_dna_profiles', [
+        $this->assertDatabaseMissing('business_dna_profiles', [
             'team_id' => $this->team()->id,
         ]);
     }

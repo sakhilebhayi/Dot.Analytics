@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Api\V1;
 
-use App\Models\FeatureFlag;
 use App\Services\FeatureFlagService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -12,7 +11,7 @@ use Illuminate\Support\Facades\Gate;
 /**
  * Feature Flag Controller — v1
  *
- * Allows authorised administrators to manage feature flags at runtime
+ * Allows platform operators to manage feature flags at runtime
  * without deploying code. Used for gradual rollouts and A/B testing.
  */
 class FeatureFlagController extends BaseApiController
@@ -23,42 +22,38 @@ class FeatureFlagController extends BaseApiController
 
     /**
      * GET /api/v1/feature-flags
-     * List all feature flags with their current state.
+     * List feature flags.
      *
-     * `enabled_for_teams` / `enabled_for_users` are internal targeting lists that
-     * reference OTHER teams' and users' IDs — they are only included for admins
-     * (Gate: manage-platforms). Non-admins get a boolean telling them whether their
-     * own current team/user is targeted, without leaking who else is.
+     * Flags are global, so the raw targeting config (`enabled_for_teams` /
+     * `enabled_for_users`, which reference OTHER tenants' ids, plus rollout
+     * numbers) is only returned to platform operators. Everyone else gets just
+     * each flag's effective state for themselves.
      */
     public function index(): JsonResponse
     {
-        $isAdmin = Gate::allows('manage-platforms');
-        $currentTeamId = Auth::user()->currentTeam?->id;
-        $currentUserId = Auth::id();
+        $user = Auth::user();
+        $isOperator = Gate::allows('manage-feature-flags');
 
-        $flags = $this->flagService->all()->map(function ($f) use ($isAdmin, $currentTeamId, $currentUserId) {
-            $payload = [
+        $flags = $this->flagService->all()->map(function ($f) use ($isOperator, $user) {
+            if ($isOperator) {
+                return [
+                    'key' => $f->key,
+                    'name' => $f->name,
+                    'description' => $f->description,
+                    'enabled_globally' => $f->enabled_globally,
+                    'rollout_percentage' => $f->rollout_percentage,
+                    'environment' => $f->environment,
+                    'enabled_for_teams' => $f->enabled_for_teams,
+                    'enabled_for_users' => $f->enabled_for_users,
+                ];
+            }
+
+            return [
                 'key' => $f->key,
                 'name' => $f->name,
                 'description' => $f->description,
-                'enabled_globally' => $f->enabled_globally,
-                'rollout_percentage' => $f->rollout_percentage,
-                'environment' => $f->environment,
+                'enabled' => $this->flagService->isEnabled($f->key, $user),
             ];
-
-            if ($isAdmin) {
-                $payload['enabled_for_teams'] = $f->enabled_for_teams;
-                $payload['enabled_for_users'] = $f->enabled_for_users;
-            } else {
-                $payload['enabled_for_current_team'] = $currentTeamId
-                    && ! empty($f->enabled_for_teams)
-                    && in_array($currentTeamId, $f->enabled_for_teams, true);
-                $payload['enabled_for_current_user'] = $currentUserId
-                    && ! empty($f->enabled_for_users)
-                    && in_array($currentUserId, $f->enabled_for_users, true);
-            }
-
-            return $payload;
         });
 
         return $this->success($flags);
@@ -78,11 +73,11 @@ class FeatureFlagController extends BaseApiController
 
     /**
      * POST /api/v1/feature-flags
-     * Create a new feature flag. Admin only.
+     * Create a new feature flag. Platform operators only.
      */
     public function store(Request $request): JsonResponse
     {
-        Gate::authorize('manage-platforms');
+        Gate::authorize('manage-feature-flags');
 
         $validated = $request->validate([
             'key' => 'required|string|max:100|unique:feature_flags,key',
@@ -94,7 +89,7 @@ class FeatureFlagController extends BaseApiController
             'environment' => 'in:all,production,local',
         ]);
 
-        $flag = FeatureFlag::create($validated);
+        $flag = $this->flagService->create($validated, Auth::user());
 
         return $this->success($flag, 'Feature flag created.', 201);
     }
@@ -104,8 +99,8 @@ class FeatureFlagController extends BaseApiController
      */
     public function enable(string $key): JsonResponse
     {
-        Gate::authorize('manage-platforms');
-        $this->flagService->enable($key);
+        Gate::authorize('manage-feature-flags');
+        $this->flagService->enable($key, Auth::user());
 
         return $this->success(['key' => $key, 'enabled' => true]);
     }
@@ -115,8 +110,8 @@ class FeatureFlagController extends BaseApiController
      */
     public function disable(string $key): JsonResponse
     {
-        Gate::authorize('manage-platforms');
-        $this->flagService->disable($key);
+        Gate::authorize('manage-feature-flags');
+        $this->flagService->disable($key, Auth::user());
 
         return $this->success(['key' => $key, 'enabled' => false]);
     }
@@ -127,10 +122,10 @@ class FeatureFlagController extends BaseApiController
      */
     public function rollout(Request $request, string $key): JsonResponse
     {
-        Gate::authorize('manage-platforms');
+        Gate::authorize('manage-feature-flags');
 
         $validated = $request->validate(['percentage' => 'required|numeric|min:0|max:100']);
-        $this->flagService->setRollout($key, $validated['percentage']);
+        $this->flagService->setRollout($key, $validated['percentage'], Auth::user());
 
         return $this->success(['key' => $key, 'rollout_percentage' => $validated['percentage']]);
     }

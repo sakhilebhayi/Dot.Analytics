@@ -4,16 +4,17 @@ namespace Tests\Unit\Services;
 
 use App\Events\Analytics\CriticalInsightDiscovered;
 use App\Events\Analytics\IntelligenceEngineCompleted;
+use App\Models\AnalyticsSnapshot;
 use App\Models\CrossPlatformInsight;
 use App\Models\DataSource;
 use App\Models\IntelligenceEngineRun;
 use App\Models\Team;
 use App\Models\User;
-use App\Services\AiModelRouter;
 use App\Services\CrossPlatformIntelligenceService;
 use App\Services\IntelligenceEngineService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
+use Tests\Support\FakeAiRouter;
 use Tests\TestCase;
 
 class CrossPlatformIntelligenceServiceTest extends TestCase
@@ -22,13 +23,33 @@ class CrossPlatformIntelligenceServiceTest extends TestCase
 
     private CrossPlatformIntelligenceService $service;
 
+    private FakeAiRouter $router;
+
     protected function setUp(): void
     {
         parent::setUp();
-        $this->service = new CrossPlatformIntelligenceService(
-            new IntelligenceEngineService,
-            new AiModelRouter,
-        );
+        $this->router = new FakeAiRouter(response: json_encode([[
+            'title' => 'Reviews are climbing',
+            'narrative' => 'Dot.Hear logged 12 new reviews.',
+            'platforms_involved' => ['pulse'],
+            'insight_type' => 'correlation',
+            'confidence' => 0.8,
+            'severity' => 'warning',
+        ]]));
+        $this->service = new CrossPlatformIntelligenceService(new IntelligenceEngineService, $this->router);
+    }
+
+    /** Real ingested data: the only thing an insight may be built from. */
+    private function withSnapshot(Team $team, string $platform): void
+    {
+        $source = DataSource::withoutGlobalScopes()->where('team_id', $team->id)->where('platform', $platform)->firstOrFail();
+        AnalyticsSnapshot::withoutGlobalScopes()->create([
+            'team_id' => $team->id,
+            'data_source_id' => $source->id,
+            'snapshot_type' => 'webhook',
+            'payload' => ['reviews' => 12],
+            'captured_at' => now(),
+        ]);
     }
 
     private function teamWithPlatforms(array $platforms): Team
@@ -57,9 +78,25 @@ class CrossPlatformIntelligenceServiceTest extends TestCase
         $this->assertEquals(0, $count);
     }
 
-    public function test_run_for_team_creates_engine_run_records(): void
+    public function test_run_for_team_records_no_data_run_when_nothing_was_ingested(): void
     {
-        $team = $this->teamWithPlatforms(['dot.hear']); // community engine
+        $team = $this->teamWithPlatforms(['pulse']); // community engine, no snapshots
+
+        $count = $this->service->runForTeam($team);
+
+        $this->assertSame(0, $count);
+        $this->assertDatabaseHas('intelligence_engine_runs', [
+            'team_id' => $team->id,
+            'engine' => 'community',
+            'status' => 'no_data',
+        ]);
+        $this->assertDatabaseMissing('cross_platform_insights', ['team_id' => $team->id]);
+    }
+
+    public function test_run_for_team_creates_completed_engine_run_records_from_real_data(): void
+    {
+        $team = $this->teamWithPlatforms(['pulse']);
+        $this->withSnapshot($team, 'pulse');
 
         $this->service->runForTeam($team);
 
@@ -72,7 +109,8 @@ class CrossPlatformIntelligenceServiceTest extends TestCase
 
     public function test_run_for_team_persists_insights(): void
     {
-        $team = $this->teamWithPlatforms(['dot.hear']);
+        $team = $this->teamWithPlatforms(['pulse']);
+        $this->withSnapshot($team, 'pulse');
 
         $count = $this->service->runForTeam($team);
 
@@ -84,7 +122,8 @@ class CrossPlatformIntelligenceServiceTest extends TestCase
     {
         Event::fake([IntelligenceEngineCompleted::class]);
 
-        $team = $this->teamWithPlatforms(['dot.hear']);
+        $team = $this->teamWithPlatforms(['pulse']);
+        $this->withSnapshot($team, 'pulse');
         $this->service->runForTeam($team);
 
         Event::assertDispatched(IntelligenceEngineCompleted::class);
@@ -92,36 +131,30 @@ class CrossPlatformIntelligenceServiceTest extends TestCase
 
     public function test_run_for_team_fires_critical_insight_event_for_critical_insights(): void
     {
-        // The risk engine fallback always returns 'critical' severity.
-        // Verify by checking that CriticalInsightDiscovered creates an alert via its listener.
-        $team = $this->teamWithPlatforms(['dot.fleet', 'dot.hr', 'dot.payments', 'dot.support', 'dot.documents']);
+        Event::fake([CriticalInsightDiscovered::class]);
+        $this->router->response = json_encode([[
+            'title' => 'Review sentiment collapsing',
+            'narrative' => 'Dot.Hear logged 12 new reviews, mostly negative.',
+            'platforms_involved' => ['pulse'],
+            'insight_type' => 'risk',
+            'confidence' => 0.9,
+            'severity' => 'critical',
+        ]]);
+        $team = $this->teamWithPlatforms(['pulse']);
+        $this->withSnapshot($team, 'pulse');
 
-        // Run engines directly (bypassing queue so listeners fire synchronously)
         $this->service->runForTeam($team);
 
-        $criticalInsights = CrossPlatformInsight::where('team_id', $team->id)
-            ->where('severity', 'critical')
-            ->count();
-
-        // If any critical insights were created, the event was dispatched.
-        // The risk engine fallback always produces critical insights for these platforms.
-        $riskActive = IntelligenceEngineRun::where('team_id', $team->id)
-            ->where('engine', 'risk')
-            ->exists();
-
-        if ($riskActive) {
-            $this->assertGreaterThan(0, $criticalInsights, 'Risk engine should produce critical insights via fallback');
-        } else {
-            $this->markTestSkipped('Risk engine not active for the provided platforms.');
-        }
+        Event::assertDispatched(CriticalInsightDiscovered::class);
+        $this->assertGreaterThan(0, CrossPlatformInsight::where('team_id', $team->id)->where('severity', 'critical')->count());
     }
 
-    public function test_run_for_team_marks_failed_engine_on_exception(): void
+    public function test_run_for_team_never_marks_run_failed_when_the_provider_is_simply_absent(): void
     {
-        // Create a team with platforms but simulate failure by using a broken service
-        $team = $this->teamWithPlatforms(['dot.hear']);
+        $team = $this->teamWithPlatforms(['pulse']);
+        $this->withSnapshot($team, 'pulse');
+        $this->router->configured = false;
 
-        // Even with a broken AI router (returns mock), engines complete
         $count = $this->service->runForTeam($team);
 
         $this->assertDatabaseMissing('intelligence_engine_runs', [
@@ -132,8 +165,8 @@ class CrossPlatformIntelligenceServiceTest extends TestCase
 
     public function test_run_for_team_with_multiple_platforms_activates_more_engines(): void
     {
-        $singlePlatformTeam = $this->teamWithPlatforms(['dot.hear']);
-        $multiPlatformTeam = $this->teamWithPlatforms(['dot.fleet', 'dot.crm', 'dot.hr', 'dot.payments', 'dot.hear']);
+        $singlePlatformTeam = $this->teamWithPlatforms(['pulse']);
+        $multiPlatformTeam = $this->teamWithPlatforms(['tasks', 'emall', 'hr', 'billing', 'pulse']);
 
         $this->service->runForTeam($singlePlatformTeam);
         $this->service->runForTeam($multiPlatformTeam);
@@ -146,7 +179,8 @@ class CrossPlatformIntelligenceServiceTest extends TestCase
 
     public function test_insights_have_required_fields(): void
     {
-        $team = $this->teamWithPlatforms(['dot.hear']);
+        $team = $this->teamWithPlatforms(['pulse']);
+        $this->withSnapshot($team, 'pulse');
         $this->service->runForTeam($team);
 
         $insight = CrossPlatformInsight::where('team_id', $team->id)->first();
@@ -161,7 +195,8 @@ class CrossPlatformIntelligenceServiceTest extends TestCase
 
     public function test_insights_are_team_scoped(): void
     {
-        $teamA = $this->teamWithPlatforms(['dot.hear']);
+        $teamA = $this->teamWithPlatforms(['pulse']);
+        $this->withSnapshot($teamA, 'pulse');
         // Team B has NO connected platforms — no engines will run for it
         $teamB = User::factory()->withPersonalTeam()->create()->currentTeam;
 
@@ -172,32 +207,11 @@ class CrossPlatformIntelligenceServiceTest extends TestCase
 
     public function test_engine_run_records_platforms_consumed(): void
     {
-        $team = $this->teamWithPlatforms(['dot.hear']);
+        $team = $this->teamWithPlatforms(['pulse']);
         $this->service->runForTeam($team);
 
         $run = IntelligenceEngineRun::where('team_id', $team->id)->first();
         $this->assertNotEmpty($run->platforms_consumed);
-        $this->assertContains('dot.hear', $run->platforms_consumed);
-    }
-
-    public function test_fallback_insights_always_include_valid_structure(): void
-    {
-        $method = new \ReflectionMethod(CrossPlatformIntelligenceService::class, 'fallbackInsights');
-        $method->setAccessible(true);
-
-        $engine = IntelligenceEngineService::ENGINES['customer'];
-        $result = $method->invoke(
-            $this->service,
-            $this->teamWithPlatforms(['dot.crm']),
-            'customer',
-            array_merge($engine, ['connected_sources' => ['dot.crm']]),
-        );
-
-        $this->assertNotEmpty($result);
-        $this->assertArrayHasKey('title', $result[0]);
-        $this->assertArrayHasKey('narrative', $result[0]);
-        $this->assertArrayHasKey('platforms_involved', $result[0]);
-        $this->assertArrayHasKey('confidence', $result[0]);
-        $this->assertArrayHasKey('severity', $result[0]);
+        $this->assertContains('pulse', $run->platforms_consumed);
     }
 }

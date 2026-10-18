@@ -5,9 +5,11 @@ namespace App\Http\Controllers\Api\V1;
 use App\Models\AnalyticsReport;
 use App\Models\ReportRun;
 use App\Services\ReportGenerationService;
+use Cron\CronExpression;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 
 /**
  * Saved Reports Controller — v1
@@ -30,6 +32,8 @@ class SavedReportController extends BaseApiController
      */
     public function index(): JsonResponse
     {
+        $this->currentTeam();
+
         $reports = AnalyticsReport::with('latestRun')
             ->orderByDesc('created_at')
             ->get();
@@ -45,11 +49,17 @@ class SavedReportController extends BaseApiController
      */
     public function store(Request $request): JsonResponse
     {
+        Gate::authorize('manage-reports');
+
         $validated = $request->validate([
             'title' => 'required|string|max:120',
             'type' => 'required|string|in:'.implode(',', self::VALID_TYPES),
             'description' => 'nullable|string|max:500',
-            'cron_expression' => 'nullable|string|max:100',
+            'cron_expression' => ['nullable', 'string', 'max:100', function (string $attribute, mixed $value, \Closure $fail) {
+                if (! CronExpression::isValidExpression($value)) {
+                    $fail('The cron expression is not valid (five fields, e.g. "0 6 * * 1").');
+                }
+            }],
             'config' => 'nullable|array',
         ]);
 
@@ -68,6 +78,8 @@ class SavedReportController extends BaseApiController
      */
     public function run(int $id): JsonResponse
     {
+        Gate::authorize('run-reports');
+
         $team = $this->currentTeam();
         $report = AnalyticsReport::findOrFail($id);
 
@@ -80,7 +92,7 @@ class SavedReportController extends BaseApiController
         try {
             $output = $this->reportService->generateJson(
                 $team,
-                $report->type ?? 'insights',
+                $report->reportType() ?? 'insights',
                 $report->config ?? [],
             );
 
@@ -104,6 +116,8 @@ class SavedReportController extends BaseApiController
      */
     public function runs(int $id): JsonResponse
     {
+        $this->currentTeam();
+
         $report = AnalyticsReport::findOrFail($id);
 
         $runs = ReportRun::where('analytics_report_id', $report->id)
@@ -119,6 +133,8 @@ class SavedReportController extends BaseApiController
      */
     public function destroy(int $id): JsonResponse
     {
+        Gate::authorize('manage-reports');
+
         $report = AnalyticsReport::findOrFail($id);
         $report->delete();
 

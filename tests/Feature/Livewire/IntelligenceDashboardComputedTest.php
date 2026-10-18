@@ -30,8 +30,10 @@ class IntelligenceDashboardComputedTest extends TestCase
         $this->actingAs($user);
         $team = $user->currentTeam;
 
-        DataSource::factory()->create(['team_id' => $team->id, 'status' => 'connected']);
-        DataSource::factory()->create(['team_id' => $team->id, 'status' => 'pending']);
+        // Explicit platforms: the factory picks one at random and (team_id, platform) is unique,
+        // so two random picks collide now and then.
+        DataSource::factory()->create(['team_id' => $team->id, 'platform' => 'tasks', 'status' => 'connected']);
+        DataSource::factory()->create(['team_id' => $team->id, 'platform' => 'pulse', 'status' => 'pending']);
 
         $component = Livewire::test(IntelligenceDashboard::class);
 
@@ -45,7 +47,7 @@ class IntelligenceDashboardComputedTest extends TestCase
         $team = $user->currentTeam;
 
         $def = MetricDefinition::create([
-            'key' => 'dash.metric', 'label' => 'Dash', 'source_platform' => 'dot.fleet',
+            'key' => 'dash.metric', 'label' => 'Dash', 'source_platform' => 'tasks',
             'engine' => 'operational', 'aggregation' => 'avg',
         ]);
 

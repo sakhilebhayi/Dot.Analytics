@@ -219,7 +219,7 @@ class ModelsTest extends TestCase
         $def = MetricDefinition::create([
             'key' => 'test.metric',
             'label' => 'Test Metric',
-            'source_platform' => 'dot.fleet',
+            'source_platform' => 'tasks',
             'engine' => 'operational',
             'aggregation' => 'avg',
         ]);
@@ -278,14 +278,14 @@ class ModelsTest extends TestCase
             'entity_type' => 'customer',
             'entity_id' => 'C-001',
             'label' => 'Acme Corp',
-            'source_platform' => 'dot.crm',
+            'source_platform' => 'emall',
         ]);
         $nodeB = IntelligenceNode::create([
             'team_id' => $team->id,
             'entity_type' => 'invoice',
             'entity_id' => 'I-001',
             'label' => 'Invoice #1',
-            'source_platform' => 'dot.payments',
+            'source_platform' => 'billing',
         ]);
 
         IntelligenceEdge::create([

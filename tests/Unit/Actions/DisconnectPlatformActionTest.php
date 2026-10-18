@@ -27,21 +27,21 @@ class DisconnectPlatformActionTest extends TestCase
 
         DataSource::factory()->create([
             'team_id' => $team->id,
-            'platform' => 'dot.fleet',
+            'platform' => 'tasks',
             'display_name' => 'Dot.Fleet',
             'status' => 'connected',
         ]);
 
-        $name = $this->action->handle($team, 'dot.fleet');
+        $name = $this->action->handle($team, 'tasks');
 
         $this->assertEquals('Dot.Fleet', $name);
-        $this->assertDatabaseMissing('data_sources', ['team_id' => $team->id, 'platform' => 'dot.fleet']);
+        $this->assertDatabaseMissing('data_sources', ['team_id' => $team->id, 'platform' => 'tasks']);
     }
 
     public function test_disconnect_returns_null_when_not_connected(): void
     {
         $user = User::factory()->withPersonalTeam()->create();
-        $name = $this->action->handle($user->currentTeam, 'dot.fleet');
+        $name = $this->action->handle($user->currentTeam, 'tasks');
 
         $this->assertNull($name);
     }
@@ -51,13 +51,13 @@ class DisconnectPlatformActionTest extends TestCase
         $user = User::factory()->withPersonalTeam()->create();
         $team = $user->currentTeam;
 
-        DataSource::factory()->create(['team_id' => $team->id, 'platform' => 'dot.fleet', 'status' => 'connected']);
-        DataSource::factory()->create(['team_id' => $team->id, 'platform' => 'dot.crm',   'status' => 'connected']);
+        DataSource::factory()->create(['team_id' => $team->id, 'platform' => 'tasks', 'status' => 'connected']);
+        DataSource::factory()->create(['team_id' => $team->id, 'platform' => 'emall',   'status' => 'connected']);
 
-        $this->action->handle($team, 'dot.fleet');
+        $this->action->handle($team, 'tasks');
 
-        $this->assertDatabaseHas('data_sources', ['team_id' => $team->id, 'platform' => 'dot.crm']);
-        $this->assertDatabaseMissing('data_sources', ['team_id' => $team->id, 'platform' => 'dot.fleet']);
+        $this->assertDatabaseHas('data_sources', ['team_id' => $team->id, 'platform' => 'emall']);
+        $this->assertDatabaseMissing('data_sources', ['team_id' => $team->id, 'platform' => 'tasks']);
     }
 
     public function test_disconnect_does_not_affect_other_teams(): void
@@ -65,11 +65,11 @@ class DisconnectPlatformActionTest extends TestCase
         $userA = User::factory()->withPersonalTeam()->create();
         $userB = User::factory()->withPersonalTeam()->create();
 
-        DataSource::factory()->create(['team_id' => $userA->currentTeam->id, 'platform' => 'dot.fleet', 'status' => 'connected']);
-        DataSource::factory()->create(['team_id' => $userB->currentTeam->id, 'platform' => 'dot.fleet', 'status' => 'connected']);
+        DataSource::factory()->create(['team_id' => $userA->currentTeam->id, 'platform' => 'tasks', 'status' => 'connected']);
+        DataSource::factory()->create(['team_id' => $userB->currentTeam->id, 'platform' => 'tasks', 'status' => 'connected']);
 
-        $this->action->handle($userA->currentTeam, 'dot.fleet');
+        $this->action->handle($userA->currentTeam, 'tasks');
 
-        $this->assertDatabaseHas('data_sources', ['team_id' => $userB->currentTeam->id, 'platform' => 'dot.fleet']);
+        $this->assertDatabaseHas('data_sources', ['team_id' => $userB->currentTeam->id, 'platform' => 'tasks']);
     }
 }

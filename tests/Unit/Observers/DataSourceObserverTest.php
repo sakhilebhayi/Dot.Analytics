@@ -27,7 +27,7 @@ class DataSourceObserverTest extends TestCase
         $team = $this->team();
         DataSource::factory()->create([
             'team_id' => $team->id,
-            'platform' => 'dot.fleet',
+            'platform' => 'tasks',
             'status' => 'connected',
         ]);
 
@@ -41,7 +41,7 @@ class DataSourceObserverTest extends TestCase
         $team = $this->team();
         DataSource::factory()->create([
             'team_id' => $team->id,
-            'platform' => 'dot.fleet',
+            'platform' => 'tasks',
             'status' => 'pending',
         ]);
 
@@ -55,7 +55,7 @@ class DataSourceObserverTest extends TestCase
         $team = $this->team();
         $source = DataSource::factory()->create([
             'team_id' => $team->id,
-            'platform' => 'dot.fleet',
+            'platform' => 'tasks',
             'status' => 'pending',
         ]);
 
@@ -71,14 +71,14 @@ class DataSourceObserverTest extends TestCase
         $team = $this->team();
         $source = DataSource::factory()->create([
             'team_id' => $team->id,
-            'platform' => 'dot.fleet',
+            'platform' => 'tasks',
             'status' => 'connected',
         ]);
 
         $source->delete();
 
         Event::assertDispatched(PlatformDisconnected::class, function ($event) {
-            return $event->platform === 'dot.fleet';
+            return $event->platform === 'tasks';
         });
     }
 
@@ -87,7 +87,7 @@ class DataSourceObserverTest extends TestCase
         $team = $this->team();
         DataSource::factory()->create([
             'team_id' => $team->id,
-            'platform' => 'dot.fleet',
+            'platform' => 'tasks',
             'status' => 'connected',
         ]);
 
@@ -102,7 +102,7 @@ class DataSourceObserverTest extends TestCase
         $team = $this->team();
         $source = DataSource::factory()->create([
             'team_id' => $team->id,
-            'platform' => 'dot.fleet',
+            'platform' => 'tasks',
             'status' => 'pending',
         ]);
 
@@ -119,7 +119,7 @@ class DataSourceObserverTest extends TestCase
         $team = $this->team();
         $source = DataSource::factory()->create([
             'team_id' => $team->id,
-            'platform' => 'dot.fleet',
+            'platform' => 'tasks',
             'status' => 'connected',
         ]);
 
@@ -136,7 +136,7 @@ class DataSourceObserverTest extends TestCase
         $this->expectException(\RuntimeException::class);
 
         $team = $this->team();
-        DataSource::factory()->create(['team_id' => $team->id, 'platform' => 'dot.fleet', 'status' => 'connected']);
+        DataSource::factory()->create(['team_id' => $team->id, 'platform' => 'tasks', 'status' => 'connected']);
 
         $log = AuditLog::where('team_id', $team->id)->first();
         $log->update(['event' => 'tampered']);

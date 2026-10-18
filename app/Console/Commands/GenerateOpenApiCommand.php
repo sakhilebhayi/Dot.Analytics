@@ -118,7 +118,7 @@ class GenerateOpenApiCommand extends Command
                         'id' => ['type' => 'integer'],
                         'title' => ['type' => 'string'],
                         'narrative' => ['type' => 'string'],
-                        'platforms_involved' => ['type' => 'array', 'items' => ['type' => 'string'], 'example' => ['dot.fleet', 'dot.hr']],
+                        'platforms_involved' => ['type' => 'array', 'items' => ['type' => 'string'], 'example' => ['tasks', 'hr']],
                         'insight_type' => ['type' => 'string', 'enum' => ['correlation', 'causation', 'prediction', 'risk', 'opportunity']],
                         'confidence' => ['type' => 'number', 'format' => 'float', 'minimum' => 0, 'maximum' => 1],
                         'severity' => ['type' => 'string', 'enum' => ['info', 'warning', 'critical']],
@@ -129,7 +129,7 @@ class GenerateOpenApiCommand extends Command
                     'type' => 'object',
                     'properties' => [
                         'id' => ['type' => 'integer'],
-                        'platform' => ['type' => 'string', 'example' => 'dot.fleet'],
+                        'platform' => ['type' => 'string', 'example' => 'tasks'],
                         'display_name' => ['type' => 'string'],
                         'status' => ['type' => 'string', 'enum' => ['pending', 'connected', 'error', 'not_connected']],
                         'last_synced_at' => ['type' => 'string', 'format' => 'date-time', 'nullable' => true],
@@ -177,6 +177,7 @@ class GenerateOpenApiCommand extends Command
             '/v1/platforms' => $this->get('Platforms', 'List the full Dot platform catalog with connection status.', 'platforms-catalog'),
             '/v1/platforms/connected' => $this->get('Platforms', 'List only connected platforms.', 'platforms-connected'),
             '/v1/platforms/{platform}' => $this->getParam('Platforms', 'Get a connected platform by key.', 'platform-show', 'platform'),
+            '/v1/platforms/{platform}/webhook-secret' => $this->postParam('Platforms', 'Rotate the ingest webhook secret (returned once). Owner/admin only.', 'platform-webhook-secret', 'platform', []),
             '/v1/platforms/{platform}/connect' => $this->postParam('Platforms', 'Connect a Dot platform.', 'platform-connect', 'platform', ['base_url' => ['type' => 'string', 'format' => 'uri']]),
 
             // Metrics
@@ -207,7 +208,8 @@ class GenerateOpenApiCommand extends Command
             ]),
 
             // Ingest
-            '/v1/ingest/{platform}' => $this->postParam('Ingest', 'Push a data snapshot from a Dot platform via webhook.', 'ingest', 'platform', []),
+            '/ingest/snapshots' => $this->serverIngest(),
+            '/v1/ingest/{platform}' => $this->postParam('Ingest', 'Push a signed daily metrics snapshot from a Dot platform (see docs/metrics-contract.md). 201 stored, 200 replay of an already-stored snapshot, 404 generic when the company or platform is not connected, 422 when the contract is broken.', 'ingest', 'platform', []),
             '/v1/ingest/{platform}/ping' => $this->getParam('Ingest', 'Check webhook connectivity for a platform.', 'ingest-ping', 'platform'),
 
             // Feature flags
@@ -263,6 +265,25 @@ class GenerateOpenApiCommand extends Command
         if ($body) {
             $op['requestBody'] = ['required' => true, 'content' => ['application/json' => ['schema' => ['type' => 'object', 'properties' => $body]]]];
         }
+
+        return ['post' => $op];
+    }
+
+    /** Server to server: no bearer token; the platform signs the body (docs/metrics-contract.md). */
+    private function serverIngest(): array
+    {
+        $op = $this->operation('Ingest', 'A Dot platform publishes its own signed daily metrics snapshot. No user token: send X-InfoDot-Timestamp (unix seconds, 5 minute tolerance) and X-InfoDot-Signature = sha256= + HMAC-SHA256(platform secret, "{timestamp}.{raw body}"). 201 stored, 200 replay (original id), 401 generic for every authentication failure, 404 unknown company, 422 contract broken, 429 rate limited. See docs/metrics-contract.md.', 'ingest-snapshots', false);
+        $op['parameters'] = [
+            ['name' => 'X-InfoDot-Timestamp', 'in' => 'header', 'required' => true, 'schema' => ['type' => 'string']],
+            ['name' => 'X-InfoDot-Signature', 'in' => 'header', 'required' => true, 'schema' => ['type' => 'string']],
+        ];
+        $op['requestBody'] = ['required' => true, 'content' => ['application/json' => ['schema' => ['type' => 'object', 'properties' => [
+            'platform' => ['type' => 'string', 'description' => 'The calling platform key, e.g. tasks.'],
+            'company_uuid' => ['type' => 'string', 'format' => 'uuid'],
+            'taken_at' => ['type' => 'string', 'format' => 'date-time'],
+            'period' => ['type' => 'string', 'enum' => ['day']],
+            'metrics' => ['type' => 'object'],
+        ]]]]];
 
         return ['post' => $op];
     }

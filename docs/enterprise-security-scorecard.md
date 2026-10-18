@@ -310,7 +310,7 @@ Webhook replay attacks are possible — a captured valid HMAC payload can be rep
 ### Checklist
 - [x] Detailed health check (`GET /api/v1/health/detailed` — 6 subsystems)
 - [x] Liveness probe (`GET /api/ping`)
-- [x] Anomaly detection (`AnomalyDetectionService` Z-score + IQR)
+- [x] Anomaly detection (`MetricAnomalyDetector`: median absolute deviation over computed metrics, one alert per metric per day)
 - [x] AI usage metrics (`ai_model_usage` table)
 - [x] Structured logs with correlation IDs
 - [ ] Distributed tracing (OpenTelemetry)
@@ -320,7 +320,7 @@ Webhook replay attacks are possible — a captured valid HMAC payload can be rep
 
 ### Evidence
 - `app/Http/Controllers/Api/V1/HealthController.php`
-- `app/Services/AnomalyDetectionService.php`
+- `app/Services/Metrics/MetricAnomalyDetector.php`
 - `app/Services/StructuredLogger.php`
 
 ### Required Actions

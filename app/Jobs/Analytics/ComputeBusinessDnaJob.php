@@ -25,9 +25,17 @@ class ComputeBusinessDnaJob implements ShouldQueue
             return;
         }
 
-        $previous = $team->businessDna?->confidence_score ?? 0.0;
+        $existing = $team->businessDna;
+        $previous = $existing?->confidence_score ?? 0.0;
+        $computedBefore = $existing?->last_computed_at?->getTimestamp();
 
         $profile = $service->computeForTeam($team);
+
+        // No profile, or the existing one came back untouched (no data, no provider,
+        // an unusable answer): nothing was recomputed, so nothing is announced.
+        if ($profile === null || $profile->last_computed_at?->getTimestamp() === $computedBefore) {
+            return;
+        }
 
         BusinessDnaRecomputed::dispatch(
             $this->teamId,

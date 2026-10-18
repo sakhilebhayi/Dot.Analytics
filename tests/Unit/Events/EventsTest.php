@@ -50,19 +50,19 @@ class EventsTest extends TestCase
 
     public function test_intelligence_engine_completed_carries_all_fields(): void
     {
-        $event = new IntelligenceEngineCompleted(1, 'operational', 5, 3, ['dot.fleet'], 42);
+        $event = new IntelligenceEngineCompleted(1, 'operational', 5, 3, ['tasks'], 42);
 
         $this->assertEquals(1, $event->teamId);
         $this->assertEquals('operational', $event->engine);
         $this->assertEquals(5, $event->insightsGenerated);
         $this->assertEquals(3, $event->metricsComputed);
-        $this->assertEquals(['dot.fleet'], $event->platformsConsumed);
+        $this->assertEquals(['tasks'], $event->platformsConsumed);
         $this->assertEquals(42, $event->runId);
     }
 
     public function test_intelligence_engine_completed_broadcasts_correctly(): void
     {
-        $event = new IntelligenceEngineCompleted(1, 'financial', 2, 0, ['dot.payments'], 1);
+        $event = new IntelligenceEngineCompleted(1, 'financial', 2, 0, ['billing'], 1);
 
         $this->assertEquals('engine.completed', $event->broadcastAs());
         $payload = $event->broadcastWith();
@@ -97,10 +97,10 @@ class EventsTest extends TestCase
 
     public function test_platform_disconnected_carries_platform_and_team(): void
     {
-        $event = new PlatformDisconnected(5, 'dot.fleet', 'Dot.Fleet');
+        $event = new PlatformDisconnected(5, 'tasks', 'Dot.Fleet');
 
         $this->assertEquals(5, $event->teamId);
-        $this->assertEquals('dot.fleet', $event->platform);
+        $this->assertEquals('tasks', $event->platform);
         $this->assertEquals('Dot.Fleet', $event->displayName);
     }
 

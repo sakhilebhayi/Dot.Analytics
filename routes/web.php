@@ -12,7 +12,11 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
 use Laravel\Jetstream\Jetstream;
 
+// Token redemption is brute-forceable if unthrottled: 10 attempts/min per IP.
+// NOTE: this still redeems a bearer token from the query string; moving to the
+// one-time redeem protocol is tracked separately.
 Route::get('/auth/ecosystem', [EcosystemAuthController::class, 'handle'])
+    ->middleware('throttle:ecosystem-auth')
     ->name('ecosystem.auth');
 
 Route::get('/', fn () => view('welcome'));
@@ -44,6 +48,7 @@ Route::middleware([
 
         $connectedPlatforms = DataSource::where('team_id', $team->id)
             ->where('status', 'connected')
+            ->whereIn('platform', array_keys(IntelligenceEngineService::PLATFORMS))
             ->pluck('platform')
             ->toArray();
 
@@ -53,7 +58,10 @@ Route::middleware([
 
         return view('dashboard', [
             'connectedCount' => count($connectedPlatforms),
+            'platformTotal' => count(IntelligenceEngineService::PLATFORMS),
             'activeEngineCount' => $activeEngineCount,
+            // Engines with no real platform able to feed them are dormant and not counted.
+            'engineTotal' => count(array_filter(IntelligenceEngineService::ENGINES, fn ($e) => $e['sources'] !== [])),
             'openAlertCount' => AnalyticsAlert::where('team_id', $team->id)->where('status', 'open')->count(),
             'pendingRecommendationCount' => Recommendation::where('team_id', $team->id)->where('status', 'pending')->count(),
         ]);

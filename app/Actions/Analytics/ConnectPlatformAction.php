@@ -26,6 +26,21 @@ class ConnectPlatformAction
      */
     public function handle(Team $team, string $platformKey, ?string $baseUrl = null): DataSource
     {
+        return $this->handleWithSecret($team, $platformKey, $baseUrl)[0];
+    }
+
+    /**
+     * Connect the platform and, if it has no webhook secret yet, issue one.
+     * The plaintext secret is returned only here, once; it is stored encrypted
+     * and never serialised afterwards. Ingest requires a signed request, so a
+     * source without a secret cannot receive data.
+     *
+     * @return array{0: DataSource, 1: string|null} [source, newly issued plaintext secret or null]
+     *
+     * @throws ValidationException
+     */
+    public function handleWithSecret(Team $team, string $platformKey, ?string $baseUrl = null): array
+    {
         $catalog = $this->engineService->getPlatform($platformKey);
 
         if (! $catalog) {
@@ -48,6 +63,8 @@ class ConnectPlatformAction
         // The observer fires PlatformConnected which dispatches engine jobs.
         // No need to manually dispatch here — decoupled by design.
 
-        return $dataSource;
+        $issued = $dataSource->webhook_secret ? null : $dataSource->rotateWebhookSecret();
+
+        return [$dataSource, $issued];
     }
 }

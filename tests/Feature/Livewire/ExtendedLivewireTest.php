@@ -10,6 +10,7 @@ use App\Livewire\Analytics\SavedReportsPanel;
 use App\Models\AnalyticsDashboard;
 use App\Models\AnalyticsReport;
 use App\Models\DashboardWidget;
+use App\Models\DataSource;
 use App\Models\FeatureFlag;
 use App\Models\Recommendation;
 use App\Models\User;
@@ -103,8 +104,17 @@ class ExtendedLivewireTest extends TestCase
         Livewire::test(FeatureFlagsPanel::class)->assertStatus(200);
     }
 
+    /** Flags are global: only a platform operator may mutate them (a team owner may not). */
+    private function actAsOperator(): void
+    {
+        $this->user->forceFill(['is_platform_operator' => true])->save();
+        $this->actingAs($this->user->fresh());
+    }
+
     public function test_feature_flags_panel_create_saves_flag(): void
     {
+        $this->actAsOperator();
+
         Livewire::test(FeatureFlagsPanel::class)
             ->set('newKey', 'test-flag')
             ->set('newName', 'Test Flag')
@@ -115,6 +125,8 @@ class ExtendedLivewireTest extends TestCase
 
     public function test_feature_flags_panel_toggle_enables_flag(): void
     {
+        $this->actAsOperator();
+
         $flag = FeatureFlag::create(['key' => 'toggle', 'name' => 'Toggle', 'enabled_globally' => false]);
 
         Livewire::test(FeatureFlagsPanel::class)->call('toggle', $flag->id);
@@ -124,6 +136,8 @@ class ExtendedLivewireTest extends TestCase
 
     public function test_feature_flags_panel_toggle_disables_active_flag(): void
     {
+        $this->actAsOperator();
+
         $flag = FeatureFlag::create(['key' => 'on-flag', 'name' => 'On', 'enabled_globally' => true]);
 
         Livewire::test(FeatureFlagsPanel::class)->call('toggle', $flag->id);
@@ -133,6 +147,8 @@ class ExtendedLivewireTest extends TestCase
 
     public function test_feature_flags_panel_set_rollout(): void
     {
+        $this->actAsOperator();
+
         $flag = FeatureFlag::create(['key' => 'rollout', 'name' => 'Rollout']);
 
         Livewire::test(FeatureFlagsPanel::class)->call('setRollout', $flag->id, 75.0);
@@ -166,7 +182,7 @@ class ExtendedLivewireTest extends TestCase
     {
         Livewire::test(KnowledgeGraphPanel::class)
             ->set('entityId', 'CUST-001')
-            ->set('results', [['id' => 1, 'label' => 'test', 'entity_type' => 'x', 'entity_id' => '1', 'source_platform' => 'dot.crm']])
+            ->set('results', [['id' => 1, 'label' => 'test', 'entity_type' => 'x', 'entity_id' => '1', 'source_platform' => 'emall']])
             ->call('clear')
             ->assertSet('entityId', '')
             ->assertSet('results', [])
@@ -274,14 +290,17 @@ class ExtendedLivewireTest extends TestCase
             'is_default' => true,
         ]);
 
+        DataSource::factory()->create(['team_id' => $this->team()->id, 'platform' => 'tasks', 'status' => 'connected']);
+
         Livewire::test(DashboardBuilderPanel::class)
             ->set('activeDashboardId', $dashboard->id)
-            ->set('widgetType', 'metric_card')
+            ->set('widgetType', 'kpi')
+            ->set('widgetMetric', 'tasks.open')
             ->call('addWidget');
 
         $this->assertDatabaseHas('dashboard_widgets', [
             'analytics_dashboard_id' => $dashboard->id,
-            'widget_type' => 'metric_card',
+            'widget_type' => 'kpi',
         ]);
     }
 

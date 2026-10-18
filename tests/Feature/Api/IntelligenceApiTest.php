@@ -42,7 +42,7 @@ class IntelligenceApiTest extends TestCase
 
         DataSource::factory()->create([
             'team_id' => $team->id,
-            'platform' => 'dot.fleet',
+            'platform' => 'tasks',
             'status' => 'connected',
         ]);
 
@@ -62,7 +62,7 @@ class IntelligenceApiTest extends TestCase
 
         DataSource::factory()->create([
             'team_id' => $team->id,
-            'platform' => 'dot.hear',
+            'platform' => 'pulse',
             'status' => 'connected',
         ]);
 

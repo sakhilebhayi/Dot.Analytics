@@ -75,14 +75,14 @@ class MetricsApiTest extends TestCase
     {
         [$user, $token] = $this->actingAsUser();
 
-        MetricDefinition::factory()->create(['source_platform' => 'dot.fleet']);
-        MetricDefinition::factory()->create(['source_platform' => 'dot.crm']);
+        MetricDefinition::factory()->create(['source_platform' => 'tasks']);
+        MetricDefinition::factory()->create(['source_platform' => 'emall']);
 
-        $response = $this->withToken($token)->getJson('/api/v1/metrics/definitions?platform=dot.fleet');
+        $response = $this->withToken($token)->getJson('/api/v1/metrics/definitions?platform=tasks');
 
         $response->assertOk();
         foreach ($response->json('data') as $def) {
-            $this->assertEquals('dot.fleet', $def['source_platform']);
+            $this->assertEquals('tasks', $def['source_platform']);
         }
     }
 

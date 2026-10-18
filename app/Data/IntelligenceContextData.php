@@ -12,7 +12,7 @@ readonly class IntelligenceContextData
     public function __construct(
         public int $teamId,
         public string $teamName,
-        public array $connectedPlatforms,    // ['dot.fleet', 'dot.crm', ...]
+        public array $connectedPlatforms,    // ['tasks', 'emall', ...]
         public array $activeEngines,          // engine keys
         public array $recentSnapshots,        // recent data summaries
         public ?array $dnaProfile = null,   // Business DNA profile summary

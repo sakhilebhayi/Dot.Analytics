@@ -57,5 +57,9 @@ class JetstreamServiceProvider extends ServiceProvider
             'create',
             'update',
         ])->description('Editor users have the ability to read, create, and update.');
+
+        Jetstream::role('viewer', 'Viewer', [
+            'read',
+        ])->description('Viewers read the intelligence layer: platforms, insights, alerts, recommendations, reports and dashboards. They change nothing, spend no AI budget and never see webhook secrets.');
     }
 }

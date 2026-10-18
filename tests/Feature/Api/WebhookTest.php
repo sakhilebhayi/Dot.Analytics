@@ -5,108 +5,102 @@ namespace Tests\Feature\Api;
 use App\Models\DataSource;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Support\BuildsTeams;
 use Tests\TestCase;
 
+/**
+ * The transport-level behaviour of POST /api/v1/ingest/{platform}. What a
+ * snapshot may contain is covered by Tests\Feature\Metrics\IngestContractTest.
+ */
 class WebhookTest extends TestCase
 {
-    use RefreshDatabase;
+    use BuildsTeams, RefreshDatabase;
 
-    private function actingAsUser(): array
+    private const SECRET = 'test-webhook-secret';
+
+    private User $user;
+
+    private string $company;
+
+    protected function setUp(): void
     {
-        $user = User::factory()->withPersonalTeam()->create();
-        $token = $user->createToken('test')->plainTextToken;
+        parent::setUp();
 
-        return [$user, $token];
+        $this->user = $this->ownerWithTeam();
+        $this->company = $this->linkCompany($this->user->currentTeam);
     }
 
-    private function connectedSource(int $teamId, string $platform = 'dot.fleet', array $config = []): DataSource
+    private function connectedSource(string $platform = 'tasks', ?string $secret = self::SECRET): DataSource
     {
         return DataSource::factory()->create([
-            'team_id' => $teamId,
+            'team_id' => $this->user->currentTeam->id,
             'platform' => $platform,
             'status' => 'connected',
-            'config' => $config,
+            'webhook_secret' => $secret,
         ]);
     }
 
-    public function test_receive_accepts_valid_payload_and_queues_job(): void
+    public function test_receive_accepts_a_signed_snapshot(): void
     {
-        [$user, $token] = $this->actingAsUser();
-        $this->connectedSource($user->currentTeam->id);
+        $this->connectedSource();
 
-        $response = $this->withToken($token)->postJson('/api/v1/ingest/dot.fleet', [
-            'vehicles' => [['id' => 'V-001', 'fuel' => 45.2]],
-        ]);
-
-        $response->assertStatus(202)
-            ->assertJsonPath('success', true)
-            ->assertJsonPath('data.queued', true);
+        $this->postSnapshot($this->user, 'tasks', $this->snapshotBody($this->company, 'tasks', ['open' => 4]), self::SECRET)
+            ->assertStatus(201)
+            ->assertJsonPath('success', true);
     }
 
     public function test_receive_returns_404_for_unconnected_platform(): void
     {
-        [$user, $token] = $this->actingAsUser();
-
-        $response = $this->withToken($token)->postJson('/api/v1/ingest/dot.fleet', [
-            'data' => [],
-        ]);
-
-        $response->assertNotFound();
+        $this->postSnapshot($this->user, 'tasks', $this->snapshotBody($this->company, 'tasks', ['open' => 4]), self::SECRET)
+            ->assertNotFound();
     }
 
-    public function test_receive_returns_422_for_empty_payload(): void
+    public function test_receive_returns_422_for_an_empty_body(): void
     {
-        [$user, $token] = $this->actingAsUser();
-        $this->connectedSource($user->currentTeam->id);
+        $this->connectedSource();
 
-        $response = $this->withToken($token)->postJson('/api/v1/ingest/dot.fleet');
-
-        $response->assertUnprocessable();
+        $this->asApi($this->user)
+            ->withHeaders(['X-Analytics-Signature' => 'sha256='.hash_hmac('sha256', '[]', self::SECRET)])
+            ->postJson('/api/v1/ingest/tasks')
+            ->assertUnprocessable();
     }
 
-    public function test_receive_rejects_invalid_hmac_signature(): void
+    public function test_receive_rejects_an_invalid_hmac_signature(): void
     {
-        [$user, $token] = $this->actingAsUser();
-        $this->connectedSource($user->currentTeam->id, 'dot.fleet', ['webhook_secret' => 'secret123']);
+        $this->connectedSource();
 
-        $response = $this->withToken($token)
+        $this->asApi($this->user)
             ->withHeaders(['X-Analytics-Signature' => 'sha256=invalidsignature'])
-            ->postJson('/api/v1/ingest/dot.fleet', ['data' => 'test']);
-
-        $response->assertUnauthorized();
+            ->postJson('/api/v1/ingest/tasks', $this->snapshotBody($this->company, 'tasks', ['open' => 4]))
+            ->assertUnauthorized();
     }
 
-    public function test_receive_accepts_valid_hmac_signature(): void
+    public function test_a_legacy_secret_in_config_is_honoured_after_the_model_moves_it(): void
     {
-        [$user, $token] = $this->actingAsUser();
-        $secret = 'my-webhook-secret';
-        $this->connectedSource($user->currentTeam->id, 'dot.fleet', ['webhook_secret' => $secret]);
+        $source = DataSource::factory()->create([
+            'team_id' => $this->user->currentTeam->id,
+            'platform' => 'tasks',
+            'status' => 'connected',
+            'config' => ['webhook_secret' => 'my-webhook-secret'],
+        ]);
+        $this->assertSame('my-webhook-secret', $source->fresh()->webhook_secret);
 
-        $payload = ['vehicles' => [['id' => 'V-001']]];
-        $body = json_encode($payload);
-        $signature = 'sha256='.hash_hmac('sha256', $body, $secret);
-
-        $response = $this->withToken($token)
-            ->withHeaders(['X-Analytics-Signature' => $signature])
-            ->postJson('/api/v1/ingest/dot.fleet', $payload);
-
-        $response->assertStatus(202);
+        $this->postSnapshot($this->user, 'tasks', $this->snapshotBody($this->company, 'tasks', ['open' => 4]), 'my-webhook-secret')
+            ->assertStatus(201);
     }
 
     public function test_ping_returns_connection_status(): void
     {
-        [$user, $token] = $this->actingAsUser();
-        $source = $this->connectedSource($user->currentTeam->id);
+        $this->connectedSource();
 
-        $response = $this->withToken($token)->getJson('/api/v1/ingest/dot.fleet/ping');
-
-        $response->assertOk()
+        $this->asApi($this->user)->getJson('/api/v1/ingest/tasks/ping')
+            ->assertOk()
             ->assertJsonPath('data.connected', true)
-            ->assertJsonPath('data.platform', 'dot.fleet');
+            ->assertJsonPath('data.platform', 'tasks');
     }
 
     public function test_receive_requires_authentication(): void
     {
-        $this->postJson('/api/v1/ingest/dot.fleet')->assertUnauthorized();
+        $this->postJson('/api/v1/ingest/tasks')->assertUnauthorized();
     }
 }

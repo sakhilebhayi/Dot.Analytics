@@ -11,7 +11,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $id
  * @property int $team_id
  * @property string $engine
- * @property string $status
+ * @property string $status running|completed|skipped|no_data|failed
+ * @property string|null $status_reason
+ * @property array|null $provenance
  * @property array|null $platforms_consumed
  * @property int $insights_generated
  * @property int $metrics_computed
@@ -25,10 +27,12 @@ class IntelligenceEngineRun extends Model
     protected $fillable = [
         'team_id', 'engine', 'status', 'platforms_consumed',
         'insights_generated', 'metrics_computed', 'started_at', 'completed_at',
+        'status_reason', 'provenance',
     ];
 
     protected $casts = [
         'platforms_consumed' => 'array',
+        'provenance' => 'array',
         'started_at' => 'datetime',
         'completed_at' => 'datetime',
     ];

@@ -11,7 +11,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $team_id
  * @property string $period
  * @property string $period_date
- * @property string $status
+ * @property string $status generating|ready|unavailable
+ * @property string|null $status_reason
+ * @property array|null $provenance
  * @property string|null $summary
  * @property array|null $highlights
  * @property array|null $risks
@@ -27,7 +29,7 @@ class ExecutiveBriefing extends Model
     protected $fillable = [
         'team_id', 'period', 'period_date', 'status', 'summary',
         'highlights', 'risks', 'recommendations', 'kpis',
-        'engines_consulted', 'insight_count',
+        'engines_consulted', 'insight_count', 'status_reason', 'provenance',
     ];
 
     protected $casts = [
@@ -36,6 +38,7 @@ class ExecutiveBriefing extends Model
         'recommendations' => 'array',
         'kpis' => 'array',
         'engines_consulted' => 'array',
+        'provenance' => 'array',
     ];
 
     public function team(): BelongsTo
@@ -46,5 +49,11 @@ class ExecutiveBriefing extends Model
     public function isReady(): bool
     {
         return $this->status === 'ready';
+    }
+
+    /** No briefing was produced (no provider / no real data); nothing here may be shown as one. */
+    public function isUnavailable(): bool
+    {
+        return $this->status === 'unavailable';
     }
 }

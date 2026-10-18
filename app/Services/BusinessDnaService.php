@@ -5,89 +5,111 @@ namespace App\Services;
 use App\Models\AnalyticsSnapshot;
 use App\Models\BusinessDnaProfile;
 use App\Models\Team;
+use App\Services\Metrics\MetricsContextBuilder;
 use Illuminate\Support\Carbon;
 
 /**
- * Builds and continuously refines the Business DNA Profile for a team.
+ * Builds and refines the Business DNA Profile for a team, from real data only.
  *
- * The DNA profile is the evolving operational fingerprint of an organisation.
- * It learns from every connected platform and becomes more accurate over time,
- * allowing intelligence engines to produce recommendations tailored to this
- * specific organisation rather than relying on generic analytics.
+ * The profile is an AI characterisation of the team's real snapshots and computed
+ * metrics. Integrity contract, like the intelligence engines:
+ *  - no snapshots for any connected roster platform: nothing is computed and nothing
+ *    is stored ("no data yet"); there is no structural baseline text any more;
+ *  - no AI provider, or an answer that cannot be parsed: nothing is stored, and a
+ *    profile that already exists is left exactly as it was;
+ *  - a field the model did not return stays empty rather than receiving default prose.
  */
 class BusinessDnaService
 {
     public function __construct(
         private readonly IntelligenceEngineService $engineService,
         private readonly AiModelRouter $aiRouter,
+        private readonly SnapshotContextBuilder $snapshots = new SnapshotContextBuilder,
+        private readonly MetricsContextBuilder $metrics = new MetricsContextBuilder,
     ) {}
 
     /**
-     * Compute or update the Business DNA Profile for a team.
-     * Returns the updated profile.
+     * Compute or update the profile. Returns the profile, or null when there is
+     * nothing real to base one on (and none exists already).
      */
-    public function computeForTeam(Team $team): BusinessDnaProfile
+    public function computeForTeam(Team $team): ?BusinessDnaProfile
     {
-        $profile = BusinessDnaProfile::firstOrNew(['team_id' => $team->id]);
+        $existing = BusinessDnaProfile::withoutGlobalScopes()->where('team_id', $team->id)->first();
 
         $signals = $this->collectSignals($team);
-        $context = $this->engineService->buildEcosystemContext($team);
+        if ($signals['snapshot_count'] < 1) {
+            return $existing;
+        }
 
-        $dna = $this->derivePatterns($team, $signals, $context);
+        $dna = $this->derivePatterns($team, $signals);
+        if ($dna === null) {
+            return $existing;
+        }
 
+        $profile = $existing ?? new BusinessDnaProfile(['team_id' => $team->id]);
         $profile->fill([
             'operational_patterns' => $dna['operational_patterns'],
-            'seasonal_trends' => $dna['seasonal_trends'],
-            'risk_tolerance' => $dna['risk_tolerance'],
-            'growth_signals' => $dna['growth_signals'],
-            'decision_patterns' => $dna['decision_patterns'],
-            'customer_behavior' => $dna['customer_behavior'],
-            'bottlenecks' => $dna['bottlenecks'],
-            'industry_benchmarks' => $dna['industry_benchmarks'],
+            'seasonal_trends' => $dna['seasonal_trends'] ?? null,
+            'risk_tolerance' => $dna['risk_tolerance'] ?? null,
+            'growth_signals' => $dna['growth_signals'] ?? null,
+            'decision_patterns' => $dna['decision_patterns'] ?? null,
+            'customer_behavior' => $dna['customer_behavior'] ?? null,
+            'bottlenecks' => $dna['bottlenecks'] ?? null,
+            'industry_benchmarks' => $dna['industry_benchmarks'] ?? null,
             'confidence_score' => $this->calculateConfidence($signals),
             'last_computed_at' => Carbon::now(),
         ]);
-
         $profile->save();
 
         return $profile;
     }
 
     /**
-     * Collect all available signal data from connected snapshots.
+     * The real data available: snapshots of connected roster platforms.
      */
     private function collectSignals(Team $team): array
     {
-        $snapshotCount = AnalyticsSnapshot::where('team_id', $team->id)->count();
-        $sourcePlatforms = $team->dataSources()
+        $platforms = $team->dataSources()
             ->where('status', 'connected')
+            ->whereIn('platform', array_keys(IntelligenceEngineService::PLATFORMS))
             ->pluck('platform')
             ->toArray();
 
+        $snapshotCount = $platforms === [] ? 0 : AnalyticsSnapshot::withoutGlobalScopes()
+            ->where('team_id', $team->id)
+            ->whereHas('dataSource', fn ($q) => $q->withoutGlobalScopes()->where('team_id', $team->id)->whereIn('platform', $platforms))
+            ->count();
+
         return [
             'snapshot_count' => $snapshotCount,
-            'platform_count' => count($sourcePlatforms),
-            'platforms' => $sourcePlatforms,
+            'platform_count' => count($platforms),
+            'platforms' => $platforms,
             'data_age_days' => $this->getOldestSnapshotAgeDays($team),
         ];
     }
 
     /**
-     * Derive behavioural patterns from signals, using AI when available
-     * or returning a structured baseline for new profiles.
+     * Ask the model to characterise the real data. Null when there is no
+     * provider or its answer is not a usable profile.
      */
-    private function derivePatterns(Team $team, array $signals, string $context): array
+    private function derivePatterns(Team $team, array $signals): ?array
     {
-        if ($signals['snapshot_count'] < 1) {
-            return $this->baselinePattern($signals['platforms']);
-        }
+        $context = $this->engineService->buildEcosystemContext($team);
+        $snapshotContext = $this->snapshots->build($team, $signals['platforms']);
+        $metricsContext = $this->metrics->build($team);
 
         $prompt = <<<PROMPT
 You are building the Business DNA profile for {$team->name}.
 
 {$context}
 
-Based on this ecosystem data, characterise the organisation's operational fingerprint.
+Computed metrics (real, from the platforms' daily snapshots):
+{$metricsContext['block']}
+
+Recent snapshots (real):
+{$snapshotContext['block']}
+
+Characterise the organisation's operational fingerprint using ONLY the data above. If the data does not support a field, leave it out or set it to null; do not invent patterns, seasons, customers or benchmarks.
 Return a JSON object only:
 {
   "operational_patterns": { "summary": "...", "key_patterns": ["..."] },
@@ -101,60 +123,14 @@ Return a JSON object only:
 }
 PROMPT;
 
-        $raw = $this->aiRouter->complete($prompt, 'query', $team->id);
-        $parsed = json_decode($raw, true);
-
-        if (is_array($parsed) && isset($parsed['operational_patterns'])) {
-            return $parsed;
+        $raw = $this->aiRouter->completeStrict($prompt, 'query', $team->id);
+        if ($raw === null) {
+            return null;
         }
 
-        return $this->baselinePattern($signals['platforms']);
-    }
+        $parsed = preg_match('/\{.*\}/s', $raw, $m) ? json_decode($m[0], true) : null;
 
-    /**
-     * Structural baseline DNA for teams that just connected their first platforms.
-     */
-    private function baselinePattern(array $platforms): array
-    {
-        $platformLabels = array_map(
-            fn ($p) => IntelligenceEngineService::PLATFORMS[$p]['label'] ?? $p,
-            $platforms,
-        );
-
-        return [
-            'operational_patterns' => [
-                'summary' => 'Baseline pattern established. More data needed for precise characterisation.',
-                'key_patterns' => [],
-            ],
-            'seasonal_trends' => [
-                'summary' => 'Seasonal trends will emerge after 30+ days of connected data.',
-                'peaks' => [],
-                'troughs' => [],
-            ],
-            'risk_tolerance' => [
-                'level' => 'medium',
-                'notes' => 'Default risk profile. Will refine as decision data accumulates.',
-            ],
-            'growth_signals' => [
-                'summary' => 'Monitoring for growth signals across: '.implode(', ', $platformLabels),
-                'signals' => [],
-            ],
-            'decision_patterns' => [
-                'summary' => 'Decision patterns will emerge as workflow and agent data accumulates.',
-                'tendencies' => [],
-            ],
-            'customer_behavior' => [
-                'summary' => 'Customer behavioural profiling requires CRM and support data.',
-                'segments' => [],
-            ],
-            'bottlenecks' => [
-                'summary' => 'No bottlenecks identified yet. Connect operational platforms for detection.',
-                'areas' => [],
-            ],
-            'industry_benchmarks' => [
-                'notes' => 'Industry benchmarks will be applied once the industry profile is set.',
-            ],
-        ];
+        return is_array($parsed) && is_array($parsed['operational_patterns'] ?? null) ? $parsed : null;
     }
 
     /**
@@ -172,10 +148,10 @@ PROMPT;
 
     private function getOldestSnapshotAgeDays(Team $team): int
     {
-        $oldest = AnalyticsSnapshot::where('team_id', $team->id)
+        $oldest = AnalyticsSnapshot::withoutGlobalScopes()->where('team_id', $team->id)
             ->orderBy('captured_at')
             ->value('captured_at');
 
-        return $oldest ? Carbon::now()->diffInDays($oldest) : 0;
+        return $oldest ? (int) Carbon::now()->diffInDays($oldest, true) : 0;
     }
 }

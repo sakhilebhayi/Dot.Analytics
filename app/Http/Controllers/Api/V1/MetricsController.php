@@ -36,7 +36,10 @@ class MetricsController extends BaseApiController
      * GET /api/v1/metrics
      * Returns computed metric values for the team.
      *
-     * Query params: period, period_date, metric_key, engine
+     * Each row is one metric on one day, with its change from the previous
+     * reported point, whether it has gone stale, and whether it is seeded demo data.
+     *
+     * Query params: period, period_date, metric_key
      */
     public function index(Request $request): JsonResponse
     {
@@ -53,9 +56,17 @@ class MetricsController extends BaseApiController
                 'label' => $m->metricDefinition?->label,
                 'engine' => $m->metricDefinition?->engine,
                 'unit' => $m->metricDefinition?->unit,
+                'currency' => $m->currency,
                 'value' => $m->value,
+                'previous_value' => $m->previous_value,
+                'delta' => $m->delta,
+                'delta_pct' => $m->delta_pct,
                 'period' => $m->period,
                 'date' => $m->period_date,
+                'previous_date' => $m->previous_period_date,
+                'observed_at' => $m->observed_at?->toIso8601String(),
+                'stale' => $m->isStale(),
+                'demo' => $m->is_demo,
             ]);
 
         return $this->success($metrics);

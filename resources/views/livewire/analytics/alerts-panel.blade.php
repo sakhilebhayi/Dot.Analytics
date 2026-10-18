@@ -37,9 +37,19 @@
                         <div>
                             <p style="font-size:0.85rem;font-weight:600;color:var(--paper);margin:0;">{{ $alert->title }}</p>
                             <p style="font-size:0.75rem;color:var(--mist);margin:0.2rem 0 0;">{{ $alert->description }}</p>
+                            @if(($alert->context['source'] ?? null) === 'metric_anomaly')
+                                @php $ctx = $alert->context; @endphp
+                                <p class="font-mono" data-testid="alert-provenance" style="font-size:0.66rem;color:var(--mist);margin:0.35rem 0 0;line-height:1.5;">
+                                    {{ $ctx['metric_key'] }} &middot; {{ $ctx['period_date'] }}
+                                    &middot; window {{ $ctx['window']['start'] }} to {{ $ctx['window']['end'] }} ({{ $ctx['window']['prior_points'] }} prior points)
+                                    &middot; median {{ $ctx['baseline']['median'] }}, MAD {{ $ctx['baseline']['mad'] }}
+                                    &middot; {{ $ctx['score'] }} vs threshold {{ $ctx['threshold'] }}
+                                    @if(!empty($ctx['is_demo'])) &middot; <span style="color:var(--gold-soft);">DEMO DATA</span> @endif
+                                </p>
+                            @endif
                             <p style="font-size:0.68rem;color:var(--mist);opacity:0.7;margin:0.25rem 0 0;">{{ $alert->triggered_at->diffForHumans() }}</p>
                         </div>
-                        @if($alert->isOpen())
+                        @if($alert->isOpen() && auth()->user()->can('manage-alerts'))
                             <div class="flex gap-1 shrink-0">
                                 <button wire:click="acknowledge({{ $alert->id }})" class="press" style="font-size:0.68rem;padding:0.25rem 0.6rem;border:1px solid var(--line);border-radius:0.3rem;color:var(--mist);background:transparent;">Ack</button>
                                 <button wire:click="resolve({{ $alert->id }})" class="press" style="font-size:0.68rem;padding:0.25rem 0.6rem;border:1px solid var(--teal-soft);border-radius:0.3rem;color:var(--teal-soft);background:transparent;">Resolve</button>

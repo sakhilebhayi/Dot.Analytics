@@ -6,6 +6,7 @@ use App\Models\ExecutiveBriefing;
 use App\Models\Team;
 use App\Services\AiModelRouter;
 use App\Services\IntelligenceEngineService;
+use App\Services\Metrics\MetricsContextBuilder;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 
@@ -28,7 +29,7 @@ class GenerateExecutiveBriefingJob implements ShouldQueue
         public readonly string $periodDate = '',
     ) {}
 
-    public function handle(AiModelRouter $aiRouter, IntelligenceEngineService $engineService): void
+    public function handle(AiModelRouter $aiRouter, IntelligenceEngineService $engineService, ?MetricsContextBuilder $metricsBuilder = null): void
     {
         $team = Team::find($this->teamId);
         if (! $team) {
@@ -49,22 +50,45 @@ class GenerateExecutiveBriefingJob implements ShouldQueue
         $connected = $team->dataSources()->where('status', 'connected')->pluck('platform')->toArray();
         $activeEngines = $engineService->getActiveEngines($connected);
 
-        $recentInsights = $team->crossPlatformInsights()
+        $insights = $team->crossPlatformInsights()
+            ->whereIn('status', ['new', 'reviewed'])
             ->orderByDesc('created_at')
             ->limit(10)
-            ->get()
-            ->map(fn ($i) => "- [{$i->severity}] {$i->title}: {$i->narrative}")
-            ->join("\n");
+            ->get();
+
+        $metrics = ($metricsBuilder ?? new MetricsContextBuilder)->build($team);
+
+        // A briefing summarises real insights and real computed metrics. With neither
+        // (or no provider) there is nothing truthful to say: record that the briefing
+        // is unavailable rather than storing placeholder text as one.
+        if ($insights->isEmpty() && ! $metrics['has_data']) {
+            $this->markUnavailable($briefing, 'No data yet: there are no insights and no reported metrics to summarise. Connect a platform and let it send a snapshot.');
+
+            return;
+        }
+
+        if (! $aiRouter->hasProvider()) {
+            $this->markUnavailable($briefing, 'No AI provider is configured, so a briefing cannot be written.');
+
+            return;
+        }
+
+        $recentInsights = $insights->isEmpty()
+            ? '(none)'
+            : $insights->map(fn ($i) => "- [{$i->severity}] {$i->title}: {$i->narrative}")->join("\n");
 
         $prompt = <<<PROMPT
 You are Dot.Analytics preparing an executive {$this->period} intelligence briefing for {$team->name}.
 
 Organisation has {$this->countOf($connected)} connected platforms and {$this->countOf(array_keys($activeEngines))} active intelligence engines.
 
-Recent cross-platform insights:
+Insights derived from the organisation's real ingested data (use ONLY these and the metrics below; do not invent facts):
 {$recentInsights}
 
-Generate a concise executive briefing. Return JSON only:
+Real computed metrics (latest value and change since the previous report; "no data yet" and STALE entries must not be treated as current):
+{$metrics['block']}
+
+Generate a concise executive briefing grounded strictly in the insights and metrics above. Return JSON only:
 {
   "summary": "2-3 sentence executive summary",
   "highlights": ["positive signal 1", "positive signal 2"],
@@ -75,18 +99,60 @@ Generate a concise executive briefing. Return JSON only:
 }
 PROMPT;
 
-        $response = $aiRouter->complete($prompt, 'briefing', $this->teamId);
-        $parsed = json_decode($response, true);
+        $response = $aiRouter->completeStrict($prompt, 'briefing', $this->teamId);
+
+        if ($response === null) {
+            $this->markUnavailable($briefing, 'The AI provider did not return a response.');
+
+            return;
+        }
+
+        $parsed = $this->parseJsonObject($response);
+        if (! $parsed || trim((string) ($parsed['summary'] ?? '')) === '') {
+            $this->markUnavailable($briefing, 'The AI response could not be parsed as a briefing.');
+
+            return;
+        }
 
         $briefing->update([
             'status' => 'ready',
-            'summary' => $parsed['summary'] ?? 'Intelligence briefing generated.',
-            'highlights' => $parsed['highlights'] ?? [],
-            'risks' => $parsed['risks'] ?? [],
-            'recommendations' => $parsed['recommendations'] ?? [],
+            'status_reason' => null,
+            'summary' => $parsed['summary'],
+            'highlights' => is_array($parsed['highlights'] ?? null) ? $parsed['highlights'] : [],
+            'risks' => is_array($parsed['risks'] ?? null) ? $parsed['risks'] : [],
+            'recommendations' => is_array($parsed['recommendations'] ?? null) ? $parsed['recommendations'] : [],
             'engines_consulted' => array_keys($activeEngines),
-            'insight_count' => $team->crossPlatformInsights()->count(),
+            'insight_count' => $insights->count(),
+            'provenance' => [
+                'insight_ids' => $insights->pluck('id')->sort()->values()->all(),
+                'metric_keys' => $metrics['metric_keys'],
+                'alert_ids' => $metrics['alert_ids'],
+                'generated_at' => now()->toIso8601String(),
+            ],
         ]);
+    }
+
+    private function markUnavailable(ExecutiveBriefing $briefing, string $reason): void
+    {
+        $briefing->update([
+            'status' => 'unavailable',
+            'status_reason' => $reason,
+            'summary' => null,
+            'highlights' => [],
+            'risks' => [],
+            'recommendations' => [],
+        ]);
+    }
+
+    /** @return array<string, mixed>|null */
+    private function parseJsonObject(string $raw): ?array
+    {
+        if (! preg_match('/\{.*\}/s', $raw, $m)) {
+            return null;
+        }
+        $decoded = json_decode($m[0], true);
+
+        return is_array($decoded) ? $decoded : null;
     }
 
     private function countOf(array $arr): int

@@ -26,7 +26,7 @@ We process personal information to:
 
 ## 4. AI processing
 
-Some of Dot.Analytics's intelligence engines use a large language model (Anthropic Claude) to help generate insights and recommendations from your team's connected data; where no AI provider is configured, a deterministic rule-based fallback runs instead. Data sent to our AI provider is used solely to generate the specific response requested and is governed by that provider's own data-processing terms — we do not enable model training on your data.
+Some of Dot.Analytics's intelligence engines use a large language model (Anthropic Claude) to help generate insights and recommendations from your team's connected data; where no AI provider is configured, those features produce nothing. Data sent to our AI provider is used solely to generate the specific response requested and is governed by that provider's own data-processing terms — we do not enable model training on your data.
 
 ## 5. Ecosystem single sign-on
 

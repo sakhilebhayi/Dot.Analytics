@@ -152,7 +152,7 @@ class GateTest extends TestCase
 
         DataSource::factory()->create([
             'team_id' => $ownerA->currentTeam->id,
-            'platform' => 'dot.fleet',
+            'platform' => 'tasks',
             'status' => 'connected',
         ]);
 
@@ -172,7 +172,7 @@ class GateTest extends TestCase
 
         DataSource::factory()->create([
             'team_id' => $ownerA->currentTeam->id,
-            'platform' => 'dot.fleet',
+            'platform' => 'tasks',
             'status' => 'connected',
         ]);
 
@@ -180,7 +180,7 @@ class GateTest extends TestCase
 
         // Team B trying to disconnect Team A's platform — should 404
         $this->withToken($tokenB)
-            ->deleteJson('/api/v1/platforms/dot.fleet')
+            ->deleteJson('/api/v1/platforms/tasks')
             ->assertNotFound();
     }
 

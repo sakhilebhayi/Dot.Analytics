@@ -7,7 +7,6 @@ use App\Models\User;
 use App\Observers\DataSourceObserver;
 use App\Services\AiModelRouter;
 use App\Services\AiSqlService;
-use App\Services\AnomalyDetectionService;
 use App\Services\BusinessDnaService;
 use App\Services\Connectors\ConnectorRegistry;
 use App\Services\Connectors\DatabaseConnector;
@@ -64,7 +63,6 @@ class AppServiceProvider extends ServiceProvider
 
         $this->app->singleton(FeatureFlagService::class);
         $this->app->singleton(CurrencyService::class);
-        $this->app->singleton(AnomalyDetectionService::class);
 
         $this->app->singleton(AiSqlService::class, fn ($app) => new AiSqlService(
             $app->make(AiModelRouter::class),
@@ -103,10 +101,36 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('manage-recommendations', fn ($user) => $this->isTeamOwnerOrAdmin($user)
         );
 
-        Gate::define('view-intelligence', fn ($user) =>
-            // All authenticated team members can view intelligence
-            $user->currentTeam !== null
+        Gate::define('manage-alerts', fn ($user) => $user->administersTeam($user->currentTeam)
         );
+
+        Gate::define('manage-reports', fn ($user) => $user->administersTeam($user->currentTeam)
+        );
+
+        // Feature flags are GLOBAL (every tenant reads the same rows), so mutating
+        // them is reserved for platform operators. A team role must never grant it.
+        Gate::define('manage-feature-flags', fn ($user) => $user->isPlatformOperator()
+        );
+
+        // Working inside the layer without managing it (owner, admin, editor; never the
+        // read-only viewer): saved reports can be run, dashboards arranged, and the
+        // Intelligence box asked, which spends AI budget.
+        Gate::define('ask-intelligence', fn ($user) => $user->contributesTo($user->currentTeam)
+        );
+
+        Gate::define('edit-dashboards', fn ($user) => $user->contributesTo($user->currentTeam)
+        );
+
+        Gate::define('run-reports', fn ($user) => $user->contributesTo($user->currentTeam)
+        );
+
+        Gate::define('view-intelligence', fn ($user) =>
+            // Every member of the team, viewers included
+            $user->currentTeam !== null && $user->belongsToTeam($user->currentTeam)
+        );
+
+        // SSO token redemption: unauthenticated, so key by IP.
+        RateLimiter::for('ecosystem-auth', fn (Request $request) => Limit::perMinute(10)->by($request->ip()));
 
         // API rate limiters
         RateLimiter::for('analytics-api', function (Request $request) {
@@ -136,17 +160,6 @@ class AppServiceProvider extends ServiceProvider
 
     private function isTeamOwnerOrAdmin(User $user): bool
     {
-        $team = $user->currentTeam;
-        if (! $team) {
-            return false;
-        }
-        if ($team->user_id === $user->id) {
-            return true;
-        }
-
-        return $team->users()
-            ->where('user_id', $user->id)
-            ->wherePivot('role', 'admin')
-            ->exists();
+        return $user->administersTeam($user->currentTeam);
     }
 }

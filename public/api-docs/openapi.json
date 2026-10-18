@@ -118,8 +118,8 @@
                             "type": "string"
                         },
                         "example": [
-                            "dot.fleet",
-                            "dot.hr"
+                            "tasks",
+                            "hr"
                         ]
                     },
                     "insight_type": {
@@ -164,7 +164,7 @@
                     },
                     "platform": {
                         "type": "string",
-                        "example": "dot.fleet"
+                        "example": "tasks"
                     },
                     "display_name": {
                         "type": "string"
@@ -605,6 +605,46 @@
                 ],
                 "summary": "Get a connected platform by key.",
                 "operationId": "platform-show",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/Unprocessable"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/TooManyRequests"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "platform",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ]
+            }
+        },
+        "/v1/platforms/{platform}/webhook-secret": {
+            "post": {
+                "tags": [
+                    "Platforms"
+                ],
+                "summary": "Rotate the ingest webhook secret (returned once). Owner/admin only.",
+                "operationId": "platform-webhook-secret",
                 "responses": {
                     "200": {
                         "description": "Success",
@@ -1088,12 +1128,94 @@
                 }
             }
         },
+        "/ingest/snapshots": {
+            "post": {
+                "tags": [
+                    "Ingest"
+                ],
+                "summary": "A Dot platform publishes its own signed daily metrics snapshot. No user token: send X-InfoDot-Timestamp (unix seconds, 5 minute tolerance) and X-InfoDot-Signature = sha256= + HMAC-SHA256(platform secret, \"{timestamp}.{raw body}\"). 201 stored, 200 replay (original id), 401 generic for every authentication failure, 404 unknown company, 422 contract broken, 429 rate limited. See docs/metrics-contract.md.",
+                "operationId": "ingest-snapshots",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/Unprocessable"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/TooManyRequests"
+                    }
+                },
+                "security": [],
+                "parameters": [
+                    {
+                        "name": "X-InfoDot-Timestamp",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "X-InfoDot-Signature",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "platform": {
+                                        "type": "string",
+                                        "description": "The calling platform key, e.g. tasks."
+                                    },
+                                    "company_uuid": {
+                                        "type": "string",
+                                        "format": "uuid"
+                                    },
+                                    "taken_at": {
+                                        "type": "string",
+                                        "format": "date-time"
+                                    },
+                                    "period": {
+                                        "type": "string",
+                                        "enum": [
+                                            "day"
+                                        ]
+                                    },
+                                    "metrics": {
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/v1/ingest/{platform}": {
             "post": {
                 "tags": [
                     "Ingest"
                 ],
-                "summary": "Push a data snapshot from a Dot platform via webhook.",
+                "summary": "Push a signed daily metrics snapshot from a Dot platform (see docs/metrics-contract.md). 201 stored, 200 replay of an already-stored snapshot, 404 generic when the company or platform is not connected, 422 when the contract is broken.",
                 "operationId": "ingest",
                 "responses": {
                     "200": {

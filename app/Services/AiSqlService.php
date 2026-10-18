@@ -13,12 +13,17 @@ use App\Services\Connectors\ConnectorRegistry;
  * database connector, and returns structured results with the generated SQL
  * for transparency and auditability.
  *
- * Security measures:
- *  - Only SELECT statements are permitted
- *  - All dangerous keywords (DROP, INSERT, UPDATE, DELETE, TRUNCATE, EXEC, etc.)
- *    are rejected before execution
- *  - Results are limited to 500 rows
- *  - Execution time is bounded by PDO timeout
+ * Security measures (defence in depth; the connector's DB account should ALSO be
+ * read-only, because no SQL filter is a complete sandbox):
+ *  - Exactly ONE statement: SELECT, or WITH ... SELECT. Stacked statements are
+ *    rejected (a single trailing ';' is tolerated and stripped).
+ *  - Comments, dollar-quoting, backslashes and Unicode-escaped identifiers are
+ *    rejected so payloads cannot be hidden from the checks below.
+ *  - Write/DDL/admin keywords (DROP, INSERT, COPY, DO, ...) and dangerous
+ *    functions (pg_*, lo_*, set_config, dblink*, sleep, load_file, ...) are rejected.
+ *  - The query runs on a connection marked read_only (read-only transaction and
+ *    statement timeout where the driver supports it).
+ *  - Results are limited to 500 rows.
  */
 class AiSqlService
 {
@@ -26,6 +31,18 @@ class AiSqlService
         'DROP', 'DELETE', 'INSERT', 'UPDATE', 'TRUNCATE', 'ALTER', 'CREATE',
         'REPLACE', 'EXEC', 'EXECUTE', 'GRANT', 'REVOKE', 'CALL', 'MERGE',
         'INTO', 'SET', 'LOCK', 'UNLOCK',
+        'COPY', 'DO', 'LISTEN', 'NOTIFY', 'PREPARE', 'DECLARE', 'VACUUM', 'REINDEX',
+        'CLUSTER', 'LOAD', 'IMPORT', 'HANDLER', 'SHUTDOWN', 'KILL', 'ATTACH', 'DETACH', 'PRAGMA',
+    ];
+
+    /** Functions / identifier families that read files, sleep, shell out or change session state. */
+    private const FORBIDDEN_FUNCTION_PATTERNS = [
+        '/\bpg_\w*/i' => 'pg_*',
+        '/\blo_\w+/i' => 'lo_*',
+        '/\bdblink\w*/i' => 'dblink',
+        '/\bset_config\b/i' => 'set_config',
+        '/\bcurrent_setting\b/i' => 'current_setting',
+        '/\b(?:sleep|benchmark|waitfor|load_file|readfile|xp_\w+|sys_exec|sys_eval)\b/i' => 'server-side function',
     ];
 
     public function __construct(
@@ -104,7 +121,8 @@ PROMPT;
         }
 
         // Use a custom ingest with the SQL as the query
-        $config = array_merge($connector->config, ['query' => $sql]);
+        // read_only is merged LAST so a connector's stored config can never switch it off.
+        $config = array_merge($connector->config, ['query' => $sql, 'read_only' => true]);
         $result = $dbConnector->ingest($config);
 
         return array_slice($result['records'], 0, 500); // Hard cap
@@ -147,13 +165,43 @@ PROMPT;
     }
 
     /**
-     * Reject any SQL that contains write or DDL keywords.
+     * Allow exactly one read-only SELECT (or WITH ... SELECT) statement.
      *
      * @throws \InvalidArgumentException
      */
     private function assertSafe(string $sql): void
     {
-        $upper = strtoupper($sql);
+        $sql = trim($sql);
+        if ($sql === '') {
+            throw new \InvalidArgumentException('Generated SQL is empty. Only SELECT queries are permitted.');
+        }
+
+        if (preg_match('/[\x00-\x08\x0B\x0C\x0E-\x1F]/', $sql) || str_contains($sql, '\\')) {
+            throw new \InvalidArgumentException('Control characters and backslash escapes are not permitted in generated SQL.');
+        }
+
+        // Blank out the CONTENT of single-quoted literals so ';' / keywords inside
+        // a string are not mistaken for code (and vice versa).
+        $code = preg_replace("/'(?:[^']|'')*'/s", '__LIT__', $sql);
+
+        if (str_contains($code, "'")) {
+            throw new \InvalidArgumentException('Unterminated string literal in generated SQL.');
+        }
+
+        if (preg_match('#--|/\*|\*/|\#|\$[A-Za-z_0-9]*\$|\bU&#i', $code)) {
+            throw new \InvalidArgumentException('Comments, dollar-quoted strings and Unicode escapes are not permitted in generated SQL.');
+        }
+
+        // One statement only: tolerate a single trailing semicolon, nothing else.
+        $code = rtrim($code);
+        if (str_ends_with($code, ';')) {
+            $code = rtrim(substr($code, 0, -1));
+        }
+        if (str_contains($code, ';')) {
+            throw new \InvalidArgumentException('Multiple statements are not permitted. Provide a single SELECT statement.');
+        }
+
+        $upper = strtoupper($code);
 
         foreach (self::FORBIDDEN_KEYWORDS as $keyword) {
             if (preg_match('/\b'.preg_quote($keyword, '/').'\b/', $upper)) {
@@ -163,8 +211,51 @@ PROMPT;
             }
         }
 
-        if (! preg_match('/^\s*SELECT\b/i', $sql)) {
+        foreach (self::FORBIDDEN_FUNCTION_PATTERNS as $pattern => $label) {
+            if (preg_match($pattern, $code)) {
+                throw new \InvalidArgumentException(
+                    "Generated SQL uses a forbidden function or object ({$label}). Only plain SELECT queries are allowed."
+                );
+            }
+        }
+
+        if (! preg_match('/^\s*(?:SELECT|WITH)\b/i', $code)) {
             throw new \InvalidArgumentException('Only SELECT queries are permitted.');
         }
+
+        if (preg_match('/^\s*WITH\b/i', $code) && ! preg_match('/\bSELECT\b/i', $this->topLevelOnly($code))) {
+            throw new \InvalidArgumentException('A WITH query must end in a SELECT. Only SELECT queries are permitted.');
+        }
+    }
+
+    /**
+     * The statement with everything inside parentheses blanked out, so that the
+     * main query of a WITH can be told apart from SELECTs inside its CTEs.
+     */
+    private function topLevelOnly(string $code): string
+    {
+        $depth = 0;
+        $out = '';
+
+        foreach (str_split($code) as $char) {
+            if ($char === '(') {
+                $depth++;
+                $out .= '(';
+            } elseif ($char === ')') {
+                $depth--;
+                if ($depth < 0) {
+                    throw new \InvalidArgumentException('Unbalanced parentheses in generated SQL.');
+                }
+                $out .= ')';
+            } elseif ($depth === 0) {
+                $out .= $char;
+            }
+        }
+
+        if ($depth !== 0) {
+            throw new \InvalidArgumentException('Unbalanced parentheses in generated SQL.');
+        }
+
+        return $out;
     }
 }

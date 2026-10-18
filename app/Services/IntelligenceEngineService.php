@@ -5,7 +5,13 @@ namespace App\Services;
 use App\Models\Team;
 
 /**
- * Master registry of all Dot ecosystem platforms and intelligence engines.
+ * Registry of the REAL Dot platforms that report metrics to Dot.Analytics, and of
+ * the intelligence engines that read them.
+ *
+ * Platform keys are the keys of config/ecosystem.php (tasks, auction, billing...)
+ * and must stay in step with the metric catalogue in config/metrics.php: a
+ * platform is connectable here only if it has a catalogue to report against.
+ * Roster names that never existed (Dot.Fleet, Dot.CRM...) were removed.
  *
  * Every Dot platform is defined here with:
  *  - What data it contributes to the intelligence layer
@@ -19,7 +25,7 @@ use App\Models\Team;
 class IntelligenceEngineService
 {
     /**
-     * All Dot ecosystem platforms that can feed the intelligence layer.
+     * The Dot platforms that can feed the intelligence layer (those with a metric catalogue).
      *
      * Format:
      *   'platform_key' => [
@@ -32,243 +38,110 @@ class IntelligenceEngineService
      *   ]
      */
     public const PLATFORMS = [
-        'dot.fleet' => [
-            'label' => 'Dot.Fleet',
-            'description' => 'Fleet, vehicle & equipment management',
-            'color' => 'blue',
-            'contributions' => [
-                'GPS tracking', 'Trip records', 'Fuel consumption', 'Maintenance history',
-                'Driver behaviour scores', 'Machine utilization', 'Idle time', 'Engine hours',
-                'Route history', 'Equipment health logs',
-            ],
-            'engines' => ['operational', 'asset', 'financial', 'predictive'],
-            'produces' => [
-                'Fleet health score', 'Cost per kilometre', 'Cost per ton',
-                'Fleet utilization rate', 'Predictive maintenance windows',
-                'Driver efficiency ranking', 'Route optimisation signals',
-                'Fuel theft detection',
-            ],
-        ],
-
-        'dot.crm' => [
-            'label' => 'Dot.CRM',
-            'description' => 'Customer relationship & sales pipeline',
-            'color' => 'green',
-            'contributions' => [
-                'Leads', 'Opportunities', 'Sales records', 'Customer activity',
-                'Quotes', 'Closed deals', 'Marketing campaigns',
-            ],
-            'engines' => ['customer', 'financial', 'predictive', 'risk', 'decision'],
-            'produces' => [
-                'Customer lifetime value', 'Win probability', 'Sales forecasts',
-                'Churn predictions', 'Pipeline health score', 'Lead quality score',
-                'Customer sentiment trend',
-            ],
-        ],
-
-        'dot.hr' => [
-            'label' => 'Dot.HR',
-            'description' => 'Human resources, workforce & payroll',
-            'color' => 'purple',
-            'contributions' => [
-                'Attendance records', 'Leave data', 'Payroll', 'Training completions',
-                'Performance reviews', 'Certifications', 'Skills inventory',
-            ],
-            'engines' => ['people', 'financial', 'predictive', 'risk', 'operational'],
-            'produces' => [
-                'Workforce efficiency score', 'Burnout prediction', 'Promotion recommendations',
-                'Skill gap analysis', 'Department performance', 'Retention risk score',
-            ],
-        ],
-
-        'dot.documents' => [
-            'label' => 'Dot.Documents',
-            'description' => 'Document management, contracts & compliance',
-            'color' => 'yellow',
-            'contributions' => [
-                'Contracts', 'Reports', 'Policies', 'SOPs', 'Invoices', 'PDFs',
-            ],
-            'engines' => ['document', 'risk', 'decision'],
-            'produces' => [
-                'Expiring contract alerts', 'Missing signature detection',
-                'Compliance risk flags', 'Document relationship mapping',
-                'AI-generated document summaries', 'Frequently referenced document ranking',
-            ],
-        ],
-
-        'dot.hear' => [
-            'label' => 'Dot.Hear',
-            'description' => 'Community, feedback & social listening',
-            'color' => 'pink',
-            'contributions' => [
-                'Comments', 'Reviews', 'Discussions', 'Likes', 'Polls',
-                'Suggestions', 'Community trends', 'Feature requests',
-            ],
-            'engines' => ['community', 'customer', 'risk', 'predictive'],
-            'produces' => [
-                'Sentiment score', 'Trending topics', 'Brand perception index',
-                'Feature demand ranking', 'Community health score',
-                'Customer satisfaction trend', 'Competitor mentions',
-                'Emerging problem signals',
-            ],
-        ],
-
-        'dot.support' => [
-            'label' => 'Dot.Support',
-            'description' => 'Customer support, tickets & service desk',
-            'color' => 'orange',
-            'contributions' => [
-                'Support tickets', 'Chat transcripts', 'Call records',
-                'Resolution times', 'Issue categories', 'CSAT scores',
-            ],
-            'engines' => ['customer', 'operational', 'predictive', 'risk'],
-            'produces' => [
-                'Support demand forecast', 'Agent workload prediction',
-                'Customer frustration score', 'Recurring issue patterns',
-                'Knowledge gap identification',
-            ],
-        ],
-
-        'dot.inventory' => [
-            'label' => 'Dot.Inventory',
-            'description' => 'Stock, warehousing & supply chain',
-            'color' => 'teal',
-            'contributions' => [
-                'Stock levels', 'Warehouse locations', 'Supplier records',
-                'Purchase orders', 'Sales movements',
-            ],
-            'engines' => ['operational', 'financial', 'predictive', 'risk'],
-            'produces' => [
-                'Stock shortage forecast', 'Dead stock identification',
-                'Supplier risk score', 'Inventory turnover rate',
-                'Demand forecasting',
-            ],
-        ],
-
-        'dot.payments' => [
-            'label' => 'Dot.Payments',
-            'description' => 'Revenue, transactions & financial flows',
-            'color' => 'emerald',
-            'contributions' => [
-                'Revenue records', 'Expenses', 'Transactions', 'Refunds',
-                'Invoices', 'Subscriptions',
-            ],
-            'engines' => ['financial', 'risk', 'predictive', 'customer'],
-            'produces' => [
-                'Cash flow analysis', 'Fraud detection signals',
-                'Profitability scoring', 'Revenue forecasting',
-                'Customer value segmentation',
-            ],
-        ],
-
-        'dot.security' => [
-            'label' => 'Dot.Security',
-            'description' => 'Security, access control & threat monitoring',
-            'color' => 'red',
-            'contributions' => [
-                'Login events', 'Threat detections', 'Audit logs',
-                'Permission changes', 'Suspicious behaviour events',
-            ],
-            'engines' => ['security', 'risk', 'data'],
-            'produces' => [
-                'Risk score per user', 'Threat prediction', 'Compliance reports',
-                'Security posture index',
-            ],
-        ],
-
-        'dot.api' => [
-            'label' => 'Dot.API',
-            'description' => 'API gateway, usage & developer platform',
-            'color' => 'indigo',
-            'contributions' => [
-                'API call volumes', 'Latency metrics', 'Error rates',
-                'Request patterns', 'Consumer identities',
-            ],
-            'engines' => ['data', 'operational', 'security', 'predictive'],
-            'produces' => [
-                'API health score', 'Traffic prediction', 'Bottleneck identification',
-                'Abuse detection',
-            ],
-        ],
-
-        'dot.flow' => [
-            'label' => 'Dot.Flow',
-            'description' => 'Workflow automation & process orchestration',
-            'color' => 'cyan',
-            'contributions' => [
-                'Workflow execution logs', 'Step completions', 'Failure events',
-                'Approval records',
-            ],
-            'engines' => ['operational', 'predictive', 'decision'],
-            'produces' => [
-                'Workflow optimisation signals', 'Failure prediction',
-                'Automation ROI calculation',
-            ],
-        ],
-
-        'dot.assets' => [
-            'label' => 'Dot.Assets',
-            'description' => 'Fixed assets, equipment & property management',
-            'color' => 'slate',
-            'contributions' => [
-                'Equipment records', 'Building details', 'Maintenance logs',
-                'Ownership records',
-            ],
-            'engines' => ['asset', 'financial', 'predictive'],
-            'produces' => [
-                'Asset depreciation curves', 'Replacement prediction',
-                'Utilization rate', 'Lifecycle analysis',
-            ],
-        ],
-
-        'dot.agents' => [
-            'label' => 'Dot.Agents',
-            'description' => 'AI agents, automation & decision execution',
-            'color' => 'violet',
-            'contributions' => [
-                'Agent usage statistics', 'Prompt history', 'Automation success rates',
-                'AI confidence scores', 'Execution histories', 'Decision logs',
-                'Learning patterns',
-            ],
-            'engines' => ['ai', 'operational', 'decision'],
-            'produces' => [
-                'Most valuable agent ranking', 'ROI per agent', 'Failed automation patterns',
-                'AI adoption rate', 'Department usage breakdown',
-                'Prompt quality score',
-            ],
-        ],
-
-        'dot.finance' => [
-            'label' => 'Dot.Finance',
-            'description' => 'Accounting, budgeting & financial reporting',
-            'color' => 'lime',
-            'contributions' => [
-                'Budget allocations', 'Actuals vs budget', 'Cost centres',
-                'Financial statements', 'Tax records',
-            ],
-            'engines' => ['financial', 'predictive', 'decision', 'risk'],
-            'produces' => [
-                'Budget variance alerts', 'Financial health score',
-                'Cost optimisation opportunities', 'Profitability by unit',
-            ],
-        ],
-
-        'dot.vault' => [
-            'label' => 'Dot.Vault',
-            'description' => 'Secure credential & secrets management',
+        'tasks' => [
+            'label' => 'Dot.Tasks',
+            'description' => 'Tasks, deadlines & team workload',
             'color' => 'amber',
-            'contributions' => [
-                'Access events', 'Secret rotation logs', 'Credential usage',
-            ],
-            'engines' => ['security', 'risk'],
-            'produces' => [
-                'Credential exposure risk', 'Access anomaly detection',
-            ],
+            'contributions' => ['Open tasks', 'Overdue tasks', 'Tasks completed, 7 days', 'Tasks created, 7 days'],
+            'engines' => ['operational', 'people', 'predictive', 'decision', 'prescriptive'],
+            'produces' => ['Overdue-task trend', 'Completion throughput', 'Backlog growth'],
+        ],
+
+        'auction' => [
+            'label' => 'Dot.Auction',
+            'description' => 'Online auctions, bids & sales',
+            'color' => 'orange',
+            'contributions' => ['Active auctions', 'Auctions ended, 7 days', 'Gross sales, 7 days', 'Bids placed, 7 days'],
+            'engines' => ['business', 'financial', 'predictive', 'retail'],
+            'produces' => ['Gross sales trend', 'Bidding activity trend'],
+        ],
+
+        'ehail' => [
+            'label' => 'Dot.Ehail',
+            'description' => 'Ride hailing, drivers & trips',
+            'color' => 'yellow',
+            'contributions' => ['Rides requested, 7 days', 'Rides completed, 7 days', 'Rides expired unanswered, 7 days', 'Drivers online', 'Average driver rating'],
+            'engines' => ['operational', 'customer', 'predictive'],
+            'produces' => ['Ride fulfilment trend', 'Unanswered-request trend', 'Driver supply trend'],
+        ],
+
+        'hr' => [
+            'label' => 'Dot.HR',
+            'description' => 'People, leave & workforce records',
+            'color' => 'purple',
+            'contributions' => ['Headcount', 'On leave today', 'Pending leave requests'],
+            'engines' => ['business', 'operational', 'people', 'risk', 'prescriptive'],
+            'produces' => ['Headcount trend', 'Leave-approval backlog trend'],
+        ],
+
+        'farms' => [
+            'label' => 'Dot.Farms',
+            'description' => 'Crop cycles, harvests & farm operations',
+            'color' => 'green',
+            'contributions' => ['Active crop cycles', 'Harvests, 30 days', 'Harvested, 30 days (kg)'],
+            'engines' => ['operational', 'predictive', 'agriculture'],
+            'produces' => ['Harvest volume trend', 'Active-cycle trend'],
+        ],
+
+        'billing' => [
+            'label' => 'Dot.Billing',
+            'description' => 'Invoices, subscriptions & receivables',
+            'color' => 'emerald',
+            'contributions' => ['Monthly recurring revenue', 'Open invoices', 'Overdue invoices', 'Overdue amount'],
+            'engines' => ['business', 'financial', 'customer', 'predictive', 'decision', 'risk', 'prescriptive'],
+            'produces' => ['Recurring revenue trend', 'Overdue receivables trend'],
+        ],
+
+        'emall' => [
+            'label' => 'Dot.Emall',
+            'description' => 'Online store, orders & stock',
+            'color' => 'teal',
+            'contributions' => ['Orders, 7 days', 'Revenue, 7 days', 'Low-stock products'],
+            'engines' => ['business', 'financial', 'customer', 'predictive', 'decision', 'retail', 'prescriptive'],
+            'produces' => ['Order volume trend', 'Revenue trend', 'Low-stock trend'],
+        ],
+
+        'tutor' => [
+            'label' => 'Dot.Tutor',
+            'description' => 'Tutoring sessions & tutors',
+            'color' => 'indigo',
+            'contributions' => ['Sessions booked, 7 days', 'Sessions completed, 7 days', 'Active tutors'],
+            'engines' => ['operational', 'people'],
+            'produces' => ['Session completion trend', 'Tutor availability trend'],
+        ],
+
+        'pulse' => [
+            'label' => 'Dot.Pulse',
+            'description' => 'Community posts & engagement',
+            'color' => 'pink',
+            'contributions' => ['Posts, 7 days', 'Active users, 7 days', 'Posts held for review'],
+            'engines' => ['customer', 'community', 'risk'],
+            'produces' => ['Engagement trend', 'Moderation backlog trend'],
+        ],
+
+        'notify' => [
+            'label' => 'Dot.Notify',
+            'description' => 'Message delivery & suppression',
+            'color' => 'cyan',
+            'contributions' => ['Messages sent, 7 days', 'Messages failed, 7 days', 'Messages suppressed, 7 days'],
+            'engines' => ['data', 'operational', 'risk'],
+            'produces' => ['Delivery-failure trend'],
+        ],
+
+        'design' => [
+            'label' => 'Dot.Design',
+            'description' => 'Design projects & assets',
+            'color' => 'violet',
+            'contributions' => ['Design projects', 'Design assets'],
+            'engines' => ['operational'],
+            'produces' => ['Project and asset volume trend'],
         ],
     ];
 
     /**
-     * All 17 intelligence engines.
+     * The intelligence engines and the REAL Dot platforms (PLATFORMS keys) each
+     * one consumes. An engine with no source has no platform that can feed it yet:
+     * it is dormant (never active, never run) rather than faked.
      *
      * Format:
      *   'engine_key' => [
@@ -280,112 +153,112 @@ class IntelligenceEngineService
     public const ENGINES = [
         'data' => [
             'label' => 'Data Intelligence Engine',
-            'sources' => ['dot.api', 'dot.security', 'dot.vault'],
+            'sources' => ['notify'],
             'produces' => ['Data quality score', 'Pipeline health', 'Integration reliability'],
         ],
         'business' => [
             'label' => 'Business Intelligence Engine',
-            'sources' => ['dot.crm', 'dot.hr', 'dot.payments', 'dot.inventory', 'dot.finance'],
+            'sources' => ['auction', 'hr', 'billing', 'emall'],
             'produces' => ['Business health score', 'Revenue trends', 'Growth signals'],
         ],
         'operational' => [
             'label' => 'Operational Intelligence Engine',
-            'sources' => ['dot.fleet', 'dot.inventory', 'dot.support', 'dot.flow', 'dot.hr'],
+            'sources' => ['tasks', 'ehail', 'hr', 'farms', 'tutor', 'notify', 'design'],
             'produces' => ['Operational efficiency score', 'Process bottlenecks', 'Capacity forecasts'],
         ],
         'financial' => [
             'label' => 'Financial Intelligence Engine',
-            'sources' => ['dot.payments', 'dot.finance', 'dot.fleet', 'dot.hr', 'dot.assets'],
+            'sources' => ['auction', 'billing', 'emall'],
             'produces' => ['Cash flow forecast', 'Cost per unit', 'Profitability by segment'],
         ],
         'people' => [
             'label' => 'People Intelligence Engine',
-            'sources' => ['dot.hr', 'dot.agents', 'dot.support'],
+            'sources' => ['hr', 'tasks', 'tutor'],
             'produces' => ['Workforce efficiency', 'Burnout risk', 'Skill gap map'],
         ],
         'customer' => [
             'label' => 'Customer Intelligence Engine',
-            'sources' => ['dot.crm', 'dot.support', 'dot.payments', 'dot.hear'],
+            'sources' => ['ehail', 'billing', 'emall', 'pulse'],
             'produces' => ['Customer health score', 'Churn probability', 'Lifetime value'],
         ],
         'document' => [
             'label' => 'Document Intelligence Engine',
-            'sources' => ['dot.documents'],
+            'sources' => [],
             'produces' => ['Expiring contracts', 'Compliance gaps', 'Document risk score'],
         ],
         'community' => [
             'label' => 'Community Intelligence Engine',
-            'sources' => ['dot.hear'],
+            'sources' => ['pulse'],
             'produces' => ['Sentiment trend', 'Feature demand signals', 'Brand health score'],
         ],
         'ai' => [
             'label' => 'AI Intelligence Engine',
-            'sources' => ['dot.agents'],
+            'sources' => [],
             'produces' => ['Agent ROI', 'AI adoption curve', 'Automation effectiveness'],
         ],
         'predictive' => [
             'label' => 'Predictive Intelligence Engine',
-            'sources' => ['dot.fleet', 'dot.crm', 'dot.hr', 'dot.inventory', 'dot.payments', 'dot.support', 'dot.api'],
+            'sources' => ['tasks', 'auction', 'ehail', 'farms', 'billing', 'emall'],
             'produces' => ['Demand forecasts', 'Failure predictions', 'Growth projections'],
         ],
         'decision' => [
             'label' => 'Decision Intelligence Engine',
-            'sources' => ['dot.crm', 'dot.finance', 'dot.agents', 'dot.flow', 'dot.documents'],
+            'sources' => ['tasks', 'billing', 'emall'],
             'produces' => ['Recommended actions', 'Decision trade-off analysis', 'Priority ranking'],
         ],
         'risk' => [
             'label' => 'Risk Intelligence Engine',
-            'sources' => ['dot.crm', 'dot.payments', 'dot.hr', 'dot.security', 'dot.documents', 'dot.inventory'],
+            'sources' => ['hr', 'billing', 'pulse', 'notify'],
             'produces' => ['Risk register', 'Exposure scores', 'Mitigation priorities'],
         ],
         'security' => [
             'label' => 'Security Intelligence Engine',
-            'sources' => ['dot.security', 'dot.vault', 'dot.api'],
+            'sources' => [],
             'produces' => ['Threat score', 'Compliance posture', 'Access anomaly alerts'],
         ],
         'asset' => [
             'label' => 'Asset Intelligence Engine',
-            'sources' => ['dot.fleet', 'dot.assets'],
+            'sources' => [],
             'produces' => ['Asset health score', 'Replacement forecast', 'Depreciation curves'],
         ],
         'mining' => [
             'label' => 'Mining Intelligence Engine',
-            'sources' => ['dot.fleet', 'dot.hr', 'dot.assets', 'dot.inventory', 'dot.payments'],
+            'sources' => [],
             'produces' => ['Production efficiency', 'Cost per ton', 'Equipment utilization', 'Shift performance'],
         ],
         'agriculture' => [
             'label' => 'Agriculture Intelligence Engine',
-            'sources' => ['dot.fleet', 'dot.assets', 'dot.inventory', 'dot.hr'],
+            'sources' => ['farms'],
             'produces' => ['Yield forecasting', 'Equipment efficiency', 'Input cost tracking', 'Harvest planning'],
         ],
         'construction' => [
             'label' => 'Construction Intelligence Engine',
-            'sources' => ['dot.fleet', 'dot.hr', 'dot.assets', 'dot.documents', 'dot.finance'],
+            'sources' => [],
             'produces' => ['Project cost variance', 'Equipment utilization', 'Labour productivity', 'Contract risk'],
         ],
         'manufacturing' => [
             'label' => 'Manufacturing Intelligence Engine',
-            'sources' => ['dot.assets', 'dot.inventory', 'dot.hr', 'dot.finance', 'dot.flow'],
+            'sources' => [],
             'produces' => ['OEE (Overall Equipment Effectiveness)', 'Defect rate', 'Production throughput', 'Yield analysis'],
         ],
         'retail' => [
             'label' => 'Retail Intelligence Engine',
-            'sources' => ['dot.inventory', 'dot.crm', 'dot.payments', 'dot.hear'],
+            'sources' => ['auction', 'emall'],
             'produces' => ['Sell-through rate', 'Basket analysis', 'Seasonal demand forecast', 'Stock optimisation'],
         ],
         'healthcare' => [
             'label' => 'Healthcare Intelligence Engine',
-            'sources' => ['dot.hr', 'dot.documents', 'dot.assets', 'dot.inventory'],
+            'sources' => [],
             'produces' => ['Staff utilisation', 'Compliance adherence', 'Asset maintenance compliance', 'Incident trend analysis'],
         ],
         'compliance' => [
             'label' => 'Compliance Intelligence Engine',
-            'sources' => ['dot.documents', 'dot.security', 'dot.hr', 'dot.finance', 'dot.vault'],
+            'sources' => [],
             'produces' => ['Compliance gap analysis', 'Regulatory risk score', 'Policy adherence rate', 'Audit readiness score'],
         ],
         'prescriptive' => [
             'label' => 'Prescriptive Intelligence Engine',
-            'sources' => ['dot.crm', 'dot.fleet', 'dot.hr', 'dot.inventory', 'dot.finance', 'dot.agents'],
+            'sources' => ['tasks', 'hr', 'billing', 'emall'],
             'produces' => ['Ranked action recommendations', 'What-if scenario outcomes', 'Optimisation opportunities', 'Decision impact forecasts'],
         ],
     ];

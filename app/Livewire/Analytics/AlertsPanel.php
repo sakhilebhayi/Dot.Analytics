@@ -4,6 +4,7 @@ namespace App\Livewire\Analytics;
 
 use App\Models\AnalyticsAlert;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
@@ -26,12 +27,16 @@ class AlertsPanel extends Component
 
     public function acknowledge(int $id): void
     {
+        Gate::authorize('manage-alerts');
+
         AnalyticsAlert::findOrFail($id)->update(['status' => 'acknowledged']);
         unset($this->alerts);
     }
 
     public function resolve(int $id): void
     {
+        Gate::authorize('manage-alerts');
+
         AnalyticsAlert::findOrFail($id)->update(['status' => 'resolved', 'resolved_at' => now()]);
         unset($this->alerts);
     }

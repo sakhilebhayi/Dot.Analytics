@@ -19,7 +19,7 @@ class StructuredLoggerTest extends TestCase
             });
 
         $logger = new StructuredLogger('intelligence', teamId: 5);
-        $logger->info('platform.connected', ['platform' => 'dot.fleet']);
+        $logger->info('platform.connected', ['platform' => 'tasks']);
     }
 
     public function test_warning_calls_log_warning(): void

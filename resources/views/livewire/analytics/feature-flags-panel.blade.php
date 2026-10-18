@@ -1,11 +1,11 @@
 <div style="padding:2rem 2.25rem;">
     <div class="flex items-center justify-between mb-4">
         <div>
-            <p class="font-mono" style="font-size:0.65rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--teal-soft);margin:0 0 0.35rem;">Admin</p>
+            <p class="font-mono" style="font-size:0.65rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--teal-soft);margin:0 0 0.35rem;">Platform</p>
             <h3 class="font-display" style="font-size:1.1rem;font-weight:700;color:var(--paper);margin:0;">Feature Flags</h3>
             <p style="font-size:0.75rem;color:var(--mist);margin:0.3rem 0 0;">Control feature rollouts without deploying code</p>
         </div>
-        @can('manage-platforms')
+        @can('manage-feature-flags')
             <button
                 wire:click="$toggle('showCreate')"
                 class="press"
@@ -63,7 +63,7 @@
                                 <p style="font-size:0.72rem;color:var(--teal-soft);margin-top:0.3rem;">Rollout: {{ $flag->rollout_percentage }}% of users</p>
                             @endif
                         </div>
-                        @can('manage-platforms')
+                        @can('manage-feature-flags')
                             <div class="flex items-center gap-3 shrink-0">
                                 {{-- Rollout slider --}}
                                 @if(!$flag->enabled_globally)

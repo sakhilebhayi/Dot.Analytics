@@ -26,7 +26,9 @@ class RecomputeDnaCommand extends Command
 
         foreach ($teams as $team) {
             $profile = $service->computeForTeam($team);
-            $this->line("  [{$team->id}] {$team->name}: confidence={$profile->confidence_score}");
+            $this->line($profile === null
+                ? "  [{$team->id}] {$team->name}: no data yet, no profile"
+                : "  [{$team->id}] {$team->name}: confidence={$profile->confidence_score}");
         }
 
         $this->info("DNA recomputed for {$teams->count()} team(s).");

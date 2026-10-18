@@ -15,7 +15,7 @@ class AnalyticsAlert extends Model
 
     protected $fillable = [
         'team_id', 'metric_definition_id', 'title', 'description',
-        'severity', 'status', 'context', 'triggered_at', 'resolved_at',
+        'severity', 'status', 'context', 'dedupe_key', 'triggered_at', 'resolved_at',
     ];
 
     protected $casts = [

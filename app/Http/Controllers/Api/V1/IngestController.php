@@ -2,92 +2,123 @@
 
 namespace App\Http\Controllers\Api\V1;
 
-use App\Jobs\Analytics\IngestPlatformSnapshotJob;
+use App\Jobs\Analytics\ComputeMetricsJob;
 use App\Models\DataSource;
+use App\Models\Team;
+use App\Services\Metrics\SnapshotIngestService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 
 /**
- * Webhook Ingest Controller — v1
+ * Snapshot Ingest Controller — v1
  *
- * Allows Dot platforms and external systems to push data snapshots
- * directly to Dot.Analytics rather than being polled.
+ * The one way data enters Dot.Analytics: a Dot platform posts a signed daily
+ * snapshot of its own headline numbers. The shape is the metrics contract
+ * (docs/metrics-contract.md, config/metrics.php).
  *
- * Each request is validated by HMAC-SHA256 signature to ensure
- * only authorised platforms can push data.
+ * Authentication, in this order:
+ *  1. a Sanctum token of a member of the company's team;
+ *  2. the snapshot's company_uuid resolving to that team (teams.infodot_team_uuid);
+ *  3. the platform being connected for that team;
+ *  4. an HMAC-SHA256 signature of the raw body with the platform's own secret
+ *     (mandatory, no unsigned fallback).
+ * Steps 1-3 fail with the same generic 404, so a caller cannot tell an unknown
+ * company from a company it does not belong to or a platform that is not connected.
  *
  * Route: POST /api/v1/ingest/{platform}
  */
 class IngestController extends BaseApiController
 {
+    public function __construct(private readonly SnapshotIngestService $ingest) {}
+
     /**
-     * Receive a data snapshot from a Dot platform.
+     * Receive a snapshot from a Dot platform.
      *
      * Headers required:
      *   X-Analytics-Signature: sha256=<HMAC-SHA256(secret, raw_body)>
-     *   X-Analytics-Platform:  dot.fleet (redundant but explicit)
      *
-     * Body: JSON payload of the snapshot data.
+     * Body: {company_uuid, platform, taken_at, period, metrics}. 201 when stored,
+     * 200 when the same (platform, taken_at, period) was already stored (the
+     * original is returned untouched).
      */
     public function receive(Request $request, string $platform): JsonResponse
     {
-        // Locate the registered DataSource for this platform + team
-        // Team is resolved from the Sanctum token
         $user = $request->user();
         if (! $user) {
             return $this->error('Unauthenticated.', 401);
         }
 
-        // A Sanctum-authenticated user who belongs to no team (e.g. removed
-        // from their last team) reaches this action with currentTeam null.
-        // We only use $team for logging below, but avoid the null
-        // dereference rather than let a webhook 500 on that edge case.
-        $team = $user->currentTeam;
-        $source = DataSource::where('platform', $platform)
+        // Only the signed body counts: a query string is not covered by the signature.
+        $body = $request->isJson() ? $request->json()->all() : $request->post();
+
+        $company = $body['company_uuid'] ?? null;
+        if (! is_string($company) || ! preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $company)) {
+            return $this->error('Invalid payload.', 422, ['company_uuid' => ['company_uuid is required and must be a UUID.']]);
+        }
+
+        $notConnected = fn () => $this->error("Platform '{$platform}' is not connected for this organisation.", 404);
+
+        $team = Team::where('infodot_team_uuid', strtolower($company))->first();
+        if (! $team || ! $user->belongsToTeam($team)) {
+            return $notConnected();
+        }
+
+        $source = DataSource::withoutGlobalScopes()
+            ->where('team_id', $team->id)
+            ->where('platform', $platform)
             ->where('status', 'connected')
             ->first();
 
         if (! $source) {
-            return $this->error(
-                "Platform '{$platform}' is not connected for this organisation.",
-                404,
-            );
+            return $notConnected();
         }
 
-        // Validate HMAC signature if a secret is configured
-        $secret = $source->config['webhook_secret'] ?? null;
-        if ($secret) {
-            if (! $this->validateSignature($request, $secret)) {
-                Log::warning('Webhook signature mismatch', [
-                    'platform' => $platform,
-                    'team_id' => $team?->id,
-                    'ip' => $request->ip(),
-                ]);
+        // The HMAC is REQUIRED. A bearer token alone is not enough to push data
+        // that feeds metrics, alerts and AI insights, and a source without a
+        // secret cannot ingest.
+        $secret = $source->webhook_secret;
+        if (! is_string($secret) || $secret === '') {
+            Log::warning('Ingest rejected: no webhook secret configured', [
+                'platform' => $platform,
+                'team_id' => $team->id,
+            ]);
 
-                return $this->error('Invalid signature.', 401);
-            }
+            return $this->error('No webhook secret is configured for this platform. Rotate one before ingesting.', 401);
         }
 
-        $payload = $request->all();
+        if (! $this->validateSignature($request, $secret)) {
+            Log::warning('Webhook signature missing or mismatched', [
+                'platform' => $platform,
+                'team_id' => $team->id,
+                'ip' => $request->ip(),
+            ]);
 
-        if (empty($payload)) {
-            return $this->error('Payload is empty.', 422);
+            return $this->error('Invalid signature.', 401);
         }
 
-        $snapshotType = $request->header('X-Analytics-Snapshot-Type', 'webhook');
+        try {
+            $result = $this->ingest->ingest($source, $body, SnapshotIngestService::TYPE_WEBHOOK);
+        } catch (ValidationException $e) {
+            return $this->error('Invalid snapshot.', 422, $e->errors());
+        }
 
-        IngestPlatformSnapshotJob::dispatch(
-            $source->id,
-            $payload,
-            $snapshotType,
-        );
+        if (! $result['replayed']) {
+            ComputeMetricsJob::dispatch($team->id);
+        }
 
-        return $this->success(
-            ['queued' => true, 'platform' => $platform],
-            'Snapshot queued for processing.',
-            202,
-        );
+        $snapshot = $result['snapshot'];
+
+        return $this->success([
+            'snapshot_id' => $snapshot->id,
+            'platform' => $platform,
+            'taken_at' => $snapshot->taken_at->utc()->toIso8601String(),
+            'period' => $snapshot->period,
+            'accepted_keys' => $result['accepted'],
+            'dropped_keys' => $result['dropped'],
+            'replayed' => $result['replayed'],
+        ], $result['replayed'] ? 'Snapshot already received; the original was kept.' : 'Snapshot stored.', $result['replayed'] ? 200 : 201);
     }
 
     /**
@@ -96,6 +127,8 @@ class IngestController extends BaseApiController
      */
     public function ping(Request $request, string $platform): JsonResponse
     {
+        $this->currentTeam();
+
         $source = DataSource::where('platform', $platform)->first();
 
         return $this->success([
@@ -107,7 +140,11 @@ class IngestController extends BaseApiController
 
     private function validateSignature(Request $request, string $secret): bool
     {
-        $signature = $request->header('X-Analytics-Signature', '');
+        $signature = $request->header('X-Analytics-Signature');
+        if (! is_string($signature) || $signature === '') {
+            return false;
+        }
+
         $expected = 'sha256='.hash_hmac('sha256', $request->getContent(), $secret);
 
         return hash_equals($expected, $signature);

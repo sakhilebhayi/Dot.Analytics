@@ -7,6 +7,13 @@
 
 ## Fix 1 — Webhook Replay Protection (Critical)
 
+> **Status (integrity pass):** the HMAC itself is now **mandatory** on
+> `POST /api/v1/ingest/{platform}` — unsigned requests, and requests for a source with no
+> secret, get `401`. The secret lives in the encrypted `data_sources.webhook_secret` column
+> (never in `config`, never in `audit_logs`) and is issued once via
+> `POST /api/v1/platforms/{platform}/connect` or `POST /api/v1/platforms/{platform}/webhook-secret`.
+> Replay protection (timestamp + nonce, below) is **not implemented yet**.
+
 A captured valid HMAC payload can currently be replayed indefinitely.
 
 Update `app/Http/Controllers/Api/V1/IngestController.php`:
@@ -16,7 +23,7 @@ public function receive(Request $request, string $platform): JsonResponse
 {
     // ... existing platform lookup ...
 
-    $secret = $source->config['webhook_secret'] ?? null;
+    $secret = $source->webhook_secret; // encrypted column; the HMAC check above is already required
     if ($secret) {
         if (! $this->validateSignature($request, $secret)) {
             return $this->error('Invalid signature.', 401);

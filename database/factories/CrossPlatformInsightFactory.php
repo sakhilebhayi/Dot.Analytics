@@ -15,7 +15,7 @@ class CrossPlatformInsightFactory extends Factory
 
     public function definition(): array
     {
-        $platforms = ['dot.fleet', 'dot.crm', 'dot.hr', 'dot.payments', 'dot.support'];
+        $platforms = ['tasks', 'emall', 'hr', 'billing', 'notify'];
 
         return [
             'team_id' => Team::factory(),

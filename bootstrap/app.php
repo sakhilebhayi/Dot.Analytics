@@ -16,6 +16,10 @@ return Application::configure(basePath: dirname(__DIR__))
         channels: __DIR__.'/../routes/channels.php',
         health: '/up',
     )
+    // Listeners are mapped explicitly in EventServiceProvider. Leaving framework
+    // auto-discovery on registered every listener TWICE (duplicate alerts per
+    // critical insight, double engine dispatch on every platform connect).
+    ->withEvents(discover: false)
     ->withMiddleware(function (Middleware $middleware): void {
         // CORS — allow requests from trusted Dot ecosystem origins
         $middleware->api(prepend: [

@@ -8,6 +8,7 @@ use App\Services\IntelligenceEngineService;
 use App\Services\KnowledgeGraphService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 /**
  * Intelligence API — v1
@@ -50,6 +51,9 @@ class IntelligenceController extends BaseApiController
      */
     public function run(Request $request): JsonResponse
     {
+        // Engines spend AI budget: owner/admin only.
+        Gate::authorize('run-intelligence-engines');
+
         $team = $this->currentTeam();
         $engines = $request->input('engines');
 

@@ -6,9 +6,10 @@ use App\Models\AnalyticsAlert;
 use App\Models\DataSource;
 use App\Models\Recommendation;
 use App\Services\AiModelRouter;
-use App\Services\IntelligenceEngineService;
+use App\Services\SnapshotContextBuilder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
@@ -72,18 +73,32 @@ class IntelligenceDashboard extends Component
             return;
         }
 
+        // Every answer is an AI call: not for the read-only viewer. Checked before
+        // anything is built or sent.
+        Gate::authorize('ask-intelligence');
+
         $this->queryLoading = true;
 
         $team = Auth::user()->currentTeam;
         $router = app(AiModelRouter::class);
-        $engine = app(IntelligenceEngineService::class);
-        $context = $engine->buildEcosystemContext($team);
+
+        $connected = $team->dataSources()->where('status', 'connected')->pluck('platform')->all();
+        $context = app(SnapshotContextBuilder::class)->build($team, $connected);
+
+        // Answers come from the team's ingested snapshots or not at all.
+        if (! $context['has_data']) {
+            $this->queryAnswer = 'No data connected yet. Connect a platform and let it push data before asking questions.';
+            $this->queryLoading = false;
+
+            return;
+        }
 
         $prompt = <<<PROMPT
 You are Dot.Analytics — the Enterprise Intelligence Platform for {$team->name}.
-You trace relationships across the entire Dot ecosystem to answer questions no single platform can answer.
+Answer ONLY from the real platform snapshots below (window {$context['window_start']} to {$context['window_end']}).
+If they do not contain the answer, say so plainly. Never invent figures.
 
-{$context}
+{$context['block']}
 
 Question: {$this->intelligenceQuery}
 PROMPT;

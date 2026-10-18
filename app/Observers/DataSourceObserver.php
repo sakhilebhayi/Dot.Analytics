@@ -6,6 +6,7 @@ use App\Events\Analytics\PlatformConnected;
 use App\Events\Analytics\PlatformDisconnected;
 use App\Models\AuditLog;
 use App\Models\DataSource;
+use App\Support\SecretRedactor;
 use Illuminate\Support\Facades\Auth;
 
 /**
@@ -67,8 +68,10 @@ class DataSourceObserver
             'event' => $event,
             'auditable_type' => DataSource::class,
             'auditable_id' => $dataSource->id,
-            'old_values' => $old,
-            'new_values' => $new,
+            // audit_logs is readable by far more people than the secrets it would
+            // otherwise copy (webhook_secret, connector tokens): never persist them.
+            'old_values' => SecretRedactor::redact($old),
+            'new_values' => SecretRedactor::redact($new),
             'ip_address' => request()?->ip(),
             'user_agent' => request()?->userAgent(),
         ]);

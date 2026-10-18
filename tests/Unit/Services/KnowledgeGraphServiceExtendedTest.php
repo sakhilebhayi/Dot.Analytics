@@ -29,8 +29,8 @@ class KnowledgeGraphServiceExtendedTest extends TestCase
     public function test_find_path_returns_empty_for_disconnected_nodes(): void
     {
         $team = $this->team();
-        $nodeA = $this->service->upsertNode($team, 'customer', 'C-001', 'Customer', 'dot.crm');
-        $nodeB = $this->service->upsertNode($team, 'invoice', 'I-001', 'Invoice', 'dot.payments');
+        $nodeA = $this->service->upsertNode($team, 'customer', 'C-001', 'Customer', 'emall');
+        $nodeB = $this->service->upsertNode($team, 'invoice', 'I-001', 'Invoice', 'billing');
         // No edge between them
 
         $path = $this->service->findPath($team, 'customer', 'C-001', 'invoice', 'I-001');
@@ -40,8 +40,8 @@ class KnowledgeGraphServiceExtendedTest extends TestCase
     public function test_find_path_returns_direct_connection(): void
     {
         $team = $this->team();
-        $nodeA = $this->service->upsertNode($team, 'customer', 'C-001', 'Customer', 'dot.crm');
-        $nodeB = $this->service->upsertNode($team, 'invoice', 'I-001', 'Invoice', 'dot.payments');
+        $nodeA = $this->service->upsertNode($team, 'customer', 'C-001', 'Customer', 'emall');
+        $nodeB = $this->service->upsertNode($team, 'invoice', 'I-001', 'Invoice', 'billing');
         $this->service->connect($nodeA, $nodeB, 'has');
 
         $path = $this->service->findPath($team, 'customer', 'C-001', 'invoice', 'I-001');
@@ -61,7 +61,7 @@ class KnowledgeGraphServiceExtendedTest extends TestCase
     public function test_find_path_returns_empty_for_unknown_end_entity(): void
     {
         $team = $this->team();
-        $this->service->upsertNode($team, 'customer', 'C-001', 'Customer', 'dot.crm');
+        $this->service->upsertNode($team, 'customer', 'C-001', 'Customer', 'emall');
 
         $path = $this->service->findPath($team, 'customer', 'C-001', 'invoice', 'NONEXISTENT');
         $this->assertEmpty($path);
@@ -80,7 +80,7 @@ class KnowledgeGraphServiceExtendedTest extends TestCase
     public function test_explain_entity_returns_empty_for_node_with_no_edges(): void
     {
         $team = $this->team();
-        $this->service->upsertNode($team, 'customer', 'C-001', 'Customer', 'dot.crm');
+        $this->service->upsertNode($team, 'customer', 'C-001', 'Customer', 'emall');
 
         $explanation = $this->service->explainEntity($team, 'customer', 'C-001');
         $this->assertEmpty($explanation); // No incoming edges
@@ -93,7 +93,7 @@ class KnowledgeGraphServiceExtendedTest extends TestCase
         $teamA = $this->team();
         $teamB = $this->team();
 
-        $this->service->upsertNode($teamA, 'customer', 'C-001', 'Acme', 'dot.crm');
+        $this->service->upsertNode($teamA, 'customer', 'C-001', 'Acme', 'emall');
 
         $statsA = $this->service->getStats($teamA);
         $statsB = $this->service->getStats($teamB);
@@ -107,9 +107,9 @@ class KnowledgeGraphServiceExtendedTest extends TestCase
     public function test_traverse_handles_cyclic_graph_without_infinite_loop(): void
     {
         $team = $this->team();
-        $nodeA = $this->service->upsertNode($team, 'customer', 'C-001', 'A', 'dot.crm');
-        $nodeB = $this->service->upsertNode($team, 'invoice', 'I-001', 'B', 'dot.payments');
-        $nodeC = $this->service->upsertNode($team, 'ticket', 'T-001', 'C', 'dot.support');
+        $nodeA = $this->service->upsertNode($team, 'customer', 'C-001', 'A', 'emall');
+        $nodeB = $this->service->upsertNode($team, 'invoice', 'I-001', 'B', 'billing');
+        $nodeC = $this->service->upsertNode($team, 'ticket', 'T-001', 'C', 'notify');
 
         $this->service->connect($nodeA, $nodeB, 'has');
         $this->service->connect($nodeB, $nodeC, 'raised');
@@ -127,8 +127,8 @@ class KnowledgeGraphServiceExtendedTest extends TestCase
     public function test_connect_stores_custom_weight(): void
     {
         $team = $this->team();
-        $nodeA = $this->service->upsertNode($team, 'customer', 'C-001', 'A', 'dot.crm');
-        $nodeB = $this->service->upsertNode($team, 'invoice', 'I-001', 'B', 'dot.payments');
+        $nodeA = $this->service->upsertNode($team, 'customer', 'C-001', 'A', 'emall');
+        $nodeB = $this->service->upsertNode($team, 'invoice', 'I-001', 'B', 'billing');
 
         $edge = $this->service->connect($nodeA, $nodeB, 'has', 0.85);
 
@@ -138,8 +138,8 @@ class KnowledgeGraphServiceExtendedTest extends TestCase
     public function test_connect_stores_metadata(): void
     {
         $team = $this->team();
-        $nodeA = $this->service->upsertNode($team, 'customer', 'C-001', 'A', 'dot.crm');
-        $nodeB = $this->service->upsertNode($team, 'invoice', 'I-001', 'B', 'dot.payments');
+        $nodeA = $this->service->upsertNode($team, 'customer', 'C-001', 'A', 'emall');
+        $nodeB = $this->service->upsertNode($team, 'invoice', 'I-001', 'B', 'billing');
 
         $edge = $this->service->connect($nodeA, $nodeB, 'has', 1.0, ['source' => 'pipeline']);
 
@@ -151,7 +151,7 @@ class KnowledgeGraphServiceExtendedTest extends TestCase
     public function test_stats_density_is_zero_for_single_node(): void
     {
         $team = $this->team();
-        $this->service->upsertNode($team, 'customer', 'C-001', 'Solo', 'dot.crm');
+        $this->service->upsertNode($team, 'customer', 'C-001', 'Solo', 'emall');
 
         $stats = $this->service->getStats($team);
         $this->assertEquals(0, $stats['density']);
@@ -160,9 +160,9 @@ class KnowledgeGraphServiceExtendedTest extends TestCase
     public function test_stats_top_relationships_are_ordered_by_count(): void
     {
         $team = $this->team();
-        $nodeA = $this->service->upsertNode($team, 'customer', 'C-001', 'A', 'dot.crm');
-        $nodeB = $this->service->upsertNode($team, 'invoice', 'I-001', 'B', 'dot.payments');
-        $nodeC = $this->service->upsertNode($team, 'ticket', 'T-001', 'C', 'dot.support');
+        $nodeA = $this->service->upsertNode($team, 'customer', 'C-001', 'A', 'emall');
+        $nodeB = $this->service->upsertNode($team, 'invoice', 'I-001', 'B', 'billing');
+        $nodeC = $this->service->upsertNode($team, 'ticket', 'T-001', 'C', 'notify');
 
         $this->service->connect($nodeA, $nodeB, 'owns');
         $this->service->connect($nodeB, $nodeC, 'owns');

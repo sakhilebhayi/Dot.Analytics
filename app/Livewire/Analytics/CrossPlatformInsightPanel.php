@@ -3,9 +3,12 @@
 namespace App\Livewire\Analytics;
 
 use App\Models\CrossPlatformInsight;
+use App\Models\DataSource;
+use App\Models\IntelligenceEngineRun;
 use App\Services\CrossPlatformIntelligenceService;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
@@ -24,6 +27,32 @@ class CrossPlatformInsightPanel extends Component
 
     public bool $running = false;
 
+    /** Plain-language outcome of the last "Run Engines" click (skipped / no data / failed reasons). */
+    public ?string $notice = null;
+
+    #[Computed]
+    public function hasData(): bool
+    {
+        $team = Auth::user()->currentTeam;
+
+        return $team !== null
+            && DataSource::where('team_id', $team->id)->where('status', 'connected')->exists();
+    }
+
+    /** Most recent run of each engine that did not produce output, with the reason why. */
+    #[Computed]
+    public function unproductiveRuns(): Collection
+    {
+        return IntelligenceEngineRun::whereIn('status', ['skipped', 'no_data', 'failed'])
+            ->whereNotNull('status_reason')
+            ->orderByDesc('id')
+            ->limit(20)
+            ->get()
+            ->unique('engine')
+            ->take(3)
+            ->values();
+    }
+
     #[Computed]
     public function insights(): Collection
     {
@@ -38,24 +67,42 @@ class CrossPlatformInsightPanel extends Component
 
     public function runEngines(): void
     {
+        Gate::authorize('run-intelligence-engines');
+
         $this->running = true;
 
-        $service = app(CrossPlatformIntelligenceService::class);
-        $service->runForTeam(Auth::user()->currentTeam);
+        $runs = app(CrossPlatformIntelligenceService::class)->runAllForTeam(Auth::user()->currentTeam);
 
-        unset($this->insights);
+        $made = array_sum(array_map(fn ($r) => $r->insights_generated, $runs));
+        $blocked = array_values(array_filter($runs, fn ($r) => in_array($r->status, ['skipped', 'no_data', 'failed'], true)));
+
+        $this->notice = match (true) {
+            $runs === [] => 'No data connected yet. Connect a platform first.',
+            $blocked !== [] && $made === 0 => $blocked[0]->status_reason,
+            default => $made === 0
+                ? 'Engines ran but found no pattern the data supports.'
+                : "{$made} new insight(s) from your ingested data.",
+        };
+
+        unset($this->insights, $this->unproductiveRuns);
         $this->running = false;
     }
 
     public function review(int $id): void
     {
-        CrossPlatformInsight::findOrFail($id)->review();
+        $insight = CrossPlatformInsight::findOrFail($id);
+        Gate::authorize('update', $insight);
+
+        $insight->review();
         unset($this->insights);
     }
 
     public function dismiss(int $id): void
     {
-        CrossPlatformInsight::findOrFail($id)->dismiss();
+        $insight = CrossPlatformInsight::findOrFail($id);
+        Gate::authorize('update', $insight);
+
+        $insight->dismiss();
         unset($this->insights);
     }
 

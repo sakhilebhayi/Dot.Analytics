@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\IngestSnapshotController;
 use App\Http\Controllers\Api\V1\FeatureFlagController;
 use App\Http\Controllers\Api\V1\HealthController;
 use App\Http\Controllers\Api\V1\IngestController;
@@ -29,6 +30,13 @@ Route::get('/health', fn () => response()->json([
 Route::get('/user', fn (Request $request) => $request->user())
     ->middleware('auth:sanctum');
 
+// ─── Server-to-server snapshot ingest ─────────────────────────────────────────
+// A Dot platform publishes its own daily snapshot. No user, no Sanctum token: the
+// caller proves itself with a per-platform HMAC over "{timestamp}.{raw body}" (see
+// ServerIngestSignature) and is rate limited per platform inside the controller.
+// The user-token ingest under /v1 below is a different, unchanged path.
+Route::post('/ingest/snapshots', IngestSnapshotController::class)->name('api.ingest.snapshots');
+
 // ─── API v1 — requires Sanctum token ─────────────────────────────────────────
 Route::prefix('v1')
     ->middleware(['auth:sanctum', 'throttle:analytics-api'])
@@ -50,6 +58,7 @@ Route::prefix('v1')
             Route::get('connected', [PlatformController::class, 'connected']);
             Route::get('{platform}', [PlatformController::class, 'show']);
             Route::post('{platform}/connect', [PlatformController::class, 'connect']);
+            Route::post('{platform}/webhook-secret', [PlatformController::class, 'rotateWebhookSecret']);
             Route::delete('{platform}', [PlatformController::class, 'disconnect']);
         });
 

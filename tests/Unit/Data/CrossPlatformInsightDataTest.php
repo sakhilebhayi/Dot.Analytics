@@ -12,7 +12,7 @@ class CrossPlatformInsightDataTest extends TestCase
         $data = [
             'title' => 'Test insight',
             'narrative' => 'Detailed narrative',
-            'platforms_involved' => ['dot.fleet', 'dot.hr'],
+            'platforms_involved' => ['tasks', 'hr'],
             'insight_type' => 'causation',
             'confidence' => 0.85,
             'severity' => 'warning',
@@ -24,7 +24,7 @@ class CrossPlatformInsightDataTest extends TestCase
         $this->assertEquals('causation', $dto->insightType);
         $this->assertEquals(0.85, $dto->confidence);
         $this->assertEquals('warning', $dto->severity);
-        $this->assertEquals(['dot.fleet', 'dot.hr'], $dto->platformsInvolved);
+        $this->assertEquals(['tasks', 'hr'], $dto->platformsInvolved);
     }
 
     public function test_from_array_uses_defaults_for_missing_fields(): void
@@ -89,7 +89,7 @@ class CrossPlatformInsightDataTest extends TestCase
         $dto = CrossPlatformInsightData::fromArray([
             'title' => 'Test',
             'narrative' => 'Narrative',
-            'platforms_involved' => ['dot.crm'],
+            'platforms_involved' => ['emall'],
             'insight_type' => 'risk',
             'confidence' => 0.75,
             'severity' => 'warning',
