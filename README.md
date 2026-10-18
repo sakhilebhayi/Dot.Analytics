@@ -90,6 +90,14 @@ platform --signed daily snapshot--> POST /api/ingest/snapshots        (server to
 | Laravel scheduler every minute (`* * * * * php artisan schedule:run`) | hourly `analytics:compute-metrics` (compute + anomaly check), every-minute `analytics:run-scheduled-reports` (saved reports with a cron expression, read in the team timezone, run history kept; nothing is emailed), the 6-hourly engine run, briefings and the nightly Business DNA |
 | A queue worker | `ComputeMetricsJob` refreshes a team's tiles right after a snapshot arrives; without a worker the hourly run still computes everything |
 
+### Global search
+
+`/search` (and the search box in the nav bar) finds a team's own knowledge-graph entities, insights, alerts, recommendations, saved reports and dashboards. It uses Laravel Scout's **database** engine (`LIKE`, `ILIKE` on Postgres): no external service, nothing copied anywhere, so it runs on SQLite, Postgres and the shared cPanel host alike. It is read-only, so every team role may use it, viewers included.
+
+* **Strictly one company.** Every search states its team explicitly (`App\Services\Search\GlobalSearch`, backed by `App\Models\Concerns\SearchesWithinTeam`); a search that does not matches nothing, so a queue worker or a command with nobody signed in cannot search across companies. Only members of the team being searched can search it.
+* **Nothing sensitive is searchable.** Only title/description-style columns of those six models are matched (each model declares them). Data sources, their webhook secrets and `config`, alert `context`, provenance, snapshot payloads and node `attributes` are not.
+* At least 2 characters, at most 100, ten results per type, newest first. Only the `database` driver is supported (`SCOUT_DRIVER=database`, the default).
+
 ### Not wired
 
 Data connectors (REST, database, file), data pipelines, the AI-to-SQL service and the currency service exist in the codebase, but no route or screen creates a connector, so they play no part in the data path. They are left in place, untouched and untested end to end; do not assume they work.

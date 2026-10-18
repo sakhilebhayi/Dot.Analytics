@@ -3,14 +3,14 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasTeamScope;
+use App\Models\Concerns\SearchesWithinTeam;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Laravel\Scout\Searchable;
 
 class AnalyticsAlert extends Model
 {
-    use HasFactory, HasTeamScope, Searchable;
+    use HasFactory, HasTeamScope, SearchesWithinTeam;
 
     protected $table = 'analytics_alerts';
 

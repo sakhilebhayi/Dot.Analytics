@@ -1,5 +1,10 @@
 # Global Search Implementation Plan
 
+> **Rebased onto `feature/ecosystem-sso`.** Kept as the record of the original design; where it differs the code and the README
+> ("Global search") win. Dashboards on the trunk are team-wide with no private/shared visibility and have no `/dashboards` page, so
+> they are searched like everything else and link to the dashboard. Every search now names its team explicitly instead of relying on
+> `HasTeamScope` (which only exists for a signed-in user), through `GlobalSearch` and the `SearchesWithinTeam` trait.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Wire up the already-installed-but-unused `laravel/scout` dependency to power a `/search` page finding knowledge graph entities, cross-platform insights, alerts, recommendations, saved reports, and dashboards, reachable from a nav-bar search box on every page.

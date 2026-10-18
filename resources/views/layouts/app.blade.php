@@ -90,6 +90,10 @@
                 <span class="material-symbols-outlined" style="font-size:18px;">dashboard</span>
                 <span>Intelligence Overview</span>
             </a>
+            <a href="{{ route('search') }}" class="sl {{ request()->routeIs('search') ? 'active' : '' }}">
+                <span class="material-symbols-outlined" style="font-size:18px;">search</span>
+                <span>Search</span>
+            </a>
         </nav>
 
         @auth

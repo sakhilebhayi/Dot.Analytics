@@ -3,15 +3,15 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasTeamScope;
+use App\Models\Concerns\SearchesWithinTeam;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Laravel\Scout\Searchable;
 
 class IntelligenceNode extends Model
 {
-    use HasFactory, HasTeamScope, Searchable;
+    use HasFactory, HasTeamScope, SearchesWithinTeam;
 
     protected $fillable = [
         'team_id', 'entity_type', 'entity_id', 'label', 'source_platform', 'attributes',

@@ -14,9 +14,15 @@ return [
     | Supported: "algolia", "meilisearch", "typesense",
     |            "database", "collection", "null"
     |
+    | Dot.Analytics supports "database" only: plain LIKE (ILIKE on Postgres) against
+    | each model's own table, no external service and no second copy of anyone's data.
+    | It is the default so an unset SCOUT_DRIVER cannot pick the "collection" engine,
+    | which would load whole tables into memory. See App\Models\Concerns\SearchesWithinTeam
+    | for how every search is held to one company.
+    |
     */
 
-    'driver' => env('SCOUT_DRIVER', 'collection'),
+    'driver' => env('SCOUT_DRIVER', 'database'),
 
     /*
     |--------------------------------------------------------------------------

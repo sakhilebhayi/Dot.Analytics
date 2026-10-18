@@ -3,10 +3,10 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasTeamScope;
+use App\Models\Concerns\SearchesWithinTeam;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Laravel\Scout\Searchable;
 
 /**
  * @property int $id
@@ -24,7 +24,7 @@ use Laravel\Scout\Searchable;
  */
 class CrossPlatformInsight extends Model
 {
-    use HasFactory, HasTeamScope, Searchable;
+    use HasFactory, HasTeamScope, SearchesWithinTeam;
 
     protected $fillable = [
         'team_id', 'title', 'narrative', 'platforms_involved',

@@ -155,4 +155,18 @@ class SearchableModelsTest extends TestCase
 
         $this->assertCount(0, Recommendation::search('Needle')->where('team_id', $user->currentTeam->id)->get());
     }
+
+    public function test_a_search_callback_cannot_switch_the_team_constraint_off(): void
+    {
+        $user = User::factory()->withPersonalTeam()->create();
+        $other = Team::factory()->create();
+        Recommendation::factory()->create(['team_id' => $user->currentTeam->id, 'title' => 'Needle mine']);
+        Recommendation::factory()->create(['team_id' => $other->id, 'title' => 'Needle foreign']);
+
+        // With a callback Scout's database engine ignores ->where() entirely, so the team has to
+        // be held by the model's own query, which no callback replaces.
+        $results = Recommendation::search('Needle', fn ($query) => $query)->where('team_id', $user->currentTeam->id)->get();
+
+        $this->assertSame(['Needle mine'], $results->pluck('title')->all());
+    }
 }

@@ -1,5 +1,10 @@
 # Global Search — Design Spec
 
+> **Rebased onto `feature/ecosystem-sso`.** Kept as the record of the original design; where it differs the code and the README
+> ("Global search") win. Dashboards on the trunk are team-wide with no private/shared visibility and have no `/dashboards` page, so
+> they are searched like everything else and link to the dashboard. Every search now names its team explicitly instead of relying on
+> `HasTeamScope` (which only exists for a signed-in user), through `GlobalSearch` and the `SearchesWithinTeam` trait.
+
 ## Context
 
 Following Custom Dashboards, we brainstormed the two remaining reach-feature

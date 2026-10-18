@@ -7,7 +7,7 @@
         style="background:var(--ink-soft);border:1px solid var(--line);color:var(--paper);margin-bottom:1.75rem;"
     />
 
-    @if(mb_strlen(trim($query)) < 2)
+    @if(! $this->hasQuery())
         <p style="font-size:0.85rem;color:var(--mist);text-align:center;padding:2rem 0;">Type at least 2 characters to search.</p>
     @elseif($this->totalCount === 0)
         <p style="font-size:0.85rem;color:var(--mist);text-align:center;padding:2rem 0;">No results for &ldquo;{{ $query }}&rdquo;.</p>
@@ -93,7 +93,7 @@
                     <p class="font-mono" style="font-size:0.65rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--gold-soft);margin:0 0 0.75rem;">Dashboards ({{ $this->dashboards->count() }})</p>
                     <div style="display:flex;flex-direction:column;gap:0.5rem;">
                         @foreach($this->dashboards as $dash)
-                            <a href="{{ route('dashboards.index') }}" style="display:block;padding:0.75rem 1rem;border:1px solid var(--line);border-radius:0.5rem;text-decoration:none;">
+                            <a href="{{ route('dashboard') }}" style="display:block;padding:0.75rem 1rem;border:1px solid var(--line);border-radius:0.5rem;text-decoration:none;">
                                 <div class="flex items-center gap-2">
                                     <span style="font-size:0.85rem;font-weight:600;color:var(--paper);">{{ $dash->title }}</span>
                                     @if($dash->visibility === 'team')
