@@ -16,6 +16,13 @@ class IntelligenceEngineCompleted implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
+    /**
+     * Push inline, inside the engine job that dispatches it, rather than as a second queued
+     * job: with Reverb down a queued push would fail and retry into failed_jobs, whereas
+     * inline the dispatcher can swallow it (see CrossPlatformIntelligenceService).
+     */
+    public string $connection = 'sync';
+
     public function __construct(
         public readonly int $teamId,
         public readonly string $engine,
