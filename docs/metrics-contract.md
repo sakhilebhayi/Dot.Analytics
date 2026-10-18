@@ -12,6 +12,7 @@ The machine-readable version is `config/metrics.php`; a test fails if this page 
 platform --signed daily snapshot--> POST /api/v1/ingest/{platform}
    -> analytics_snapshots          stored once, as received (validated)
    -> computed_metrics             value, previous value, delta, delta %, per metric per day
+   -> anomaly alerts               only with >= 7 prior daily points (see "Anomalies")
    -> briefings, Business DNA and the AI engines read these same real snapshots
 ```
 
@@ -199,9 +200,23 @@ One `computed_metrics` row per metric per UTC day, from the latest snapshot of t
 | `currency` | For money metrics. |
 | `is_demo` | True only for data seeded by the local Demo seeder. Shown as DEMO DATA. |
 
+## Anomalies
+
+After computing, a metric is flagged only when it has **at least 7 prior daily points** in the previous 30 days
+and its latest point is not stale. The latest value is compared with the median of the prior points:
+
+```
+deviation = |latest - median| / max(MAD, 1% of |median|, minimum scale for the metric kind)
+flag when deviation > 3.5            (config metrics.anomaly.mad_threshold, env ANALYTICS_ANOMALY_MAD)
+```
+
+`MAD` is the median absolute deviation of the prior points. The floors stop a flat history from turning any wobble
+into an alert. At most one alert is raised per metric per day; it carries its provenance (metric, window, value,
+median, MAD, threshold, the prior points used). No AI is involved.
+
 ## Cron and queue requirements
 
-* The Laravel scheduler must run every minute (`* * * * * php artisan schedule:run`). It runs `analytics:compute-metrics` hourly.
+* The Laravel scheduler must run every minute (`* * * * * php artisan schedule:run`). It runs `analytics:compute-metrics` hourly, which computes metrics and then checks them for anomalies.
 * A queue worker must run for the `ComputeMetricsJob` that refreshes a team's tiles right after a snapshot arrives. Without a worker the hourly run still computes everything.
 
 ## Not part of this contract

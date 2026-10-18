@@ -4,11 +4,12 @@ namespace App\Jobs\Analytics;
 
 use App\Models\Team;
 use App\Services\Metrics\ComputeMetrics;
+use App\Services\Metrics\MetricAnomalyDetector;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 
 /**
- * Refreshes one team's computed metrics right after a new snapshot arrives, so a
+ * Refreshes one team's computed metrics and anomaly alerts right after a new snapshot arrives, so a
  * tile does not wait for the hourly run. Safe to run any number of times: the
  * computation is idempotent.
  */
@@ -22,12 +23,13 @@ class ComputeMetricsJob implements ShouldQueue
 
     public function __construct(public readonly int $teamId) {}
 
-    public function handle(ComputeMetrics $compute): void
+    public function handle(ComputeMetrics $compute, MetricAnomalyDetector $detector): void
     {
         $team = Team::find($this->teamId);
 
         if ($team) {
             $compute->forTeam($team);
+            $detector->detectForTeam($team);
         }
     }
 }

@@ -181,16 +181,17 @@ Suggested SLA targets:
 
 ## Fix 6 — Alerting on Anomalies
 
-The `AnomalyDetectionService` already detects statistical anomalies.
+The `MetricAnomalyDetector` (`app/Services/Metrics/MetricAnomalyDetector.php`) already raises one
+`AnalyticsAlert` per anomalous metric per day, with its provenance in `context`.
 Connect it to notifications:
 
 ```php
-// In AnomalyDetectionService::createAlert():
+// In MetricAnomalyDetector::raise(), when the alert was newly created:
 // After creating the AnalyticsAlert, send notification:
-if ($anomaly['severity'] === 'critical') {
+if ($alert->wasRecentlyCreated && $alert->severity === 'critical') {
     \Notification::send(
         $team->owner,
-        new \App\Notifications\CriticalAnomalyDetected($team, $label, $anomaly)
+        new \App\Notifications\CriticalAnomalyDetected($team, $definition->label, $alert->context)
     );
 }
 ```

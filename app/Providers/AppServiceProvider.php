@@ -7,7 +7,6 @@ use App\Models\User;
 use App\Observers\DataSourceObserver;
 use App\Services\AiModelRouter;
 use App\Services\AiSqlService;
-use App\Services\AnomalyDetectionService;
 use App\Services\BusinessDnaService;
 use App\Services\Connectors\ConnectorRegistry;
 use App\Services\Connectors\DatabaseConnector;
@@ -64,7 +63,6 @@ class AppServiceProvider extends ServiceProvider
 
         $this->app->singleton(FeatureFlagService::class);
         $this->app->singleton(CurrencyService::class);
-        $this->app->singleton(AnomalyDetectionService::class);
 
         $this->app->singleton(AiSqlService::class, fn ($app) => new AiSqlService(
             $app->make(AiModelRouter::class),

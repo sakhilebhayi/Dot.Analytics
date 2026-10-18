@@ -21,7 +21,7 @@ XDEBUG_MODE=coverage php artisan test --coverage 2>&1 | grep -v "100\.0%" | grep
 |---|---|---|
 | `Services/AiModelRouter` | ~22% | Fallback chain, mock responses, cost tracking |
 | `Services/PipelineExecutionService` | ~50% | All transform branches, load stage |
-| `Services/AnomalyDetectionService` | ~61% | `detectForTeam()`, alert creation |
+| `Services/Metrics/MetricAnomalyDetector` | covered | `tests/Feature/Metrics/AnomalyDetectionTest.php`, `tests/Unit/Metrics/AnomalyStatisticsTest.php` |
 | `Services/KnowledgeGraphService` | ~70% | `findPath()`, `explainEntity()` edge cases |
 | `Services/ReportGenerationService` | ~77% | All 4 report types, edge cases |
 | `Livewire/IntelligenceDashboard` | ~50% | `connectedSources`, `openAlerts` computed |
@@ -50,7 +50,7 @@ public function test_anomaly_detection_creates_alert_for_critical_spike(): void
 ```php
 public function test_method_exists(): void
 {
-    $service = new AnomalyDetectionService();
+    $service = new MetricAnomalyDetector();
     $this->assertTrue(method_exists($service, 'detectForTeam'));
 }
 ```
@@ -121,18 +121,9 @@ public function test_full_load_ignores_watermark(): void
 
 ---
 
-## AnomalyDetectionService Tests to Write
+## MetricAnomalyDetector Tests
 
-```php
-public function test_detect_for_team_creates_alert_when_spike_found(): void
-// Requires: ComputedMetric factory, 30+ data points, one outlier
-// Assert: AnalyticsAlert created with correct severity
-
-public function test_detect_for_team_returns_zero_when_insufficient_history(): void
-
-public function test_detect_for_team_is_team_scoped(): void
-// Team A has a spike — Team B should get 0 alerts
-```
+Written: `tests/Feature/Metrics/AnomalyDetectionTest.php` (history needed, threshold, idempotency, staleness, team scoping, provenance) and `tests/Unit/Metrics/AnomalyStatisticsTest.php` (median/MAD, floors).
 
 ---
 
@@ -188,7 +179,7 @@ tests/
 - [ ] All classes above 70% coverage raised to 95%+
 - [ ] `AiModelRouter` fallback chain fully tested
 - [ ] `PipelineExecutionService` full ETL path tested
-- [ ] `AnomalyDetectionService.detectForTeam()` tested
+- [x] `MetricAnomalyDetector::detectForTeam()` tested
 - [ ] All Livewire `#[Computed]` properties tested
 - [ ] CI minimum coverage raised to 85%, target 95%
 - [ ] No tests using `$this->assertTrue(true)` as assertion
