@@ -16,7 +16,7 @@ use Laravel\Jetstream\Jetstream;
 // NOTE: this still redeems a bearer token from the query string; moving to the
 // one-time redeem protocol is tracked separately.
 Route::match(['get', 'post'], '/auth/ecosystem', [EcosystemAuthController::class, 'handle'])
-    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class, \Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class])
+    ->withoutMiddleware(['Illuminate\Foundation\Http\Middleware\VerifyCsrfToken', 'Illuminate\Foundation\Http\Middleware\ValidateCsrfToken'])
     ->middleware('throttle:ecosystem-auth')
     ->name('ecosystem.auth');
 
