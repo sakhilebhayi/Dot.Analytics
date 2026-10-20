@@ -19,7 +19,7 @@ class EcosystemSsoTest extends TestCase
     public function test_route_is_throttled(): void
     {
         for ($i = 0; $i < 10; $i++) {
-            $this->get('/auth/ecosystem?token=bogus')->assertForbidden();
+            $this->get('/auth/ecosystem?token=bogus')->assertStatus(303)->assertRedirect('/login');
         }
 
         $this->get('/auth/ecosystem?token=bogus')->assertStatus(429);
@@ -67,8 +67,8 @@ class EcosystemSsoTest extends TestCase
 
         $this->get('/auth/ecosystem?token='.urlencode($token))->assertRedirect();
         $this->app['auth']->guard('web')->logout();
-        $this->get('/auth/ecosystem?token='.urlencode($token))->assertForbidden();
-        $this->get('/auth/ecosystem?token='.urlencode($this->ssoToken($user, ['other'])))->assertForbidden();
-        $this->get('/auth/ecosystem?token[]=x')->assertForbidden();
+        $this->get('/auth/ecosystem?token='.urlencode($token))->assertStatus(303)->assertRedirect('/login');
+        $this->get('/auth/ecosystem?token='.urlencode($this->ssoToken($user, ['other'])))->assertStatus(303)->assertRedirect('/login');
+        $this->get('/auth/ecosystem?token[]=x')->assertStatus(303)->assertRedirect('/login');
     }
 }

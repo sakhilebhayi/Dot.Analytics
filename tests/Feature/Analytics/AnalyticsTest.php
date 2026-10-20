@@ -67,7 +67,7 @@ class AnalyticsTest extends TestCase
 
     public function test_ecosystem_auth_rejects_missing_token(): void
     {
-        $this->get('/auth/ecosystem')->assertStatus(403);
+        $this->get('/auth/ecosystem')->assertStatus(303)->assertRedirect('/login');
     }
 
     public function test_data_source_belongs_to_team(): void
