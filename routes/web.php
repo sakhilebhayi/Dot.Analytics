@@ -15,7 +15,8 @@ use Laravel\Jetstream\Jetstream;
 // Token redemption is brute-forceable if unthrottled: 10 attempts/min per IP.
 // NOTE: this still redeems a bearer token from the query string; moving to the
 // one-time redeem protocol is tracked separately.
-Route::get('/auth/ecosystem', [EcosystemAuthController::class, 'handle'])
+Route::match(['get', 'post'], '/auth/ecosystem', [EcosystemAuthController::class, 'handle'])
+    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class, \Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class])
     ->middleware('throttle:ecosystem-auth')
     ->name('ecosystem.auth');
 
