@@ -10,6 +10,7 @@ use App\Services\ReportGenerationService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
+use Laravel\Fortify\Features;
 use Laravel\Jetstream\Jetstream;
 
 // Token redemption is brute-forceable if unthrottled: 10 attempts/min per IP.
@@ -96,3 +97,9 @@ Route::middleware([
         );
     })->name('reports.download');
 });
+
+// Public sign-up is closed (accounts are created by InfoDot at first sign-in). Keep the named route so any link or
+// invitation email that points at it lands on the login page instead of failing.
+if (! Features::enabled(Features::registration())) {
+    Route::redirect('/register', '/login')->name('register');
+}
