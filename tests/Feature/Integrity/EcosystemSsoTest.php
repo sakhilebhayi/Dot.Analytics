@@ -11,6 +11,20 @@ class EcosystemSsoTest extends TestCase
 {
     use BuildsTeams, RefreshDatabase;
 
+    /** InfoDot's launch page, as the browser reports it. */
+    private function fromInfodot(): array
+    {
+        $infodot = parse_url((string) config('ecosystem.infodot.redeem_url', ''), PHP_URL_HOST);
+
+        if (is_string($infodot) && $infodot !== '') {
+            return ['Origin' => 'https://'.$infodot];
+        }
+
+        $host = (string) parse_url((string) config('app.url'), PHP_URL_HOST);
+
+        return ['Origin' => 'https://'.(str_contains($host, '.') ? substr($host, strpos($host, '.') + 1) : $host)];
+    }
+
     private function ssoToken(User $user, array $abilities = ['ecosystem:read']): string
     {
         return $user->createToken('sso', $abilities)->plainTextToken;
@@ -19,10 +33,10 @@ class EcosystemSsoTest extends TestCase
     public function test_route_is_throttled(): void
     {
         for ($i = 0; $i < 10; $i++) {
-            $this->get('/auth/ecosystem?token=bogus')->assertStatus(303)->assertRedirect('/login');
+            $this->post(route('ecosystem.auth'), ['token' => 'bogus'], $this->fromInfodot())->assertStatus(303)->assertRedirect('/login');
         }
 
-        $this->get('/auth/ecosystem?token=bogus')->assertStatus(429);
+        $this->post(route('ecosystem.auth'), ['token' => 'bogus'], $this->fromInfodot())->assertStatus(429);
     }
 
     public function test_session_id_is_regenerated_on_login(): void
@@ -31,7 +45,7 @@ class EcosystemSsoTest extends TestCase
         $this->startSession();
         $before = session()->getId();
 
-        $this->get('/auth/ecosystem?token='.urlencode($this->ssoToken($user)))->assertRedirect(route('dashboard'));
+        $this->post(route('ecosystem.auth'), ['token' => $this->ssoToken($user)], $this->fromInfodot())->assertRedirect(route('dashboard'));
 
         $this->assertAuthenticatedAs($user);
         $this->assertNotSame($before, session()->getId());
@@ -43,7 +57,7 @@ class EcosystemSsoTest extends TestCase
         $user->forceFill(['current_team_id' => null])->save();
         $this->assertNull($user->fresh()->current_team_id);
 
-        $this->get('/auth/ecosystem?token='.urlencode($this->ssoToken($user)))->assertRedirect(route('dashboard'));
+        $this->post(route('ecosystem.auth'), ['token' => $this->ssoToken($user)], $this->fromInfodot())->assertRedirect(route('dashboard'));
 
         $this->assertSame($user->personalTeam()->id, $user->fresh()->current_team_id);
     }
@@ -55,7 +69,7 @@ class EcosystemSsoTest extends TestCase
         $owner->currentTeam->users()->attach($user, ['role' => 'editor']);
         $user->switchTeam($owner->currentTeam);
 
-        $this->get('/auth/ecosystem?token='.urlencode($this->ssoToken($user)))->assertRedirect(route('dashboard'));
+        $this->post(route('ecosystem.auth'), ['token' => $this->ssoToken($user)], $this->fromInfodot())->assertRedirect(route('dashboard'));
 
         $this->assertSame($owner->currentTeam->id, $user->fresh()->current_team_id);
     }
@@ -65,10 +79,10 @@ class EcosystemSsoTest extends TestCase
         $user = $this->ownerWithTeam();
         $token = $this->ssoToken($user);
 
-        $this->get('/auth/ecosystem?token='.urlencode($token))->assertRedirect();
+        $this->post(route('ecosystem.auth'), ['token' => $token], $this->fromInfodot())->assertRedirect();
         $this->app['auth']->guard('web')->logout();
-        $this->get('/auth/ecosystem?token='.urlencode($token))->assertStatus(303)->assertRedirect('/login');
-        $this->get('/auth/ecosystem?token='.urlencode($this->ssoToken($user, ['other'])))->assertStatus(303)->assertRedirect('/login');
-        $this->get('/auth/ecosystem?token[]=x')->assertStatus(303)->assertRedirect('/login');
+        $this->post(route('ecosystem.auth'), ['token' => $token], $this->fromInfodot())->assertStatus(303)->assertRedirect('/login');
+        $this->post(route('ecosystem.auth'), ['token' => $this->ssoToken($user, ['other'])], $this->fromInfodot())->assertStatus(303)->assertRedirect('/login');
+        $this->post(route('ecosystem.auth'), ['token' => ['x']], $this->fromInfodot())->assertStatus(303)->assertRedirect('/login');
     }
 }

@@ -13,12 +13,15 @@ use Illuminate\Support\Str;
 use Laravel\Jetstream\Jetstream;
 
 // Token redemption is brute-forceable if unthrottled: 10 attempts/min per IP.
-// NOTE: this still redeems a bearer token from the query string; moving to the
-// one-time redeem protocol is tracked separately.
-Route::match(['get', 'post'], '/auth/ecosystem', [EcosystemAuthController::class, 'handle'])
+// The token is read from the POST body only; a GET carrying it is not honoured (see below).
+Route::post('/auth/ecosystem', [EcosystemAuthController::class, 'handle'])
     ->withoutMiddleware(['Illuminate\Foundation\Http\Middleware\PreventRequestForgery', 'Illuminate\Foundation\Http\Middleware\VerifyCsrfToken', 'Illuminate\Foundation\Http\Middleware\ValidateCsrfToken'])
     ->middleware('throttle:ecosystem-auth')
     ->name('ecosystem.auth');
+
+// Links minted before the token moved into a POST body carried it in the URL. They are no longer honoured:
+// the visitor is sent to the normal sign-in page and the token in the URL is never read.
+Route::get('/auth/ecosystem', [EcosystemAuthController::class, 'legacy']);
 
 Route::get('/', fn () => view('welcome'));
 
