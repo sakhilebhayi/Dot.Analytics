@@ -1,0 +1,214 @@
+{
+  "assessors": [
+    {
+      "id": "ai-reviewer-fresh-2026-10-23",
+      "kind": "ai"
+    }
+  ],
+  "automated": [
+    {
+      "artifact_ref": "check:d1.copy_profile_language_lint:static-scan/d1.copy_profile_language_lint",
+      "check_id": "d1.copy_profile_language_lint",
+      "detail": "394 user-facing string(s) scanned against 6 banned phrase(s) of profile dot-ecosystem; 0 string(s) trip a banned phrase or an unsupported-claim pattern (claim hits are listed under d6.claim_lint).",
+      "value": 1
+    },
+    {
+      "artifact_ref": "check:d10.error_pages:static-scan/d10.error_pages",
+      "check_id": "d10.error_pages",
+      "detail": "5 of 5 error statuses (403, 404, 419, 500, 503) have a custom page with a link or button. Laravel layout: resources/views/errors. Rendering with the right status needs a running app and is not measured.",
+      "value": 1
+    },
+    {
+      "artifact_ref": "check:d10.health_endpoint:static-scan/d10.health_endpoint",
+      "check_id": "d10.health_endpoint",
+      "detail": "exists: yes (framework health route /up with no DiagnosingHealth listener (it answers 200 whenever the app boots)); answers: not measured (needs a running app); reports failure honestly: a failure path is present in the handler. The share is out of three, so it cannot exceed 2/3 statically.",
+      "value": 0.6667
+    },
+    {
+      "artifact_ref": "check:d2.font_palette_deny_list:static-scan/d2.font_palette_deny_list",
+      "check_id": "d2.font_palette_deny_list",
+      "detail": "5 of 5 fonts/palette values are off the deny-list. Fonts found: IBM Plex Sans, Space Grotesk, IBM Plex Mono, Material Symbols Rounded, Material Symbols Outlined; the profile writes no hex colour in its prohibited list, so the palette was not evaluated. Matching is by name only.",
+      "value": 1
+    },
+    {
+      "artifact_ref": "adapter:detector:impeccable-detect-rendered.json+1",
+      "check_id": "d2.impeccable_detect_findings",
+      "detail": "28 distinct detector finding(s) counted against a ceiling of 10; advisory hits are listed and not counted.",
+      "value": 0
+    },
+    {
+      "artifact_ref": "check:d3.field_counts:static-scan/d3.field_counts",
+      "check_id": "d3.field_counts",
+      "detail": "13 of 13 forms have at most 8 fields (engine default bound; the profile declares none). Whether each field is needed is not measured.",
+      "value": 1
+    },
+    {
+      "artifact_ref": "check:d3.heading_structure:resources/views/profile/two-factor-authentication-form.blade.php",
+      "check_id": "d3.heading_structure",
+      "detail": "3 of 4 screens have exactly one <h1> and no skipped level; 23 layout(s) and page(s) that rely on a layout were left out because the outline is split between files. Headings rendered by components or inserted by scripts are not seen.",
+      "value": 0.75
+    },
+    {
+      "artifact_ref": "check:d3.nav_depth:static-scan/d3.nav_depth",
+      "check_id": "d3.nav_depth",
+      "detail": "12 of 12 navigation links are within 3 level(s) (engine default bound; the profile declares none) across 4 <nav> landmark(s). Click paths through pages are not measured.",
+      "value": 1
+    },
+    {
+      "artifact_ref": "adapter:detector:impeccable-detect-rendered.json+1",
+      "check_id": "d4.detector_clean",
+      "detail": "99 distinct detector finding(s) counted against a ceiling of 10; advisory hits are listed and not counted.",
+      "value": 0
+    },
+    {
+      "artifact_ref": "check:d4.reduced_motion:resources/views/components/banner.blade.php",
+      "check_id": "d4.reduced_motion",
+      "detail": "3 of 29 motion declarations are covered by prefers-reduced-motion (no global override); utility classes counted per element. Motion from JavaScript is not scanned.",
+      "value": 0.1034
+    },
+    {
+      "artifact_ref": "check:d5.dead_links:resources/views/errors/500.blade.php",
+      "check_id": "d5.dead_links",
+      "detail": "33 of 35 checkable internal links resolve; 25 link(s) could not be judged statically and are not counted. 46 route(s) read from 4 file(s) in routes/; package-provided routes (login, register, ...) are treated as unverifiable.",
+      "value": 0.9429
+    },
+    {
+      "artifact_ref": "check:d5.route_inventory_vs_claims:README.md",
+      "check_id": "d5.route_inventory_vs_claims",
+      "detail": "9 of 13 claimed features share a keyword with 42 route, page or view name word(s). This is a keyword match against names, not a test that the feature works.",
+      "value": 0.6923
+    },
+    {
+      "artifact_ref": "check:d5.stubs_placeholders:static-scan/d5.stubs_placeholders",
+      "check_id": "d5.stubs_placeholders",
+      "detail": "42 of 42 surfaces with static text are free of visible stub content. Surfaces whose text is all dynamic, and text produced by scripts, are not seen.",
+      "value": 1
+    },
+    {
+      "artifact_ref": "adapter:tests:analytics-junit.xml",
+      "check_id": "d5.test_pass_counts",
+      "detail": "1086 passed, 0 failed, 7 skipped of 1093 test(s) in 1 report(s); skipped tests are not counted.",
+      "value": 1
+    },
+    {
+      "artifact_ref": "check:d6.claim_lint:static-scan/d6.claim_lint",
+      "check_id": "d6.claim_lint",
+      "detail": "394 user-facing string(s) scanned; 0 carry a claim or figure and 0 of them are unsupported (none found: this is the absence of a violation, not proof of accuracy). Profile dot-ecosystem: 4 claims_policy rule(s), 2 with no pattern detector (no-certainty-theatre, no-unbuilt-features).",
+      "value": 1
+    },
+    {
+      "artifact_ref": "check:d6.privacy_terms_present:resources/views",
+      "check_id": "d6.privacy_terms_present",
+      "detail": "2 of 6 conditions hold (privacy and terms: present, not a placeholder, linked from shared markup). \"Reachable from every public page\" is approximated by a link in a layout, footer or partial; content served from a database or a CMS is not seen (1 page body/bodies rendered from a variable were not judged and earn no credit).",
+      "value": 0.3333
+    },
+    {
+      "artifact_ref": "check:d8.focus_visible:resources/views/components/banner.blade.php",
+      "check_id": "d8.focus_visible",
+      "detail": "5 of 20 outline removals or positive tabindex uses are safe (replaced by a visible indicator); the rest are listed. Rendered focus order and indicator visibility are not measured.",
+      "value": 0.25
+    },
+    {
+      "artifact_ref": "check:d8.labels_alt_lang:resources/views/components/dropdown.blade.php",
+      "check_id": "d8.labels_alt_lang",
+      "detail": "7/26 form fields labelled (reusable component files are skipped: their consumer supplies the label), 12/12 images with alt, 4/4 documents with lang; 17 element(s) with dynamic attributes and all components were skipped. Title, name, iframe, viewport and ARIA findings do not change this share.",
+      "value": 0.5476
+    },
+    {
+      "artifact_ref": "check:d8.token_pair_contrast:resources/views/errors/_ecosystem-layout.blade.php",
+      "check_id": "d8.token_pair_contrast",
+      "detail": "4 of 4 pair/theme combinations meet their threshold (4.5:1 text; 3:1 large text and focus indicators); themes evaluated: light; pair sources: usage 4; 2 combination(s) undetermined and not counted; translucent backgrounds are undetermined; panel backgrounds are tokens named bg/panel/surface/card/sunken.",
+      "value": 1
+    },
+    {
+      "artifact_ref": "check:d9.token_usage_vs_profile:resources/views/errors/403.blade.php",
+      "check_id": "d9.token_usage_vs_profile",
+      "detail": "669 of 1620 values come from tokens: colour 669 token / 61 literal / 154 framework-default utility; spacing and type size 0 token / 736 literal; 36 font-family declaration(s) not counted. The profile cites no token source, so any declared custom property counts.",
+      "value": 0.413
+    }
+  ],
+  "built_by": "prior-ai-sessions-and-owner",
+  "context": {
+    "assistive_technology_testing_possible": false
+  },
+  "evidence_version": "1.0.0",
+  "expert": [
+    {
+      "artifact_ref": "brand/assessment/README.md",
+      "assessor": "ai-reviewer-fresh-2026-10-23",
+      "dimension": "emotional_clarity_positioning",
+      "level": 2,
+      "rationale": "Level 2 (rubric anchor: Purpose is stated; the profile's intended feelings are reflected on some screens or in some copy but not in the main flow.) Assessor notes: AI review, offline render, no users observed. Welcome states the purpose plainly and the dashboard reads calm and data-first. The entry contradicts itself: sign-in offers 'Get started free' though sign-up is closed (the route redirects to /login), and the welcome page says 17 engines while the dashboard says 13 can run."
+    },
+    {
+      "artifact_ref": "brand/assessment/README.md",
+      "assessor": "ai-reviewer-fresh-2026-10-23",
+      "dimension": "brand_distinctiveness",
+      "level": 2,
+      "rationale": "Level 2 (rubric anchor: Some deliberate choices are visible but they are not applied consistently across the main screens.) Assessor notes: AI review, offline render, no users observed. Teal, gold, mono labels and a node motif are deliberate on welcome, login and dashboard. Team, profile and token pages are Jetstream defaults (light panels, grey text) inside the dark shell. No DESIGN.md records the identity."
+    },
+    {
+      "artifact_ref": "brand/assessment/README.md",
+      "assessor": "ai-reviewer-fresh-2026-10-23",
+      "dimension": "usability_cognitive_load",
+      "level": 2,
+      "rationale": "Level 2 (rubric anchor: Main tasks can be completed, but several screens carry unclear actions, long forms or avoidable memory demands.) Assessor notes: AI review, offline render, no users observed. Dashboard opens with one summary line and grouped metric tiles; only two nav items. 116 functional text elements render under 11px (0.55-0.7rem mono labels) and many panels stack on one page. Search with real data not exercised."
+    },
+    {
+      "artifact_ref": "brand/assessment/README.md",
+      "assessor": "ai-reviewer-fresh-2026-10-23",
+      "dimension": "visual_interaction_craftsmanship",
+      "level": 1,
+      "rationale": "Level 1 (rubric anchor: The main screens work but spacing, alignment, type or states are visibly inconsistent.) Assessor notes: AI review, offline render, no users observed. Desktop dashboard is consistent. At 375px the 264px sidebar never collapses (dashboard overflows by 78px, team pages by 105px, content about 110px wide). Reduced motion covers 3 of 29 motion declarations."
+    },
+    {
+      "artifact_ref": "brand/assessment/README.md",
+      "assessor": "ai-reviewer-fresh-2026-10-23",
+      "dimension": "trust_transparency",
+      "level": 2,
+      "rationale": "Level 2 (rubric anchor: Claims and data handling are mostly honest; some states or notices are vague or incomplete.) Assessor notes: AI review, offline render, no users observed. Good: every seeded tile says DEMO DATA, freshness is shown, unconnected platforms are listed. Weak: '17 engines' versus 13 able to run; closed sign-up still advertised; the app layout loads the Tailwind CDN and avatars from third parties at run time."
+    },
+    {
+      "artifact_ref": "brand/assessment/README.md",
+      "assessor": "ai-reviewer-fresh-2026-10-23",
+      "dimension": "accessibility_inclusion",
+      "level": 1,
+      "rationale": "Level 1 (rubric anchor: The main flow is completable but with serious barriers (contrast, labels, focus) in several places.) Assessor notes: AI review, offline render, no users observed. No assistive-technology test. 15 inputs/buttons remove the outline with no replacement, 19 of 26 form fields have no programmatic label, placeholders are 3.6:1, the role list on team settings is 2.2:1, 23 body-text elements are under 12px."
+    }
+  ],
+  "findings": [],
+  "generated_at": "2026-10-23T23:30:00Z",
+  "input": {
+    "commit": "b547e8bd3d07f880cf3f2979fa79d4709c3ea3d2",
+    "repo": "sakhilebhayi/Dot.Analytics"
+  },
+  "observed": [],
+  "x-provenance": {
+    "analysis_sha256": "dd8b540e027e76d3c2711f9c4cab3e6789642b2cb2f7e968934245fa040b99cb",
+    "assessments_sha256": "85249737e7cc91c0ac749073f7c6effa9490fe7ceb664fe0b347f2b1baa1979b",
+    "automated": {
+      "d1.copy_profile_language_lint": "check:d1.copy_profile_language_lint",
+      "d10.error_pages": "check:d10.error_pages",
+      "d10.health_endpoint": "check:d10.health_endpoint",
+      "d2.font_palette_deny_list": "check:d2.font_palette_deny_list",
+      "d2.impeccable_detect_findings": "adapter:detector",
+      "d3.field_counts": "check:d3.field_counts",
+      "d3.heading_structure": "check:d3.heading_structure",
+      "d3.nav_depth": "check:d3.nav_depth",
+      "d4.detector_clean": "adapter:detector",
+      "d4.reduced_motion": "check:d4.reduced_motion",
+      "d5.dead_links": "check:d5.dead_links",
+      "d5.route_inventory_vs_claims": "check:d5.route_inventory_vs_claims",
+      "d5.stubs_placeholders": "check:d5.stubs_placeholders",
+      "d5.test_pass_counts": "adapter:tests",
+      "d6.claim_lint": "check:d6.claim_lint",
+      "d6.privacy_terms_present": "check:d6.privacy_terms_present",
+      "d8.focus_visible": "check:d8.focus_visible",
+      "d8.labels_alt_lang": "check:d8.labels_alt_lang",
+      "d8.token_pair_contrast": "check:d8.token_pair_contrast",
+      "d9.token_usage_vs_profile": "check:d9.token_usage_vs_profile"
+    },
+    "profile": "dot-ecosystem@0.1.0",
+    "rubric": "bxqs@1.0.0"
+  }
+}
