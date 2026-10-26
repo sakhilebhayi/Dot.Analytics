@@ -71,6 +71,7 @@
                                         <span style="font-size:0.68rem;color:var(--mist);">{{ (int)$flag->rollout_percentage }}%</span>
                                         <input
                                             type="range"
+                                            aria-label="Rollout percentage"
                                             min="0" max="100" step="5"
                                             value="{{ $flag->rollout_percentage }}"
                                             wire:change="setRollout({{ $flag->id }}, $event.target.value)"
@@ -82,6 +83,9 @@
                                 {{-- Toggle --}}
                                 <button
                                     wire:click="toggle({{ $flag->id }})"
+                                    role="switch"
+                                    aria-checked="{{ $flag->enabled_globally ? 'true' : 'false' }}"
+                                    aria-label="Enabled globally"
                                     class="press relative inline-flex h-5 w-9 items-center rounded-full transition-colors"
                                     style="background:{{ $flag->enabled_globally ? 'var(--gold)' : 'rgba(255,255,255,0.08)' }};"
                                 >
