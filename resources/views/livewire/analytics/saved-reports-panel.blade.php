@@ -19,7 +19,7 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                     <label class="font-mono" style="display:block;font-size:0.62rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--mist);margin-bottom:0.35rem;">Report name</label>
-                    <input wire:model="title" type="text" placeholder="Weekly Risk Summary" class="w-full rounded-lg px-3 py-2 text-sm focus:outline-none" style="background:var(--ink-soft);border:1px solid var(--line);color:var(--paper);" />
+                    <input wire:model="title" type="text" placeholder="Weekly Risk Summary" class="w-full rounded-lg px-3 py-2 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2" style="background:var(--ink-soft);border:1px solid var(--line);color:var(--paper);" />
                     @error('title') <p style="color:var(--danger);font-size:0.7rem;margin-top:0.25rem;">{{ $message }}</p> @enderror
                 </div>
                 <div>
@@ -34,11 +34,11 @@
             </div>
             <div>
                 <label class="font-mono" style="display:block;font-size:0.62rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--mist);margin-bottom:0.35rem;">Description (optional)</label>
-                <input wire:model="description" type="text" placeholder="Brief description of this report" class="w-full rounded-lg px-3 py-2 text-sm focus:outline-none" style="background:var(--ink-soft);border:1px solid var(--line);color:var(--paper);" />
+                <input wire:model="description" type="text" placeholder="Brief description of this report" class="w-full rounded-lg px-3 py-2 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2" style="background:var(--ink-soft);border:1px solid var(--line);color:var(--paper);" />
             </div>
             <div>
                 <label class="font-mono" style="display:block;font-size:0.62rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--mist);margin-bottom:0.35rem;">Schedule (optional)</label>
-                <input wire:model="schedule" type="text" placeholder="0 6 * * 1" class="font-mono w-full rounded-lg px-3 py-2 text-sm focus:outline-none" style="background:var(--ink-soft);border:1px solid var(--line);color:var(--paper);" />
+                <input wire:model="schedule" type="text" placeholder="0 6 * * 1" class="font-mono w-full rounded-lg px-3 py-2 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2" style="background:var(--ink-soft);border:1px solid var(--line);color:var(--paper);" />
                 <p style="font-size:0.68rem;color:var(--mist);margin:0.3rem 0 0;">A cron expression, read in your team's timezone. <span class="font-mono">0 6 * * 1</span> is Mondays at 06:00. Each scheduled run is kept in the report's run history; nothing is emailed. Leave blank to run on demand only.</p>
                 @error('schedule') <p style="color:var(--danger);font-size:0.7rem;margin-top:0.25rem;">{{ $message }}</p> @enderror
             </div>

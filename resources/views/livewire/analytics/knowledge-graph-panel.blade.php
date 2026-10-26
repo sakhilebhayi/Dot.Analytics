@@ -28,7 +28,7 @@
                 wire:model="entityId"
                 type="text"
                 placeholder="e.g. CUST-001"
-                class="w-full rounded-lg px-3 py-2 text-sm focus:outline-none"
+                class="w-full rounded-lg px-3 py-2 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
                 style="background:var(--ink-soft);border:1px solid var(--line);color:var(--paper);"
             />
             @error('entityId') <p style="color:var(--danger);font-size:0.7rem;margin-top:0.25rem;">{{ $message }}</p> @enderror
