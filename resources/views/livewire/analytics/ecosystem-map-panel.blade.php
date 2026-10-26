@@ -27,8 +27,8 @@
             <p style="font-size:0.75rem;color:var(--mist);margin:0 0 0.75rem;">{{ $cp['description'] }}</p>
             <div class="flex gap-3 items-end">
                 <div class="flex-1">
-                    <label class="font-mono" style="display:block;font-size:0.62rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--mist);margin-bottom:0.35rem;">Base URL (optional)</label>
-                    <input
+                    <label for="livewire-analytics-ecosystem-map-panel-connecturl" class="font-mono" style="display:block;font-size:0.62rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--mist);margin-bottom:0.35rem;">Base URL (optional)</label>
+                    <input id="livewire-analytics-ecosystem-map-panel-connecturl"
                         wire:model="connectUrl"
                         type="url"
                         placeholder="https://fleet.infodot.app"

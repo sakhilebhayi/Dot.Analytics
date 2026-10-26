@@ -15,16 +15,16 @@
     {{-- Search form --}}
     <form wire:submit="traverse" class="grid grid-cols-1 sm:grid-cols-4 gap-3 mb-5">
         <div>
-            <label class="font-mono" style="display:block;font-size:0.62rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--mist);margin-bottom:0.35rem;">Entity type</label>
-            <select wire:model="entityType" class="w-full rounded-lg px-3 py-2 text-sm" style="background:var(--ink-soft);border:1px solid var(--line);color:var(--paper);">
+            <label for="livewire-analytics-knowledge-graph-panel-entitytype" class="font-mono" style="display:block;font-size:0.62rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--mist);margin-bottom:0.35rem;">Entity type</label>
+            <select id="livewire-analytics-knowledge-graph-panel-entitytype" wire:model="entityType" class="w-full rounded-lg px-3 py-2 text-sm" style="background:var(--ink-soft);border:1px solid var(--line);color:var(--paper);">
                 @foreach(['customer','invoice','equipment','operator','contract','order','ticket','project','supplier','asset','employee'] as $type)
                     <option value="{{ $type }}">{{ ucfirst($type) }}</option>
                 @endforeach
             </select>
         </div>
         <div class="sm:col-span-2">
-            <label class="font-mono" style="display:block;font-size:0.62rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--mist);margin-bottom:0.35rem;">Entity ID</label>
-            <input
+            <label for="livewire-analytics-knowledge-graph-panel-entityid" class="font-mono" style="display:block;font-size:0.62rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--mist);margin-bottom:0.35rem;">Entity ID</label>
+            <input id="livewire-analytics-knowledge-graph-panel-entityid"
                 wire:model="entityId"
                 type="text"
                 placeholder="e.g. CUST-001"
@@ -34,8 +34,8 @@
             @error('entityId') <p style="color:var(--danger);font-size:0.7rem;margin-top:0.25rem;">{{ $message }}</p> @enderror
         </div>
         <div>
-            <label class="font-mono" style="display:block;font-size:0.62rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--mist);margin-bottom:0.35rem;">Max depth</label>
-            <select wire:model="maxDepth" class="w-full rounded-lg px-3 py-2 text-sm" style="background:var(--ink-soft);border:1px solid var(--line);color:var(--paper);">
+            <label for="livewire-analytics-knowledge-graph-panel-maxdepth" class="font-mono" style="display:block;font-size:0.62rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--mist);margin-bottom:0.35rem;">Max depth</label>
+            <select id="livewire-analytics-knowledge-graph-panel-maxdepth" wire:model="maxDepth" class="w-full rounded-lg px-3 py-2 text-sm" style="background:var(--ink-soft);border:1px solid var(--line);color:var(--paper);">
                 @foreach([1,2,3,4,5] as $d)
                     <option value="{{ $d }}">{{ $d }} {{ $d === 1 ? 'hop' : 'hops' }}</option>
                 @endforeach

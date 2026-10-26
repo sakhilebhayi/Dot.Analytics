@@ -1,5 +1,5 @@
 <div style="padding:1.75rem 2rem 2rem;">
-    <input
+    <input aria-label="Search insights, alerts, recommendations, reports, dashboards, and the knowledge graph"
         wire:model.live.debounce.300ms="query"
         type="text"
         placeholder="Search insights, alerts, recommendations, reports, dashboards, and the knowledge graph…"
