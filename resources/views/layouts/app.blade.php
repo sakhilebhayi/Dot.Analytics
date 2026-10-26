@@ -22,6 +22,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script>tailwind.config = { corePlugins: { preflight: false } }</script>
     <style>
+        @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration:0.01ms !important; animation-iteration-count:1 !important; transition-duration:0.01ms !important; scroll-behavior:auto !important; } }
         :root {
             --ink: #0c1615;
             --ink-soft: #11201e;
