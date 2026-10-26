@@ -5,7 +5,7 @@
             <h3 class="font-display" style="font-size:1.1rem;font-weight:700;color:var(--paper);margin:0;">Insights No Single Tool Can See</h3>
         </div>
         <div class="flex items-center gap-2">
-            <select wire:model.live="filterType" class="text-xs px-2 py-1 rounded" style="background:var(--ink-soft);border:1px solid var(--line);color:var(--mist);">
+            <select aria-label="Filtertype" wire:model.live="filterType" class="text-xs px-2 py-1 rounded" style="background:var(--ink-soft);border:1px solid var(--line);color:var(--mist);">
                 <option value="">All types</option>
                 <option value="causation">Causation</option>
                 <option value="correlation">Correlation</option>
@@ -13,7 +13,7 @@
                 <option value="risk">Risk</option>
                 <option value="opportunity">Opportunity</option>
             </select>
-            <select wire:model.live="filterSeverity" class="text-xs px-2 py-1 rounded" style="background:var(--ink-soft);border:1px solid var(--line);color:var(--mist);">
+            <select aria-label="Filterseverity" wire:model.live="filterSeverity" class="text-xs px-2 py-1 rounded" style="background:var(--ink-soft);border:1px solid var(--line);color:var(--mist);">
                 <option value="">All severities</option>
                 <option value="critical">Critical</option>
                 <option value="warning">Warning</option>

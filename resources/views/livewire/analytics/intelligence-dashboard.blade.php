@@ -26,7 +26,7 @@
 
     @can('ask-intelligence')
     <form wire:submit="askIntelligence" class="flex gap-3">
-        <input
+        <input aria-label="Ask anything about your business"
             type="text"
             wire:model="intelligenceQuery"
             placeholder="Ask anything about your business..."

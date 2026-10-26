@@ -18,25 +18,25 @@
         <form wire:submit="create" class="mb-5 rounded-xl p-4 space-y-3" style="border:1px solid var(--line);background:var(--panel);">
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
-                    <label class="font-mono" style="display:block;font-size:0.62rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--mist);margin-bottom:0.35rem;">Key (slug)</label>
-                    <input wire:model="newKey" type="text" placeholder="new-ai-engine" class="w-full rounded-lg px-3 py-2 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2" style="background:var(--ink-soft);border:1px solid var(--line);color:var(--paper);" />
+                    <label for="livewire-analytics-feature-flags-panel-newkey" class="font-mono" style="display:block;font-size:0.62rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--mist);margin-bottom:0.35rem;">Key (slug)</label>
+                    <input id="livewire-analytics-feature-flags-panel-newkey" wire:model="newKey" type="text" placeholder="new-ai-engine" class="w-full rounded-lg px-3 py-2 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2" style="background:var(--ink-soft);border:1px solid var(--line);color:var(--paper);" />
                     @error('newKey') <p style="color:var(--danger);font-size:0.7rem;margin-top:0.25rem;">{{ $message }}</p> @enderror
                 </div>
                 <div>
-                    <label class="font-mono" style="display:block;font-size:0.62rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--mist);margin-bottom:0.35rem;">Display name</label>
-                    <input wire:model="newName" type="text" placeholder="New AI Engine" class="w-full rounded-lg px-3 py-2 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2" style="background:var(--ink-soft);border:1px solid var(--line);color:var(--paper);" />
+                    <label for="livewire-analytics-feature-flags-panel-newname" class="font-mono" style="display:block;font-size:0.62rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--mist);margin-bottom:0.35rem;">Display name</label>
+                    <input id="livewire-analytics-feature-flags-panel-newname" wire:model="newName" type="text" placeholder="New AI Engine" class="w-full rounded-lg px-3 py-2 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2" style="background:var(--ink-soft);border:1px solid var(--line);color:var(--paper);" />
                     @error('newName') <p style="color:var(--danger);font-size:0.7rem;margin-top:0.25rem;">{{ $message }}</p> @enderror
                 </div>
                 <div>
-                    <label class="font-mono" style="display:block;font-size:0.62rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--mist);margin-bottom:0.35rem;">Environment</label>
-                    <select wire:model="newEnv" class="w-full rounded-lg px-3 py-2 text-sm" style="background:var(--ink-soft);border:1px solid var(--line);color:var(--paper);">
+                    <label for="livewire-analytics-feature-flags-panel-newdesc" class="font-mono" style="display:block;font-size:0.62rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--mist);margin-bottom:0.35rem;">Environment</label>
+                    <select aria-label="Newenv" wire:model="newEnv" class="w-full rounded-lg px-3 py-2 text-sm" style="background:var(--ink-soft);border:1px solid var(--line);color:var(--paper);">
                         <option value="all">All environments</option>
                         <option value="production">Production only</option>
                         <option value="local">Local only</option>
                     </select>
                 </div>
             </div>
-            <input wire:model="newDesc" type="text" placeholder="Optional description" class="w-full rounded-lg px-3 py-2 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2" style="background:var(--ink-soft);border:1px solid var(--line);color:var(--paper);" />
+            <input id="livewire-analytics-feature-flags-panel-newdesc" wire:model="newDesc" type="text" placeholder="Optional description" class="w-full rounded-lg px-3 py-2 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2" style="background:var(--ink-soft);border:1px solid var(--line);color:var(--paper);" />
             <button type="submit" class="press" style="background:var(--gold);color:var(--ink);padding:0.5rem 1rem;border-radius:0.4rem;font-size:0.8rem;font-weight:600;">Create Flag</button>
         </form>
     @endif
