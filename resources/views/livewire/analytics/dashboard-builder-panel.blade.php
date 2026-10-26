@@ -17,7 +17,7 @@
         <form wire:submit="createDashboard" style="display:flex;gap:0.6rem;align-items:flex-start;flex-wrap:wrap;margin-bottom:1rem;padding:0.9rem 1rem;background:var(--panel);border:1px solid var(--line);">
             <div style="flex:1;min-width:200px;">
                 <label for="new-dashboard-title" class="font-mono" style="display:block;font-size:0.62rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--mist);margin-bottom:0.35rem;">Dashboard name</label>
-                <input id="new-dashboard-title" wire:model="newDashboardTitle" type="text" class="w-full rounded px-3 py-2 text-sm focus:outline-none" style="background:var(--ink-soft);border:1px solid var(--line);color:var(--paper);" />
+                <input id="new-dashboard-title" wire:model="newDashboardTitle" type="text" class="w-full rounded px-3 py-2 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2" style="background:var(--ink-soft);border:1px solid var(--line);color:var(--paper);" />
                 @error('newDashboardTitle') <p style="color:var(--danger);font-size:0.7rem;margin:0.25rem 0 0;">{{ $message }}</p> @enderror
             </div>
             <button type="submit" class="press" style="margin-top:1.45rem;background:var(--gold);color:var(--ink);padding:0.5rem 1rem;border-radius:0.35rem;font-size:0.8rem;font-weight:600;">Create</button>
@@ -98,7 +98,7 @@
                                 </div>
                                 <div>
                                     <label for="widget-title" class="font-mono" style="display:block;font-size:0.62rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--mist);margin-bottom:0.35rem;">Title (optional)</label>
-                                    <input id="widget-title" wire:model="widgetTitle" type="text" placeholder="Defaults to the metric name" class="w-full rounded px-3 py-2 text-sm focus:outline-none" style="background:var(--ink-soft);border:1px solid var(--line);color:var(--paper);" />
+                                    <input id="widget-title" wire:model="widgetTitle" type="text" placeholder="Defaults to the metric name" class="w-full rounded px-3 py-2 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2" style="background:var(--ink-soft);border:1px solid var(--line);color:var(--paper);" />
                                     @error('widgetTitle') <p style="color:var(--danger);font-size:0.7rem;margin:0.25rem 0 0;">{{ $message }}</p> @enderror
                                 </div>
                                 <button type="submit" class="press" style="background:var(--gold);color:var(--ink);padding:0.55rem 1rem;border-radius:0.35rem;font-size:0.8rem;font-weight:600;">Add to dashboard</button>

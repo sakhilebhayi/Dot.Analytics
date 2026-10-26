@@ -3,7 +3,7 @@
         wire:model.live.debounce.300ms="query"
         type="text"
         placeholder="Search insights, alerts, recommendations, reports, dashboards, and the knowledge graph…"
-        class="w-full rounded-lg px-4 py-3 text-sm focus:outline-none"
+        class="w-full rounded-lg px-4 py-3 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
         style="background:var(--ink-soft);border:1px solid var(--line);color:var(--paper);margin-bottom:1.75rem;"
     />
 
