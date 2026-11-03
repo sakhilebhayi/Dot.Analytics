@@ -23,7 +23,7 @@ class ServerIngestConfigTest extends TestCase
         $slots = config('analytics.ingest.secrets');
 
         $this->assertEqualsCanonicalizing(array_keys(config('metrics.platforms')), array_keys($slots));
-        $this->assertCount(11, $slots);
+        $this->assertCount(12, $slots);
         foreach ($slots as $platform => $secret) {
             $this->assertSame('', $secret, "{$platform} must have no secret unless the environment sets one");
         }

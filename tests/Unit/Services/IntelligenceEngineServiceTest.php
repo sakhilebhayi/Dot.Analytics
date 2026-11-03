@@ -25,8 +25,8 @@ class IntelligenceEngineServiceTest extends TestCase
         $platforms = $this->service->getPlatformCatalog();
 
         $this->assertEqualsCanonicalizing(array_keys(config('metrics.platforms')), array_keys($platforms));
-        $this->assertCount(11, $platforms);
-        foreach (['tasks', 'auction', 'ehail', 'hr', 'farms', 'billing', 'emall', 'tutor', 'pulse', 'notify', 'design'] as $key) {
+        $this->assertCount(12, $platforms);
+        foreach (['tasks', 'auction', 'ehail', 'hr', 'farms', 'billing', 'emall', 'tutor', 'pulse', 'notify', 'design', 'projects'] as $key) {
             $this->assertArrayHasKey($key, $platforms);
         }
     }

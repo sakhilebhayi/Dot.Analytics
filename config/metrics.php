@@ -172,6 +172,22 @@ return [
             ],
         ],
 
+        // Dot.Projects publishes these from the same health, schedule and money facts its own portfolio shows.
+        'projects' => [
+            'label' => 'Dot.Projects',
+            'engine' => 'operational',
+            'metrics' => [
+                'active' => ['label' => 'Active projects', 'type' => 'count', 'good' => 'neutral'],
+                'off_track' => ['label' => 'Projects off track', 'type' => 'count', 'good' => 'down'],
+                'at_risk' => ['label' => 'Projects at risk', 'type' => 'count', 'good' => 'down'],
+                'over_budget' => ['label' => 'Projects forecast over budget', 'type' => 'count', 'good' => 'down'],
+                'overdue_tasks' => ['label' => 'Overdue project tasks', 'type' => 'count', 'good' => 'down'],
+                'tasks_completed_7d' => ['label' => 'Project tasks completed, 7 days', 'type' => 'count', 'good' => 'up'],
+                'late_milestones' => ['label' => 'Milestones past due', 'type' => 'count', 'good' => 'down'],
+                'serious_risks' => ['label' => 'Serious project risks', 'type' => 'count', 'good' => 'down'],
+            ],
+        ],
+
     ],
 
 ];
