@@ -29,7 +29,7 @@ class PlatformApiTest extends TestCase
             ->assertJsonPath('success', true)
             ->assertJsonStructure(['success', 'data']);
 
-        $this->assertCount(11, $response->json('data'));
+        $this->assertCount(12, $response->json('data'));
     }
 
     public function test_connected_returns_only_connected_platforms(): void

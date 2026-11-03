@@ -694,4 +694,21 @@ class ServerIngestTest extends TestCase
             return ! str_contains(json_encode($context), 'INJECTED');
         })->once();
     }
+
+    public function test_dot_projects_publishes_its_delivery_numbers(): void
+    {
+        config(['analytics.ingest.secrets' => array_merge(config('analytics.ingest.secrets'), ['projects' => 'projects-publisher-secret-5e2a91'])]);
+        $metrics = ['active' => 30, 'off_track' => 3, 'at_risk' => 5, 'over_budget' => 2, 'overdue_tasks' => 41, 'tasks_completed_7d' => 118, 'late_milestones' => 4, 'serious_risks' => 9];
+
+        $response = $this->publish($this->body('projects', $metrics), 'projects-publisher-secret-5e2a91')
+            ->assertCreated()->assertJsonPath('platform', 'projects')->assertJsonPath('dropped_keys', []);
+
+        $this->assertEqualsCanonicalizing(array_keys($metrics), $response->json('accepted_keys'));
+        $this->assertSame(1, $this->snapshots()->where('team_id', $this->team->id)->count());
+        $this->assertSame('projects', DataSource::withoutGlobalScopes()->where('team_id', $this->team->id)->value('platform'), 'its data source is created, connected');
+        $this->assertSame(count($metrics), ComputedMetric::withoutGlobalScopes()->where('team_id', $this->team->id)->count(), 'every Dot.Projects number becomes a metric');
+
+        // Dot.Projects cannot speak as another platform, and another platform cannot speak as it.
+        $this->publish($this->body('projects', $metrics, null, '2026-10-17T07:00:00Z'), self::TASKS_SECRET)->assertUnauthorized();
+    }
 }

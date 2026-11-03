@@ -60,6 +60,7 @@ publishing platform's own environment (never committed). Generate one with `php 
 | `pulse` | `ANALYTICS_INGEST_SECRET_PULSE` |
 | `notify` | `ANALYTICS_INGEST_SECRET_NOTIFY` |
 | `design` | `ANALYTICS_INGEST_SECRET_DESIGN` |
+| `projects` | `ANALYTICS_INGEST_SECRET_PROJECTS` |
 
 * A **blank or absent** secret means that platform cannot call at all. Nothing is enabled until an operator sets one.
 * The `platform` field in the body picks which secret is checked, so a platform can only ever publish **as itself**:
@@ -317,6 +318,22 @@ Keys are per platform. Only these are accepted; everything else is dropped.
 |---|---|---|---|
 | `projects` | Design projects | whole number >= 0 | no preference |
 | `assets` | Design assets | whole number >= 0 | no preference |
+
+#### `projects` (Dot.Projects)
+
+Counted over the company's active projects (not archived, not completed), from the same health, schedule and
+money facts Dot.Projects' own portfolio shows. "Off track" and "at risk" are its rule-based health ratings.
+
+| Key | Meaning | Kind | Better when |
+|---|---|---|---|
+| `active` | Active projects | whole number >= 0 | no preference |
+| `off_track` | Projects off track | whole number >= 0 | lower |
+| `at_risk` | Projects at risk | whole number >= 0 | lower |
+| `over_budget` | Projects forecast over budget | whole number >= 0 | lower |
+| `overdue_tasks` | Overdue project tasks | whole number >= 0 | lower |
+| `tasks_completed_7d` | Project tasks completed, 7 days | whole number >= 0 | higher |
+| `late_milestones` | Milestones past due | whole number >= 0 | lower |
+| `serious_risks` | Serious project risks | whole number >= 0 | lower |
 
 Money keys (`*_cents`) require `metrics.currency`.
 

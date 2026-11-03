@@ -136,6 +136,15 @@ class IntelligenceEngineService
             'engines' => ['operational'],
             'produces' => ['Project and asset volume trend'],
         ],
+
+        'projects' => [
+            'label' => 'Dot.Projects',
+            'description' => 'Project delivery: health, schedule, risk and budget',
+            'color' => 'blue',
+            'contributions' => ['Active projects', 'Projects off track', 'Projects at risk', 'Projects forecast over budget', 'Overdue project tasks', 'Project tasks completed, 7 days', 'Milestones past due', 'Serious project risks'],
+            'engines' => ['operational', 'risk'],
+            'produces' => ['Delivery health trend', 'Schedule and budget slippage'],
+        ],
     ];
 
     /**
@@ -163,7 +172,7 @@ class IntelligenceEngineService
         ],
         'operational' => [
             'label' => 'Operational Intelligence Engine',
-            'sources' => ['tasks', 'ehail', 'hr', 'farms', 'tutor', 'notify', 'design'],
+            'sources' => ['tasks', 'ehail', 'hr', 'farms', 'tutor', 'notify', 'design', 'projects'],
             'produces' => ['Operational efficiency score', 'Process bottlenecks', 'Capacity forecasts'],
         ],
         'financial' => [
@@ -208,7 +217,7 @@ class IntelligenceEngineService
         ],
         'risk' => [
             'label' => 'Risk Intelligence Engine',
-            'sources' => ['hr', 'billing', 'pulse', 'notify'],
+            'sources' => ['hr', 'billing', 'pulse', 'notify', 'projects'],
             'produces' => ['Risk register', 'Exposure scores', 'Mitigation priorities'],
         ],
         'security' => [
