@@ -147,7 +147,7 @@ class IntelligenceEngineService
         ],
 
         'sheet' => [
-            'label' => 'Dot.Sheets',
+            'label' => 'Dot.Sheet',
             'description' => 'Workbook use, formula errors and approvals',
             'color' => 'green',
             'contributions' => ['Workbooks', 'Workbooks edited, 7 days', 'Cells with a formula error', 'Workbooks waiting for approval', 'Approved workbooks', 'Team templates'],
