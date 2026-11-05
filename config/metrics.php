@@ -188,6 +188,20 @@ return [
             ],
         ],
 
+        // Dot.Sheets publishes counts only: no workbook names, people or cell contents.
+        'sheet' => [
+            'label' => 'Dot.Sheets',
+            'engine' => 'operational',
+            'metrics' => [
+                'workbooks' => ['label' => 'Workbooks', 'type' => 'count', 'good' => 'neutral'],
+                'edited_7d' => ['label' => 'Workbooks edited, 7 days', 'type' => 'count', 'good' => 'up'],
+                'formula_errors' => ['label' => 'Cells with a formula error', 'type' => 'count', 'good' => 'down'],
+                'awaiting_approval' => ['label' => 'Workbooks waiting for approval', 'type' => 'count', 'good' => 'down'],
+                'approved' => ['label' => 'Approved workbooks', 'type' => 'count', 'good' => 'neutral'],
+                'templates' => ['label' => 'Team templates', 'type' => 'count', 'good' => 'neutral'],
+            ],
+        ],
+
     ],
 
 ];

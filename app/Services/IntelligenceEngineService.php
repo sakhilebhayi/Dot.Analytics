@@ -145,6 +145,15 @@ class IntelligenceEngineService
             'engines' => ['operational', 'risk'],
             'produces' => ['Delivery health trend', 'Schedule and budget slippage'],
         ],
+
+        'sheet' => [
+            'label' => 'Dot.Sheets',
+            'description' => 'Workbook use, formula errors and approvals',
+            'color' => 'green',
+            'contributions' => ['Workbooks', 'Workbooks edited, 7 days', 'Cells with a formula error', 'Workbooks waiting for approval', 'Approved workbooks', 'Team templates'],
+            'engines' => ['operational'],
+            'produces' => ['Workbook activity trend', 'Formula error trend'],
+        ],
     ];
 
     /**
@@ -172,7 +181,7 @@ class IntelligenceEngineService
         ],
         'operational' => [
             'label' => 'Operational Intelligence Engine',
-            'sources' => ['tasks', 'ehail', 'hr', 'farms', 'tutor', 'notify', 'design', 'projects'],
+            'sources' => ['tasks', 'ehail', 'hr', 'farms', 'tutor', 'notify', 'design', 'projects', 'sheet'],
             'produces' => ['Operational efficiency score', 'Process bottlenecks', 'Capacity forecasts'],
         ],
         'financial' => [

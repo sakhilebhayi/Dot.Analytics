@@ -711,4 +711,15 @@ class ServerIngestTest extends TestCase
         // Dot.Projects cannot speak as another platform, and another platform cannot speak as it.
         $this->publish($this->body('projects', $metrics, null, '2026-10-17T07:00:00Z'), self::TASKS_SECRET)->assertUnauthorized();
     }
+
+    public function test_dot_sheets_publishes_its_counts(): void
+    {
+        config(['analytics.ingest.secrets' => array_merge(config('analytics.ingest.secrets'), ['sheet' => 'sheet-publisher-secret-7c1d04'])]);
+        $metrics = ['workbooks' => 12, 'edited_7d' => 4, 'formula_errors' => 3, 'awaiting_approval' => 1, 'approved' => 2, 'templates' => 1];
+
+        $response = $this->publish($this->body('sheet', $metrics), 'sheet-publisher-secret-7c1d04')
+            ->assertCreated()->assertJsonPath('platform', 'sheet')->assertJsonPath('dropped_keys', []);
+
+        $this->assertEqualsCanonicalizing(array_keys($metrics), $response->json('accepted_keys'));
+    }
 }
