@@ -2,6 +2,7 @@
 @php
     $site = 'Dot.Analytics';
     $fullTitle = $title === $site ? $site.'. Business intelligence you can check' : $title.' · '.$site;
+    $fullTitle = \Illuminate\Support\Str::limit($fullTitle, 68);
     $description ??= 'Business developments, industry and country figures, each with its source, period, licence and last update. Free to read.';
     $canonical ??= url()->current();
     $nav = [['intel.industries', 'Industries'], ['intel.countries', 'Countries'], ['intel.newsroom', 'Newsroom'], ['intel.briefings', 'Briefings'], ['intel.sources', 'Sources']];

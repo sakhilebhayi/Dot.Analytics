@@ -1,5 +1,5 @@
 @php $kinds = ['announcement' => 'Announcement', 'regulatory' => 'Government', 'press-release' => 'Press release', 'statistics-release' => 'Statistics release']; @endphp
-<x-public-layout :title="$item->title" section="intel.newsroom" :description="\Illuminate\Support\Str::limit(strip_tags((string) $item->source_summary) ?: $item->title.' Published by '.$item->source->name.'.', 200)">
+<x-public-layout :title="$item->title" section="intel.newsroom" :description="\Illuminate\Support\Str::limit(strip_tags((string) $item->source_summary) ?: $item->title.' Published by '.$item->source->name.'.', 155)">
     <div class="wrap page-head">
         <ol class="crumbs"><li><a href="{{ route('intel.newsroom') }}">Newsroom</a></li><li aria-current="page">{{ $kinds[$item->kind] ?? 'Development' }}</li></ol>
         <h1>{{ $item->title }}</h1>
@@ -25,7 +25,7 @@
             @endif
         </article>
         <aside class="panel" aria-labelledby="p-h">
-            <h3 id="p-h">About this item</h3>
+            <h2 id="p-h">About this item</h2>
             <dl class="facts">
                 <dt>Publisher</dt><dd><a href="{{ $item->source->homepage_url }}" rel="noopener">{{ $item->source->name }}</a></dd>
                 <dt>Published</dt><dd>{{ $item->published_at->format('j F Y, H:i') }}</dd>

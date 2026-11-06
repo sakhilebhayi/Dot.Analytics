@@ -136,7 +136,7 @@ button, input, select { font: inherit; color: inherit; }
 .tape dt { color: var(--tape-muted); font: 400 12.5px/1.6 var(--mono); }
 .tape dd a { color: var(--tape-ink); }
 .tape .attr { margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(255, 255, 255, 0.16); color: var(--tape-muted); font-size: 13.5px; }
-.tape h4 { margin: 18px 0 8px; font: 500 12.5px/1.4 var(--mono); color: var(--tape-muted); }
+.tape .tape-h { margin: 18px 0 8px; font: 500 12.5px/1.4 var(--mono); color: var(--tape-muted); }
 .tape table { width: 100%; border-collapse: collapse; font-size: 14px; }
 .tape th, .tape td { padding: 4px 0; text-align: left; font-weight: 400; }
 .tape th { color: var(--tape-muted); font: 400 12.5px/1.6 var(--mono); }
