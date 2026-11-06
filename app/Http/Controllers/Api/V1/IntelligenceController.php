@@ -53,6 +53,7 @@ class IntelligenceController extends BaseApiController
         Gate::authorize('run-intelligence-engines');
 
         $team = $this->currentTeam();
+        $request->validate(['engines' => ['nullable', 'array', 'max:50'], 'engines.*' => ['string', 'max:60']]);
         $engines = $request->input('engines');
 
         $dispatched = $this->runEngines->handle($team, $engines);

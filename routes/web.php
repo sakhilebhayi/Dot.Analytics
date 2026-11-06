@@ -93,7 +93,7 @@ Route::middleware([
 
         return app(ReportGenerationService::class)->streamCsv(
             $team,
-            $report->config['report_type'] ?? 'insights',
+            $report->reportType() ?? 'insights',
         );
     })->name('reports.download');
 });

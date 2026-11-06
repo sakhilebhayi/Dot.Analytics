@@ -30,14 +30,15 @@ class SecurityHeadersTest extends TestCase
         $this->assertStringContainsString("script-src 'self' 'unsafe-inline' 'unsafe-eval'", $csp);
     }
 
-    public function test_csp_allows_the_cdns_the_app_layout_actually_loads(): void
+    public function test_csp_names_no_third_party_script_origin_for_styling(): void
     {
         $response = $this->get('/login');
 
         $csp = $response->headers->get('Content-Security-Policy');
 
-        $this->assertStringContainsString('https://cdn.tailwindcss.com', $csp);
-        $this->assertStringContainsString('https://unpkg.com', $csp);
+        // The workspace is built into one local stylesheet now, so no third-party script origin is allowed.
+        $this->assertStringNotContainsString('https://cdn.tailwindcss.com', $csp);
+        $this->assertStringNotContainsString('https://unpkg.com', $csp);
     }
 
     public function test_csp_allows_the_google_fonts_domains_every_layout_actually_uses(): void

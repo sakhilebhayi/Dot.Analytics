@@ -27,6 +27,9 @@ return [
             ->mapWithKeys(fn (string $key) => [$key => (string) env('ANALYTICS_INGEST_SECRET_'.strtoupper($key), '')])
             ->all(),
 
+        // Snapshots one company may receive from one platform in a day. A real platform sends one.
+        'max_snapshots_per_team_platform_day' => (int) env('ANALYTICS_INGEST_DAILY_CAP', 48),
+
         // Seconds a signed timestamp stays valid either side of "now".
         'tolerance' => 300,
 

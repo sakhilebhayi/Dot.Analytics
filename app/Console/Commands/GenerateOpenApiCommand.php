@@ -51,7 +51,7 @@ class GenerateOpenApiCommand extends Command
             'openapi' => '3.0.3',
             'info' => [
                 'title' => 'Dot.Analytics API',
-                'description' => 'The Enterprise Intelligence Platform API for the Dot Ecosystem. Provides cross-platform intelligence, knowledge graph traversal, metric computation, and AI-powered recommendations.',
+                'description' => 'The Enterprise Intelligence Platform API for the Dot Ecosystem. Provides cross-platform intelligence, metric computation and recommendations for the data a company shares.',
                 'version' => 'v1',
                 'contact' => ['name' => 'Dot Ecosystem', 'url' => 'https://infodot.app'],
                 'license' => ['name' => 'MIT'],
@@ -77,7 +77,7 @@ class GenerateOpenApiCommand extends Command
                     'type' => 'http',
                     'scheme' => 'bearer',
                     'bearerFormat' => 'Sanctum API Token',
-                    'description' => 'Obtain a token via POST /api/v1/tokens/create or from the dashboard.',
+                    'description' => 'Tokens are issued by the platform operators; none are issued to the public today.',
                 ],
             ],
             'responses' => [
@@ -166,12 +166,6 @@ class GenerateOpenApiCommand extends Command
                 ['name' => 'per_page', 'in' => 'query', 'schema' => ['type' => 'integer', 'default' => 20, 'maximum' => 100]],
             ]),
             '/v1/intelligence/run' => $this->post('Intelligence', 'Dispatch intelligence engine jobs.', 'intelligence-run', ['engines' => ['type' => 'array', 'items' => ['type' => 'string']]]),
-            '/v1/intelligence/graph' => $this->get('Intelligence', 'Knowledge graph statistics.', 'graph-stats'),
-            '/v1/intelligence/graph/traverse' => $this->post('Intelligence', 'Traverse entity relationships in the knowledge graph.', 'graph-traverse', [
-                'entity_type' => ['type' => 'string', 'example' => 'customer'],
-                'entity_id' => ['type' => 'string', 'example' => 'CUST-001'],
-                'max_depth' => ['type' => 'integer', 'minimum' => 1, 'maximum' => 5, 'default' => 3],
-            ]),
 
             // Platforms
             '/v1/platforms' => $this->get('Platforms', 'List the full Dot platform catalog with connection status.', 'platforms-catalog'),
@@ -197,27 +191,10 @@ class GenerateOpenApiCommand extends Command
             '/v1/saved-reports' => $this->get('Saved Reports', 'List saved report definitions.', 'saved-reports-list'),
             '/v1/saved-reports/{id}/run' => $this->postParam('Saved Reports', 'Execute a saved report and persist output.', 'saved-report-run', 'id', []),
 
-            // SQL
-            '/v1/sql/query' => $this->post('AI SQL', 'Execute a natural-language SQL query against a connected database.', 'sql-query', [
-                'question' => ['type' => 'string', 'minLength' => 5],
-                'connector_id' => ['type' => 'integer'],
-            ]),
-            '/v1/sql/generate' => $this->post('AI SQL', 'Generate SQL from natural language without executing it.', 'sql-generate', [
-                'question' => ['type' => 'string', 'minLength' => 5],
-                'connector_id' => ['type' => 'integer'],
-            ]),
-
             // Ingest
             '/ingest/snapshots' => $this->serverIngest(),
             '/v1/ingest/{platform}' => $this->postParam('Ingest', 'Push a signed daily metrics snapshot from a Dot platform (see docs/metrics-contract.md). 201 stored, 200 replay of an already-stored snapshot, 404 generic when the company or platform is not connected, 422 when the contract is broken.', 'ingest', 'platform', []),
             '/v1/ingest/{platform}/ping' => $this->getParam('Ingest', 'Check webhook connectivity for a platform.', 'ingest-ping', 'platform'),
-
-            // Feature flags
-            '/v1/feature-flags' => $this->get('Feature Flags', 'List all feature flags.', 'flags-list'),
-            '/v1/feature-flags/check/{key}' => $this->getParam('Feature Flags', 'Check if a flag is enabled for the authenticated user.', 'flag-check', 'key'),
-            '/v1/feature-flags/{key}/enable' => ['patch' => $this->operation('Feature Flags', 'Enable a feature flag globally.', 'flag-enable')],
-            '/v1/feature-flags/{key}/disable' => ['patch' => $this->operation('Feature Flags', 'Disable a feature flag globally.', 'flag-disable')],
-            '/v1/feature-flags/{key}/rollout' => ['patch' => $this->operation('Feature Flags', 'Set gradual rollout percentage.', 'flag-rollout')],
         ];
     }
 
@@ -230,9 +207,7 @@ class GenerateOpenApiCommand extends Command
             ['name' => 'Metrics',       'description' => 'Computed metrics and definitions'],
             ['name' => 'Reports',       'description' => 'Analytics reports (JSON, CSV, HTML)'],
             ['name' => 'Saved Reports', 'description' => 'Persistent report definitions with run history'],
-            ['name' => 'AI SQL',        'description' => 'Natural language to SQL query generation'],
             ['name' => 'Ingest',        'description' => 'Webhook data ingestion from Dot platforms'],
-            ['name' => 'Feature Flags', 'description' => 'Runtime feature flag management'],
         ];
     }
 

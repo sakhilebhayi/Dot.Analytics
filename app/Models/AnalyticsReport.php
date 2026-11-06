@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\HasTeamScope;
 use App\Models\Concerns\SearchesWithinTeam;
+use Cron\CronExpression;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -26,6 +27,28 @@ class AnalyticsReport extends Model
     protected $casts = [
         'config' => 'array',
     ];
+
+    /**
+     * Every run stores its whole output, so a schedule that fires every minute fills the database. The next several runs of a
+     * schedule must each be at least an hour after the one before.
+     */
+    public static function scheduleIsSpaced(string $expression): bool
+    {
+        try {
+            $cron = new CronExpression($expression);
+            $runs = $cron->getMultipleRunDates(6, now()->toDateTime());
+        } catch (\Throwable) {
+            return false;
+        }
+
+        for ($i = 1; $i < count($runs); $i++) {
+            if ($runs[$i]->getTimestamp() - $runs[$i - 1]->getTimestamp() < 3600) {
+                return false;
+            }
+        }
+
+        return true;
+    }
 
     /**
      * What this report contains. The panel stores it in config.report_type; the
