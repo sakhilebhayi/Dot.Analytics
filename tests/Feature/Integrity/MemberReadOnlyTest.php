@@ -13,7 +13,6 @@ use App\Livewire\Analytics\SavedReportsPanel;
 use App\Models\AnalyticsAlert;
 use App\Models\AnalyticsReport;
 use App\Models\CrossPlatformInsight;
-use App\Models\DataConnector;
 use App\Models\DataSource;
 use App\Models\User;
 use App\Policies\CrossPlatformInsightPolicy;
@@ -67,19 +66,6 @@ class MemberReadOnlyTest extends TestCase
 
         $this->asApi($this->admin)->postJson('/api/v1/platforms/emall/connect')->assertCreated();
         $this->asApi($this->admin)->deleteJson('/api/v1/platforms/tasks')->assertOk();
-    }
-
-    public function test_member_cannot_use_sql_endpoints(): void
-    {
-        $connector = DataConnector::create([
-            'team_id' => $this->owner->currentTeam->id, 'name' => 'DB', 'type' => 'database',
-            'driver' => 'sqlite', 'config' => ['driver' => 'sqlite', 'database' => ':memory:'], 'status' => 'active',
-        ]);
-        $body = ['question' => 'Show me every user', 'connector_id' => $connector->id, 'schema' => ['tables' => [['name' => 'users']]]];
-
-        $this->asApi($this->member)->postJson('/api/v1/sql/generate', $body)->assertForbidden();
-        $this->asApi($this->member)->postJson('/api/v1/sql/query', $body)->assertForbidden();
-        $this->asApi($this->admin)->postJson('/api/v1/sql/generate', $body)->assertOk();
     }
 
     public function test_member_cannot_create_or_delete_saved_reports_but_can_list(): void
@@ -150,7 +136,7 @@ class MemberReadOnlyTest extends TestCase
         $this->assertDatabaseMissing('data_sources', ['platform' => 'emall']);
 
         Livewire::actingAs($this->admin)->test(EcosystemMapPanel::class)->call('disconnect', 'tasks');
-        $this->assertDatabaseMissing('data_sources', ['platform' => 'tasks']);
+        $this->assertDatabaseHas('data_sources', ['platform' => 'tasks', 'status' => 'disconnected']);
     }
 
     public function test_member_cannot_acknowledge_or_resolve_alerts(): void

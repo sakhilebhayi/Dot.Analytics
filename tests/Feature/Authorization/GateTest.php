@@ -68,26 +68,6 @@ class GateTest extends TestCase
         $this->assertTrue($owner->can('generate-briefing'));
     }
 
-    // ─── manage-connectors ───────────────────────────────────────────────────
-
-    public function test_manage_connectors_allows_owner(): void
-    {
-        $owner = $this->owner();
-        $this->actingAs($owner);
-
-        $this->assertTrue($owner->can('manage-connectors'));
-    }
-
-    // ─── execute-sql-query ───────────────────────────────────────────────────
-
-    public function test_execute_sql_query_allows_owner(): void
-    {
-        $owner = $this->owner();
-        $this->actingAs($owner);
-
-        $this->assertTrue($owner->can('execute-sql-query'));
-    }
-
     // ─── view-audit-logs ─────────────────────────────────────────────────────
 
     public function test_view_audit_logs_allows_owner(): void
@@ -127,20 +107,6 @@ class GateTest extends TestCase
         $this->actingAs($owner);
 
         $this->assertTrue($owner->can('view-intelligence'));
-    }
-
-    // ─── API-level gate enforcement ──────────────────────────────────────────
-
-    public function test_feature_flag_enable_requires_auth(): void
-    {
-        $this->patchJson('/api/v1/feature-flags/some-flag/enable')
-            ->assertUnauthorized();
-    }
-
-    public function test_feature_flag_create_requires_auth(): void
-    {
-        $this->postJson('/api/v1/feature-flags', ['key' => 'x', 'name' => 'X'])
-            ->assertUnauthorized();
     }
 
     // ─── Cross-tenant isolation ───────────────────────────────────────────────

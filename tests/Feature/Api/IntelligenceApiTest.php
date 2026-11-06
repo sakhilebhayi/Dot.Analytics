@@ -105,41 +105,6 @@ class IntelligenceApiTest extends TestCase
         }
     }
 
-    public function test_graph_returns_statistics(): void
-    {
-        [$user, $token] = $this->actingAsUser();
-
-        $response = $this->withToken($token)->getJson('/api/v1/intelligence/graph');
-
-        $response->assertOk()
-            ->assertJsonStructure([
-                'data' => ['node_count', 'edge_count', 'entity_types', 'density'],
-            ]);
-    }
-
-    public function test_traverse_validates_required_fields(): void
-    {
-        [$user, $token] = $this->actingAsUser();
-
-        $response = $this->withToken($token)->postJson('/api/v1/intelligence/graph/traverse', []);
-
-        $response->assertUnprocessable();
-    }
-
-    public function test_traverse_returns_reachable_nodes(): void
-    {
-        [$user, $token] = $this->actingAsUser();
-
-        $response = $this->withToken($token)->postJson('/api/v1/intelligence/graph/traverse', [
-            'entity_type' => 'customer',
-            'entity_id' => 'C-NONEXISTENT',
-            'max_depth' => 2,
-        ]);
-
-        $response->assertOk()
-            ->assertJsonStructure(['data' => ['nodes', 'node_count']]);
-    }
-
     public function test_intelligence_endpoints_require_authentication(): void
     {
         $this->getJson('/api/v1/intelligence/engines')->assertUnauthorized();

@@ -43,6 +43,8 @@ class MetricsController extends BaseApiController
      */
     public function index(Request $request): JsonResponse
     {
+        $this->currentTeam();
+
         $metrics = ComputedMetric::with('metricDefinition')
             ->when($request->input('period'), fn ($q) => $q->where('period', $request->input('period')))
             ->when($request->input('period_date'), fn ($q) => $q->where('period_date', $request->input('period_date')))

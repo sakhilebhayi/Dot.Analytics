@@ -27,7 +27,8 @@ class DisconnectPlatformAction
         }
 
         $displayName = $source->display_name;
-        $source->delete();
+        // The row stays as a record of the choice: without it the next signed snapshot would quietly reconnect.
+        $source->forceFill(['status' => 'disconnected', 'webhook_secret' => null])->save();
 
         return $displayName;
     }

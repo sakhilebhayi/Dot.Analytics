@@ -8,7 +8,6 @@ use App\Livewire\Analytics\CrossPlatformInsightPanel;
 use App\Livewire\Analytics\DashboardBuilderPanel;
 use App\Livewire\Analytics\EcosystemMapPanel;
 use App\Livewire\Analytics\ExecutiveBriefingPanel;
-use App\Livewire\Analytics\FeatureFlagsPanel;
 use App\Livewire\Analytics\IntelligenceDashboard;
 use App\Livewire\Analytics\RecommendationsPanel;
 use App\Livewire\Analytics\SavedReportsPanel;
@@ -17,9 +16,7 @@ use App\Models\AnalyticsDashboard;
 use App\Models\AnalyticsReport;
 use App\Models\CrossPlatformInsight;
 use App\Models\DashboardWidget;
-use App\Models\DataConnector;
 use App\Models\DataSource;
-use App\Models\FeatureFlag;
 use App\Models\Recommendation;
 use App\Models\ReportRun;
 use App\Models\User;
@@ -93,7 +90,7 @@ class ViewerRoleMatrixTest extends TestCase
     /** @return array<string, mixed> */
     private function fresh(): array
     {
-        foreach ([DashboardWidget::class, AnalyticsDashboard::class, ReportRun::class, AnalyticsReport::class, Recommendation::class, AnalyticsAlert::class, CrossPlatformInsight::class, DataConnector::class, DataSource::class, FeatureFlag::class] as $model) {
+        foreach ([DashboardWidget::class, AnalyticsDashboard::class, ReportRun::class, AnalyticsReport::class, Recommendation::class, AnalyticsAlert::class, CrossPlatformInsight::class, DataSource::class] as $model) {
             $model::withoutGlobalScopes()->delete();
         }
 
@@ -139,13 +136,10 @@ class ViewerRoleMatrixTest extends TestCase
             'manage-platforms' => ['manage-platforms', $managers],
             'run-intelligence-engines' => ['run-intelligence-engines', $managers],
             'generate-briefing' => ['generate-briefing', $managers],
-            'manage-connectors' => ['manage-connectors', $managers],
-            'execute-sql-query' => ['execute-sql-query', $managers],
             'view-audit-logs' => ['view-audit-logs', $managers],
             'manage-recommendations' => ['manage-recommendations', $managers],
             'manage-alerts' => ['manage-alerts', $managers],
             'manage-reports' => ['manage-reports', $managers],
-            'manage-feature-flags' => ['manage-feature-flags', []],
             'view-intelligence' => ['view-intelligence', $members],
             'ask-intelligence' => ['ask-intelligence', $contributors],
             'edit-dashboards' => ['edit-dashboards', $contributors],
@@ -180,8 +174,6 @@ class ViewerRoleMatrixTest extends TestCase
     {
         return array_map(fn ($k) => [$k], [
             'run engines', 'connect platform', 'disconnect platform', 'rotate webhook secret',
-            'sql generate', 'sql query', 'create saved report', 'delete saved report', 'run saved report',
-            'create feature flag', 'enable feature flag',
         ]);
     }
 
@@ -192,10 +184,9 @@ class ViewerRoleMatrixTest extends TestCase
 
         return [
             'run engines' => $managers, 'connect platform' => $managers, 'disconnect platform' => $managers,
-            'rotate webhook secret' => $managers, 'sql generate' => $managers, 'sql query' => $managers,
+            'rotate webhook secret' => $managers,
             'create saved report' => $managers, 'delete saved report' => $managers,
             'run saved report' => ['owner', 'admin', 'editor'],
-            'create feature flag' => [], 'enable feature flag' => [],
         ];
     }
 
@@ -208,12 +199,6 @@ class ViewerRoleMatrixTest extends TestCase
             $r = $this->fresh();
             Queue::fake();
             $this->ai->prompts = [];
-            $connector = DataConnector::create([
-                'team_id' => $this->team()->id, 'name' => 'DB', 'type' => 'database', 'driver' => 'sqlite',
-                'config' => ['driver' => 'sqlite', 'database' => ':memory:'], 'status' => 'active',
-            ]);
-            $sql = ['question' => 'Show me every user', 'connector_id' => $connector->id, 'schema' => ['tables' => [['name' => 'users']]]];
-            $flag = FeatureFlag::create(['key' => 'matrix.flag', 'name' => 'Matrix', 'is_enabled' => false, 'rollout_percentage' => 0]);
 
             $api = $this->asApi($this->users[$role]);
             $response = match ($action) {
@@ -221,13 +206,9 @@ class ViewerRoleMatrixTest extends TestCase
                 'connect platform' => $api->postJson('/api/v1/platforms/emall/connect'),
                 'disconnect platform' => $api->deleteJson('/api/v1/platforms/tasks'),
                 'rotate webhook secret' => $api->postJson('/api/v1/platforms/tasks/webhook-secret'),
-                'sql generate' => $api->postJson('/api/v1/sql/generate', $sql),
-                'sql query' => $api->postJson('/api/v1/sql/query', $sql),
                 'create saved report' => $api->postJson('/api/v1/saved-reports', ['title' => 'Sneaky', 'type' => 'insights']),
                 'delete saved report' => $api->deleteJson("/api/v1/saved-reports/{$r['report']->id}"),
                 'run saved report' => $api->postJson("/api/v1/saved-reports/{$r['report']->id}/run"),
-                'create feature flag' => $api->postJson('/api/v1/feature-flags', ['key' => 'sneaky.flag', 'name' => 'Sneaky']),
-                'enable feature flag' => $api->patchJson('/api/v1/feature-flags/matrix.flag/enable'),
             };
 
             $effect = match ($action) {
@@ -235,12 +216,9 @@ class ViewerRoleMatrixTest extends TestCase
                 'connect platform' => DataSource::withoutGlobalScopes()->where('team_id', $this->team()->id)->where('platform', 'emall')->exists(),
                 'disconnect platform' => ! DataSource::withoutGlobalScopes()->where('team_id', $this->team()->id)->where('platform', 'tasks')->exists(),
                 'rotate webhook secret' => $r['source']->fresh()->webhook_secret !== $this->secret,
-                'sql generate', 'sql query' => $this->ai->prompts !== [],
                 'create saved report' => AnalyticsReport::withoutGlobalScopes()->where('title', 'Sneaky')->exists(),
                 'delete saved report' => ! AnalyticsReport::withoutGlobalScopes()->whereKey($r['report']->id)->exists(),
                 'run saved report' => ReportRun::where('analytics_report_id', $r['report']->id)->exists(),
-                'create feature flag' => FeatureFlag::where('key', 'sneaky.flag')->exists(),
-                'enable feature flag' => FeatureFlag::where('key', 'matrix.flag')->value('is_enabled') == true,
             };
 
             if ($role === 'outsider') {
@@ -271,8 +249,6 @@ class ViewerRoleMatrixTest extends TestCase
             'create saved report' => AnalyticsReport::withoutGlobalScopes()->where('team_id', $team)->where('title', 'Sneaky')->exists(),
             'delete saved report' => ! AnalyticsReport::withoutGlobalScopes()->whereKey($r['report']->id)->exists(),
             'run saved report' => ReportRun::where('analytics_report_id', $r['report']->id)->exists(),
-            'create feature flag' => FeatureFlag::where('key', 'sneaky.flag')->exists(),
-            'enable feature flag' => FeatureFlag::where('key', 'matrix.flag')->value('is_enabled') == true,
             default => false,
         };
     }
@@ -281,11 +257,11 @@ class ViewerRoleMatrixTest extends TestCase
     public static function apiReads(): array
     {
         return array_map(fn ($k) => [$k], [
-            '/api/v1/intelligence/engines', '/api/v1/intelligence/insights', '/api/v1/intelligence/graph',
+            '/api/v1/intelligence/engines', '/api/v1/intelligence/insights',
             '/api/v1/platforms', '/api/v1/platforms/connected', '/api/v1/platforms/tasks',
             '/api/v1/metrics/definitions', '/api/v1/metrics/ai-usage', '/api/v1/saved-reports',
             '/api/v1/saved-reports/{report}/runs', '/api/v1/reports/insights', '/api/v1/reports/insights/csv',
-            '/api/v1/reports/insights/html', '/api/v1/feature-flags',
+            '/api/v1/reports/insights/html',
         ]);
     }
 
@@ -328,7 +304,6 @@ class ViewerRoleMatrixTest extends TestCase
             'disconnect', 'acknowledge alert', 'resolve alert', 'generate recommendations', 'action recommendation',
             'dismiss recommendation', 'compute dna', 'create report', 'delete report', 'run report',
             'create dashboard', 'set default dashboard', 'delete dashboard', 'add widget', 'remove widget', 'ask intelligence',
-            'create flag', 'toggle flag',
         ]);
     }
 
@@ -348,7 +323,6 @@ class ViewerRoleMatrixTest extends TestCase
             'create dashboard' => $contributors, 'set default dashboard' => $contributors,
             'delete dashboard' => $contributors, 'add widget' => $contributors, 'remove widget' => $contributors,
             'ask intelligence' => $contributors,
-            'create flag' => [], 'toggle flag' => [],
         ];
     }
 
@@ -363,7 +337,6 @@ class ViewerRoleMatrixTest extends TestCase
             $this->ai->prompts = [];
             // So that asking has real data to answer from, and spending would be visible.
             $this->snapshot($r['source'], ['orders' => 12, 'note' => 'Matrix snapshot payload']);
-            $flag = FeatureFlag::create(['key' => 'matrix.flag', 'name' => 'Matrix', 'is_enabled' => false, 'rollout_percentage' => 0]);
 
             $user = $this->users[$role];
 
@@ -391,8 +364,6 @@ class ViewerRoleMatrixTest extends TestCase
                     'add widget' => Livewire::actingAs($user)->test(DashboardBuilderPanel::class)->set('activeDashboardId', $r['dashboard']->id)->set('widgetType', 'kpi')->set('widgetMetric', 'tasks.open')->call('addWidget'),
                     'remove widget' => Livewire::actingAs($user)->test(DashboardBuilderPanel::class)->call('removeWidget', $r['widget']->id),
                     'ask intelligence' => Livewire::actingAs($user)->test(IntelligenceDashboard::class)->set('intelligenceQuery', 'Why are orders down this month?')->call('askIntelligence'),
-                    'create flag' => Livewire::actingAs($user)->test(FeatureFlagsPanel::class)->set('newKey', 'sneaky.flag')->set('newName', 'Sneaky')->call('create'),
-                    'toggle flag' => Livewire::actingAs($user)->test(FeatureFlagsPanel::class)->call('toggle', $flag->id),
                 };
             } catch (ModelNotFoundException|NotFoundHttpException) {
                 // An outsider's active team is their own: the target's ids simply do not exist for them.
@@ -420,8 +391,6 @@ class ViewerRoleMatrixTest extends TestCase
                 'remove widget' => ! DashboardWidget::whereKey($r['widget']->id)->exists(),
                 'set default dashboard' => false,
                 'ask intelligence' => $this->ai->prompts !== [],
-                'create flag' => FeatureFlag::where('key', 'sneaky.flag')->exists(),
-                'toggle flag' => $flag->fresh()->is_enabled == true,
                 default => false, // spends AI/queue budget; checked by status below
             };
 
@@ -517,7 +486,6 @@ class ViewerRoleMatrixTest extends TestCase
             ->assertDontSeeHtml('wire:submit="askIntelligence"');
         Livewire::actingAs($viewer)->test(ExecutiveBriefingPanel::class)->assertDontSeeHtml('wire:click="generate"');
         Livewire::actingAs($viewer)->test(BusinessDnaPanel::class)->assertDontSeeHtml('wire:click="compute"');
-        Livewire::actingAs($viewer)->test(FeatureFlagsPanel::class)->assertDontSeeHtml('wire:submit="create"');
     }
 
     public function test_the_same_panels_do_show_the_controls_to_an_admin_and_an_editor_gets_only_its_own(): void

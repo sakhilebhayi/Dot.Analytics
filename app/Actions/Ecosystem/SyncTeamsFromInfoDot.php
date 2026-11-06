@@ -14,8 +14,10 @@ use Illuminate\Support\Facades\Log;
  * - Only people InfoDot lists as owner or admin of a company create its team here;
  *   an ordinary member is attached once it exists, so a member can never become
  *   the local owner of someone else's company.
- * - Membership and role follow InfoDot (owner and admin become admin, editor stays
- *   editor, viewer and anything unrecognised become the read-only viewer).
+ * - Membership and role follow InfoDot (admin stays admin, editor stays editor, viewer and
+ *   anything unrecognised become the read-only viewer).
+ * - InfoDot's owner of a company owns it here. Ownership moves to them when they sign in,
+ *   and the first person to have signed in steps down to admin.
  * - Companies InfoDot no longer lists for the person are detached, so removing
  *   someone in InfoDot removes their access here at their next sign-in.
  * - The company InfoDot says is active becomes the person's current team.
@@ -79,6 +81,14 @@ class SyncTeamsFromInfoDot
             $team->forceFill(['name' => $info['name']])->save();
         }
 
+        if ($role === 'owner' && $team->user_id !== $user->id) {
+            $this->handOver($team, $user, keepPrevious: true);
+        }
+
+        if ($team->suspended_at !== null && in_array($role, ['owner', 'admin'], true)) {
+            $team->user_id === $user->id ? $team->forceFill(['suspended_at' => null])->save() : $this->handOver($team, $user, keepPrevious: false);
+        }
+
         if ($team->user_id === $user->id) {
             return; // the local owner needs no membership row
         }
@@ -101,8 +111,7 @@ class SyncTeamsFromInfoDot
 
         foreach ($stale as $team) {
             if ($team->user_id === $user->id) {
-                // Cannot detach a team's owner; surface it instead of leaving it silent.
-                Log::warning('InfoDot no longer lists a company this person owns locally.', ['team_id' => $team->id, 'user_id' => $user->id]);
+                $this->removeOwner($team, $user);
 
                 continue;
             }
@@ -112,6 +121,38 @@ class SyncTeamsFromInfoDot
             if ($user->current_team_id === $team->id) {
                 $user->forceFill(['current_team_id' => null])->save();
             }
+        }
+    }
+
+    /**
+     * The owner has left the company in InfoDot, so they cannot stay here. An admin takes over. With nobody to take
+     * over the company is suspended: nobody can read it until someone InfoDot lists as owner or admin signs in.
+     */
+    private function removeOwner(Team $team, User $user): void
+    {
+        $heir = $team->users()->wherePivot('role', 'admin')->first();
+
+        if ($heir instanceof User) {
+            $this->handOver($team, $heir, keepPrevious: false);
+        } else {
+            $team->forceFill(['suspended_at' => now()])->save();
+            Log::critical('A company has no owner left and was suspended.', ['team_id' => $team->id]);
+        }
+
+        if ($user->current_team_id === $team->id) {
+            $user->forceFill(['current_team_id' => null])->save();
+        }
+    }
+
+    private function handOver(Team $team, User $next, bool $keepPrevious): void
+    {
+        $previous = $team->user_id;
+
+        $team->users()->detach($next->id);
+        $team->forceFill(['user_id' => $next->id, 'suspended_at' => null])->save();
+
+        if ($keepPrevious) {
+            $team->users()->syncWithoutDetaching([$previous => ['role' => 'admin']]);
         }
     }
 

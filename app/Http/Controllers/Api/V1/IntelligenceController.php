@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Api\V1;
 use App\Actions\Analytics\RunIntelligenceEnginesAction;
 use App\Models\CrossPlatformInsight;
 use App\Services\IntelligenceEngineService;
-use App\Services\KnowledgeGraphService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -21,7 +20,6 @@ class IntelligenceController extends BaseApiController
 {
     public function __construct(
         private readonly IntelligenceEngineService $engineService,
-        private readonly KnowledgeGraphService $graphService,
         private readonly RunIntelligenceEnginesAction $runEngines,
     ) {}
 
@@ -84,45 +82,5 @@ class IntelligenceController extends BaseApiController
             ->paginate($perPage);
 
         return $this->paginated($insights);
-    }
-
-    /**
-     * GET /api/v1/intelligence/graph
-     * Returns knowledge graph statistics for the team.
-     */
-    public function graph(): JsonResponse
-    {
-        $team = $this->currentTeam();
-        $stats = $this->graphService->getStats($team);
-
-        return $this->success($stats);
-    }
-
-    /**
-     * POST /api/v1/intelligence/graph/traverse
-     * Traverse the graph from an entity to find all related entities.
-     *
-     * Body: { "entity_type": "customer", "entity_id": "42", "max_depth": 3 }
-     */
-    public function traverse(Request $request): JsonResponse
-    {
-        $validated = $request->validate([
-            'entity_type' => 'required|string|max:50',
-            'entity_id' => 'required|string|max:100',
-            'max_depth' => 'integer|min:1|max:5',
-        ]);
-
-        $team = $this->currentTeam();
-        $nodes = $this->graphService->traverse(
-            $team,
-            $validated['entity_type'],
-            $validated['entity_id'],
-            $validated['max_depth'] ?? 3,
-        );
-
-        return $this->success([
-            'nodes' => $nodes->values(),
-            'node_count' => $nodes->count(),
-        ]);
     }
 }

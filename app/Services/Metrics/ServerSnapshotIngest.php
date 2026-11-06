@@ -24,6 +24,9 @@ class ServerSnapshotIngest
 {
     public const SOURCE_TYPE = 'push';
 
+    /** The company's owner switched this platform off. Only they can switch it back on. */
+    public const DISCONNECTED = 'disconnected';
+
     public function __construct(
         private readonly SnapshotIngestService $ingest,
         private readonly SnapshotContract $contract,
@@ -32,12 +35,12 @@ class ServerSnapshotIngest
 
     /**
      * @param  array<string, mixed>  $body  the decoded, authenticated request body
-     * @return array{snapshot: AnalyticsSnapshot, replayed: bool, accepted: list<string>, dropped: list<string>}|null
-     *                                                                                                                null when no team maps to the company
+     * @return array{snapshot: AnalyticsSnapshot, replayed: bool, accepted: list<string>, dropped: list<string>}|self::DISCONNECTED|null
+     *                                                                                                                                   null when no team maps to the company
      *
      * @throws ValidationException
      */
-    public function ingest(string $platform, array $body): ?array
+    public function ingest(string $platform, array $body): array|string|null
     {
         // Validate first: a rejected snapshot must not provision anything.
         $this->contract->validate($platform, $body);
@@ -45,6 +48,10 @@ class ServerSnapshotIngest
         $team = Team::where('infodot_team_uuid', strtolower((string) ($body['company_uuid'] ?? '')))->first();
         if (! $team) {
             return null;
+        }
+
+        if ($this->find($team, $platform)?->status === 'disconnected') {
+            return self::DISCONNECTED;
         }
 
         $source = $this->sourceFor($team, $platform);

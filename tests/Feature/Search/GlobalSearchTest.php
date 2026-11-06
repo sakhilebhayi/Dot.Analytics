@@ -8,7 +8,6 @@ use App\Models\AnalyticsDashboard;
 use App\Models\AnalyticsReport;
 use App\Models\CrossPlatformInsight;
 use App\Models\DataSource;
-use App\Models\IntelligenceNode;
 use App\Models\Recommendation;
 use App\Models\Team;
 use App\Models\User;
@@ -30,7 +29,7 @@ class GlobalSearchTest extends TestCase
 
     private const TERM = 'Zorbaglub';
 
-    private const TYPES = ['nodes', 'insights', 'alerts', 'recommendations', 'reports', 'dashboards'];
+    private const TYPES = ['insights', 'alerts', 'recommendations', 'reports', 'dashboards'];
 
     private User $owner;
 
@@ -57,7 +56,6 @@ class GlobalSearchTest extends TestCase
     {
         $author ??= $team->owner;
 
-        IntelligenceNode::factory()->create(['team_id' => $team->id, 'label' => "{$term} node", 'entity_type' => "{$term}-type", 'entity_id' => "{$term}-001"]);
         CrossPlatformInsight::factory()->create(['team_id' => $team->id, 'title' => "{$term} insight", 'narrative' => "narrative {$term}"]);
         AnalyticsAlert::factory()->create(['team_id' => $team->id, 'title' => "{$term} alert", 'description' => "description {$term}"]);
         Recommendation::factory()->create(['team_id' => $team->id, 'title' => "{$term} recommendation", 'rationale' => "rationale {$term}"]);
@@ -285,7 +283,6 @@ class GlobalSearchTest extends TestCase
         $source->forceFill(['webhook_secret' => 'whsec-smuggled-secret'])->save();
         AnalyticsAlert::factory()->create(['team_id' => $this->team->id, 'title' => 'Plain', 'description' => 'Plain', 'context' => ['api_key' => 'sk-ctx-smuggled', 'window' => ['values' => [['value' => 'ctx-payload-smuggled']]]]]);
         CrossPlatformInsight::factory()->create(['team_id' => $this->team->id, 'title' => 'Plain', 'narrative' => 'Plain', 'provenance' => ['note' => 'prov-smuggled'], 'supporting_metrics' => ['m' => 'metrics-smuggled']]);
-        IntelligenceNode::factory()->create(['team_id' => $this->team->id, 'label' => 'Plain', 'attributes' => ['token' => 'attr-smuggled']]);
         Recommendation::factory()->create(['team_id' => $this->team->id, 'title' => 'Plain', 'rationale' => 'Plain', 'supporting_data' => ['k' => 'data-smuggled'], 'action_url' => 'https://example.test/action-smuggled']);
         AnalyticsReport::factory()->create(['team_id' => $this->team->id, 'user_id' => $this->owner->id, 'title' => 'Plain', 'config' => ['report_type' => 'insights', 'x' => 'cfg-smuggled']]);
 

@@ -85,9 +85,10 @@ class AnalyticsLivewireTest extends TestCase
         Livewire::test(EcosystemMapPanel::class)
             ->call('disconnect', 'tasks');
 
-        $this->assertDatabaseMissing('data_sources', [
+        $this->assertDatabaseHas('data_sources', [
             'team_id' => $this->team()->id,
             'platform' => 'tasks',
+            'status' => 'disconnected',
         ]);
     }
 

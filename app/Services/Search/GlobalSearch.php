@@ -6,7 +6,6 @@ use App\Models\AnalyticsAlert;
 use App\Models\AnalyticsDashboard;
 use App\Models\AnalyticsReport;
 use App\Models\CrossPlatformInsight;
-use App\Models\IntelligenceNode;
 use App\Models\Recommendation;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
@@ -34,7 +33,6 @@ class GlobalSearch
 
     /** @var array<string, class-string<Model>> */
     public const TYPES = [
-        'nodes' => IntelligenceNode::class,
         'insights' => CrossPlatformInsight::class,
         'alerts' => AnalyticsAlert::class,
         'recommendations' => Recommendation::class,

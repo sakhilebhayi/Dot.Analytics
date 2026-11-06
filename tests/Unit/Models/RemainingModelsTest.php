@@ -7,10 +7,8 @@ use App\Models\AnalyticsAlert;
 use App\Models\AnalyticsReport;
 use App\Models\AnalyticsSnapshot;
 use App\Models\ComputedMetric;
-use App\Models\DataPipeline;
 use App\Models\DataSource;
 use App\Models\MetricDefinition;
-use App\Models\PipelineRun;
 use App\Models\Recommendation;
 use App\Models\ReportRun;
 use App\Models\User;
@@ -59,63 +57,6 @@ class RemainingModelsTest extends TestCase
         ]);
 
         $this->assertIsFloat((float) $metric->value);
-    }
-
-    // ─── DataPipeline ────────────────────────────────────────────────────────
-
-    public function test_data_pipeline_belongs_to_team(): void
-    {
-        $team = $this->team();
-        $pipe = DataPipeline::create([
-            'team_id' => $team->id,
-            'name' => 'Fleet Pipeline',
-            'source_config' => [],
-            'transform_config' => [],
-            'destination_config' => [],
-        ]);
-
-        $this->assertEquals($team->id, $pipe->team->id);
-    }
-
-    public function test_data_pipeline_last_run_returns_null_when_no_runs(): void
-    {
-        $team = $this->team();
-        $pipe = DataPipeline::create([
-            'team_id' => $team->id,
-            'name' => 'No Runs',
-            'source_config' => [],
-            'transform_config' => [],
-            'destination_config' => [],
-        ]);
-
-        $this->assertNull($pipe->lastRun());
-    }
-
-    public function test_data_pipeline_last_run_returns_most_recent(): void
-    {
-        $team = $this->team();
-        $pipe = DataPipeline::create([
-            'team_id' => $team->id,
-            'name' => 'With Runs',
-            'source_config' => [],
-            'transform_config' => [],
-            'destination_config' => [],
-        ]);
-
-        $runA = PipelineRun::create(['data_pipeline_id' => $pipe->id, 'status' => 'completed', 'started_at' => now()->subHours(2)]);
-        $runB = PipelineRun::create(['data_pipeline_id' => $pipe->id, 'status' => 'completed', 'started_at' => now()]);
-
-        $this->assertEquals($runB->id, $pipe->lastRun()->id);
-    }
-
-    public function test_data_pipeline_is_incremental_defaults_true(): void
-    {
-        $team = $this->team();
-        $pipe = DataPipeline::create([
-            'team_id' => $team->id, 'name' => 'Default', 'source_config' => [], 'transform_config' => [], 'destination_config' => [],
-        ]);
-
-        $this->assertTrue($pipe->is_incremental);
     }
 
     // ─── AiModelUsage ────────────────────────────────────────────────────────

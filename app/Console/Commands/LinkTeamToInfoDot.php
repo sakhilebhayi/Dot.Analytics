@@ -47,7 +47,7 @@ class LinkTeamToInfoDot extends Command
         }
 
         $promoted = $team->personal_team;
-        $team->forceFill(['infodot_team_uuid' => $uuid, 'personal_team' => false])->save();
+        $team->forceFill(['infodot_team_uuid' => strtolower($uuid), 'personal_team' => false])->save();
 
         if ($promoted) {
             $this->warn('The personal team was promoted to a company. Anyone InfoDot lists as a member of that company will now be attached to it when they sign in.');

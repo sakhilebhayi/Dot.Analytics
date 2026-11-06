@@ -2,9 +2,11 @@
 
 namespace Tests\Unit\Services;
 
+use App\Models\AiModelUsage;
 use App\Models\User;
 use App\Services\AiModelRouter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Log;
 use Tests\TestCase;
 
 class AiModelRouterTest extends TestCase
@@ -72,7 +74,7 @@ class AiModelRouterTest extends TestCase
 
         $this->router->complete('Test prompt', 'query', $team->id);
 
-        $this->assertEquals(0, \App\Models\AiModelUsage::where('team_id', $team->id)->count());
+        $this->assertEquals(0, AiModelUsage::where('team_id', $team->id)->count());
     }
 
     public function test_complete_works_across_all_capability_tiers(): void
@@ -95,10 +97,31 @@ class AiModelRouterTest extends TestCase
 
     public function test_complete_respects_a_non_default_primary_provider(): void
     {
-        config(['services.ai.primary_provider' => 'openai']);
+        config(['services.ai.timeout' => 1]);
 
         $response = $this->router->complete('x', 'query');
 
         $this->assertIsString($response);
+    }
+
+    public function test_a_spent_team_budget_stops_the_next_call(): void
+    {
+        $user = User::factory()->withPersonalTeam()->create();
+        config(['services.anthropic.key' => 'test', 'services.ai.team_monthly_budget_usd' => 1]);
+        AiModelUsage::create(['team_id' => $user->currentTeam->id, 'provider' => 'anthropic', 'model' => 'claude-haiku-5-5', 'capability' => 'query', 'input_tokens' => 1, 'output_tokens' => 1, 'cost_usd' => 1.5, 'latency_ms' => 1]);
+
+        $this->assertNull($this->router->completeStrict('Anything', 'query', $user->currentTeam->id));
+    }
+
+    public function test_last_months_spending_does_not_count(): void
+    {
+        $user = User::factory()->withPersonalTeam()->create();
+        config(['services.anthropic.key' => '', 'services.ai.team_monthly_budget_usd' => 1]);
+        $old = AiModelUsage::create(['team_id' => $user->currentTeam->id, 'provider' => 'anthropic', 'model' => 'claude-haiku-5-5', 'capability' => 'query', 'input_tokens' => 1, 'output_tokens' => 1, 'cost_usd' => 9, 'latency_ms' => 1]);
+        $old->forceFill(['created_at' => now()->subMonths(2)])->save();
+
+        Log::spy();
+        $this->router->completeStrict('Anything', 'query', $user->currentTeam->id);
+        Log::shouldNotHaveReceived('warning');
     }
 }

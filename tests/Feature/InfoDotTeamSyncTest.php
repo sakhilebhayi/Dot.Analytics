@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Http\Middleware\ReverifyWithInfoDot;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -325,5 +326,85 @@ class InfoDotTeamSyncTest extends TestCase
 
         $this->assertSame($before, Team::count());
         $this->assertSame($owner->currentTeam->id, $owner->fresh()->current_team_id);
+    }
+
+    public function test_ownership_moves_to_the_person_infodot_lists_as_owner(): void
+    {
+        $this->signIn('office@acme.test', [$this->company(self::ACME, 'Acme Ltd', 'admin')], self::ACME);
+        $this->signIn('ann@acme.test', [$this->company(self::ACME, 'Acme Ltd', 'owner')], self::ACME);
+
+        $team = Team::where('infodot_team_uuid', self::ACME)->firstOrFail();
+        $ann = User::where('email', 'ann@acme.test')->firstOrFail();
+        $office = User::where('email', 'office@acme.test')->firstOrFail();
+
+        $this->assertSame($ann->id, $team->user_id);
+        $this->assertSame('admin', $office->teamRole($team)?->key);
+    }
+
+    public function test_an_owner_infodot_no_longer_lists_loses_the_company_and_an_admin_takes_over(): void
+    {
+        $this->signIn('ann@acme.test', [$this->company(self::ACME, 'Acme Ltd', 'owner')], self::ACME);
+        $this->signIn('bo@acme.test', [$this->company(self::ACME, 'Acme Ltd', 'admin')], self::ACME);
+
+        $this->signIn('ann@acme.test', [], null);
+
+        $team = Team::where('infodot_team_uuid', self::ACME)->firstOrFail();
+        $ann = User::where('email', 'ann@acme.test')->firstOrFail();
+
+        $this->assertSame(User::where('email', 'bo@acme.test')->value('id'), $team->user_id);
+        $this->assertFalse($ann->fresh()->belongsToTeam($team));
+    }
+
+    public function test_a_company_with_nobody_left_is_suspended_until_someone_infodot_trusts_signs_in(): void
+    {
+        $this->signIn('ann@acme.test', [$this->company(self::ACME, 'Acme Ltd', 'owner')], self::ACME);
+        $this->signIn('ann@acme.test', [], null);
+
+        $team = Team::where('infodot_team_uuid', self::ACME)->firstOrFail();
+        $this->assertNotNull($team->suspended_at);
+
+        $this->signIn('cy@acme.test', [$this->company(self::ACME, 'Acme Ltd', 'owner')], self::ACME);
+
+        $team->refresh();
+        $this->assertNull($team->suspended_at);
+        $this->assertSame(User::where('email', 'cy@acme.test')->value('id'), $team->user_id);
+    }
+
+    public function test_with_infodot_in_charge_a_password_gets_nobody_in(): void
+    {
+        config(['ecosystem.sso_only' => true]);
+        $user = User::factory()->withPersonalTeam()->create(['password' => bcrypt('a-long-test-password')]);
+
+        $this->post('/login', ['email' => $user->email, 'password' => 'a-long-test-password']);
+
+        $this->assertGuest();
+    }
+
+    public function test_with_infodot_in_charge_the_login_page_sends_people_to_it(): void
+    {
+        config(['ecosystem.sso_only' => true, 'ecosystem.platforms.infodot.url' => 'https://infodot.test']);
+
+        $this->get('/login')->assertRedirect('https://infodot.test/go/analytics');
+    }
+
+    public function test_a_session_older_than_the_window_goes_back_through_infodot(): void
+    {
+        config(['ecosystem.sso_only' => true, 'ecosystem.reverify_hours' => 12]);
+        $user = User::factory()->withPersonalTeam()->create();
+
+        $this->actingAs($user)->withSession([ReverifyWithInfoDot::VERIFIED_AT => now()->subHours(13)->getTimestamp()])
+            ->get('/dashboard')->assertRedirect(route('login'));
+
+        $this->assertGuest('web');
+    }
+
+    public function test_a_wildcard_key_is_not_a_way_into_a_browser_session(): void
+    {
+        $user = User::factory()->withPersonalTeam()->create();
+        $token = $user->createToken('anything', ['*'])->plainTextToken;
+
+        $this->post(route('ecosystem.auth'), ['token' => $token], $this->fromInfodot());
+
+        $this->assertGuest();
     }
 }

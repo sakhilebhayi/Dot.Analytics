@@ -38,10 +38,12 @@ return [
             'database' => env('DB_DATABASE', database_path('database.sqlite')),
             'prefix' => '',
             'foreign_key_constraints' => env('DB_FOREIGN_KEYS', true),
-            'busy_timeout' => null,
+            // Web requests and cron workers share one file: wait for a write to finish rather than fail.
+            'busy_timeout' => (int) env('DB_BUSY_TIMEOUT', 15000),
             'journal_mode' => null,
             'synchronous' => null,
-            'transaction_mode' => 'DEFERRED',
+            // Take the write lock at the start: a deferred transaction that upgrades later fails at once, whatever the wait.
+            'transaction_mode' => 'IMMEDIATE',
         ],
 
         'mysql' => [

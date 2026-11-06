@@ -2,31 +2,32 @@
 
 namespace App\Models\Concerns;
 
+use App\Support\TeamContext;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Facades\Auth;
 
 /**
- * Dot.Analytics is Jetstream-Teams multi-tenant, not single-user (see
- * DataSourcePolicy / CrossPlatformInsightPolicy). Every model that owns a
- * team_id column applies this trait so a query against it is scoped to the
- * authenticated user's current team by default, the same way Dot.Mines'
- * HasTeamFilters scopes every tenant-owned model to the current team -- the
- * goal is that a forgotten where('team_id', ...) call in a future
- * controller or Livewire component can no longer leak another team's rows,
- * because the model itself never returns unscoped results while a user is
- * authenticated with a current team.
+ * Every model that owns a team_id applies this trait, so a forgotten where('team_id', ...) cannot leak another
+ * company's rows. Mass assignment still sets team_id explicitly at create time; this scope only governs reads.
  *
- * mass-assignment still sets team_id explicitly at create time (see each
- * controller/component's store()/create() call); this scope only governs
- * reads.
+ * Inside a routed request it fails closed: no signed-in person, no current team, or a current team they do not belong
+ * to reads nothing. Public pages run with exactly that context, so they can never reach private rows, even by mistake.
+ * Scheduler, queue and console work has no route; services there name the team themselves.
  */
 trait HasTeamScope
 {
     protected static function bootHasTeamScope(): void
     {
         static::addGlobalScope('team', function (Builder $builder): void {
-            if (Auth::check() && Auth::user()->currentTeam) {
-                $builder->where($builder->getModel()->getTable().'.team_id', Auth::user()->currentTeam->id);
+            if (TeamContext::inSystem()) {
+                return;
+            }
+
+            $team = TeamContext::id();
+
+            if ($team !== null) {
+                $builder->where($builder->getModel()->getTable().'.team_id', $team);
+            } elseif (app()->bound('request') && request()->route() !== null) {
+                $builder->whereRaw('1 = 0');
             }
         });
     }

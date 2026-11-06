@@ -6,7 +6,6 @@ use App\Models\AnalyticsAlert;
 use App\Models\AnalyticsDashboard;
 use App\Models\AnalyticsReport;
 use App\Models\CrossPlatformInsight;
-use App\Models\IntelligenceNode;
 use App\Models\Recommendation;
 use App\Models\Team;
 use App\Models\User;
@@ -16,33 +15,6 @@ use Tests\TestCase;
 class SearchableModelsTest extends TestCase
 {
     use RefreshDatabase;
-
-    public function test_intelligence_node_search_finds_a_match_by_label(): void
-    {
-        $user = User::factory()->withPersonalTeam()->create();
-        $this->actingAs($user);
-
-        IntelligenceNode::factory()->create(['team_id' => $user->currentTeam->id, 'label' => 'Acme Logistics Ltd']);
-        IntelligenceNode::factory()->create(['team_id' => $user->currentTeam->id, 'label' => 'Unrelated Entity']);
-
-        $results = IntelligenceNode::search('Acme')->where('team_id', $user->currentTeam->id)->get();
-
-        $this->assertCount(1, $results);
-        $this->assertSame('Acme Logistics Ltd', $results->first()->label);
-    }
-
-    public function test_intelligence_node_search_never_returns_another_teams_row(): void
-    {
-        $user = User::factory()->withPersonalTeam()->create();
-        $otherTeam = Team::factory()->create();
-        IntelligenceNode::factory()->create(['team_id' => $otherTeam->id, 'label' => 'Acme Foreign Entity']);
-
-        $this->actingAs($user);
-
-        $results = IntelligenceNode::search('Acme')->where('team_id', $user->currentTeam->id)->get();
-
-        $this->assertCount(0, $results);
-    }
 
     public function test_analytics_report_search_finds_a_match_by_title(): void
     {
@@ -131,7 +103,6 @@ class SearchableModelsTest extends TestCase
     {
         $user = User::factory()->withPersonalTeam()->create();
         $team = $user->currentTeam;
-        IntelligenceNode::factory()->create(['team_id' => $team->id, 'label' => 'Needle one']);
         CrossPlatformInsight::factory()->create(['team_id' => $team->id, 'title' => 'Needle two']);
         AnalyticsAlert::factory()->create(['team_id' => $team->id, 'title' => 'Needle three']);
         Recommendation::factory()->create(['team_id' => $team->id, 'title' => 'Needle four']);
@@ -141,7 +112,7 @@ class SearchableModelsTest extends TestCase
         // Even signed in as a member of that very team (so the global scope would allow them),
         // a search that does not state its team is refused rather than trusted to ambient state.
         $this->actingAs($user);
-        foreach ([IntelligenceNode::class, CrossPlatformInsight::class, AnalyticsAlert::class, Recommendation::class, AnalyticsReport::class, AnalyticsDashboard::class] as $model) {
+        foreach ([CrossPlatformInsight::class, AnalyticsAlert::class, Recommendation::class, AnalyticsReport::class, AnalyticsDashboard::class] as $model) {
             $this->assertCount(0, $model::search('Needle')->get(), $model);
             $this->assertCount(1, $model::search('Needle')->where('team_id', $team->id)->get(), $model);
         }

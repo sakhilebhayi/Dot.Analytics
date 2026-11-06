@@ -3,15 +3,12 @@
 namespace Tests\Feature\Livewire;
 
 use App\Livewire\Analytics\DashboardBuilderPanel;
-use App\Livewire\Analytics\FeatureFlagsPanel;
-use App\Livewire\Analytics\KnowledgeGraphPanel;
 use App\Livewire\Analytics\RecommendationsPanel;
 use App\Livewire\Analytics\SavedReportsPanel;
 use App\Models\AnalyticsDashboard;
 use App\Models\AnalyticsReport;
 use App\Models\DashboardWidget;
 use App\Models\DataSource;
-use App\Models\FeatureFlag;
 use App\Models\Recommendation;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -97,114 +94,11 @@ class ExtendedLivewireTest extends TestCase
         ]);
     }
 
-    // ─── FeatureFlagsPanel ───────────────────────────────────────────────────
-
-    public function test_feature_flags_panel_renders(): void
-    {
-        Livewire::test(FeatureFlagsPanel::class)->assertStatus(200);
-    }
-
     /** Flags are global: only a platform operator may mutate them (a team owner may not). */
     private function actAsOperator(): void
     {
         $this->user->forceFill(['is_platform_operator' => true])->save();
         $this->actingAs($this->user->fresh());
-    }
-
-    public function test_feature_flags_panel_create_saves_flag(): void
-    {
-        $this->actAsOperator();
-
-        Livewire::test(FeatureFlagsPanel::class)
-            ->set('newKey', 'test-flag')
-            ->set('newName', 'Test Flag')
-            ->call('create');
-
-        $this->assertDatabaseHas('feature_flags', ['key' => 'test-flag']);
-    }
-
-    public function test_feature_flags_panel_toggle_enables_flag(): void
-    {
-        $this->actAsOperator();
-
-        $flag = FeatureFlag::create(['key' => 'toggle', 'name' => 'Toggle', 'enabled_globally' => false]);
-
-        Livewire::test(FeatureFlagsPanel::class)->call('toggle', $flag->id);
-
-        $this->assertDatabaseHas('feature_flags', ['key' => 'toggle', 'enabled_globally' => true]);
-    }
-
-    public function test_feature_flags_panel_toggle_disables_active_flag(): void
-    {
-        $this->actAsOperator();
-
-        $flag = FeatureFlag::create(['key' => 'on-flag', 'name' => 'On', 'enabled_globally' => true]);
-
-        Livewire::test(FeatureFlagsPanel::class)->call('toggle', $flag->id);
-
-        $this->assertDatabaseHas('feature_flags', ['key' => 'on-flag', 'enabled_globally' => false]);
-    }
-
-    public function test_feature_flags_panel_set_rollout(): void
-    {
-        $this->actAsOperator();
-
-        $flag = FeatureFlag::create(['key' => 'rollout', 'name' => 'Rollout']);
-
-        Livewire::test(FeatureFlagsPanel::class)->call('setRollout', $flag->id, 75.0);
-
-        $this->assertDatabaseHas('feature_flags', ['key' => 'rollout', 'rollout_percentage' => 75.0]);
-    }
-
-    // ─── KnowledgeGraphPanel ─────────────────────────────────────────────────
-
-    public function test_knowledge_graph_panel_renders(): void
-    {
-        Livewire::test(KnowledgeGraphPanel::class)->assertStatus(200);
-    }
-
-    public function test_knowledge_graph_panel_shows_stats(): void
-    {
-        Livewire::test(KnowledgeGraphPanel::class)
-            ->assertSee('entities');
-    }
-
-    public function test_knowledge_graph_panel_traverse_with_nonexistent_entity(): void
-    {
-        Livewire::test(KnowledgeGraphPanel::class)
-            ->set('entityType', 'customer')
-            ->set('entityId', 'NONEXISTENT-9999')
-            ->call('traverse')
-            ->assertSet('error', fn ($e) => str_contains($e, 'No entity found'));
-    }
-
-    public function test_knowledge_graph_panel_clear_resets_state(): void
-    {
-        Livewire::test(KnowledgeGraphPanel::class)
-            ->set('entityId', 'CUST-001')
-            ->set('results', [['id' => 1, 'label' => 'test', 'entity_type' => 'x', 'entity_id' => '1', 'source_platform' => 'emall']])
-            ->call('clear')
-            ->assertSet('entityId', '')
-            ->assertSet('results', [])
-            ->assertSet('error', '');
-    }
-
-    public function test_knowledge_graph_panel_validates_entity_type(): void
-    {
-        Livewire::test(KnowledgeGraphPanel::class)
-            ->set('entityType', '')
-            ->set('entityId', 'test')
-            ->call('traverse')
-            ->assertHasErrors(['entityType']);
-    }
-
-    public function test_knowledge_graph_panel_validates_entity_id(): void
-    {
-        Livewire::test(KnowledgeGraphPanel::class)
-            ->set('entityType', 'customer')
-            ->set('entityId', '')
-            ->call('traverse')
-            ->assertHasErrors(['entityId']);
     }
 
     // ─── RecommendationsPanel (extended) ────────────────────────────────────

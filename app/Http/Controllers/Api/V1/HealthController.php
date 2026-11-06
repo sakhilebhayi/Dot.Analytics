@@ -125,9 +125,6 @@ class HealthController extends BaseApiController
     {
         $providers = [
             'anthropic' => ! empty(config('services.anthropic.key')),
-            'openai' => ! empty(config('services.openai.key')),
-            'google' => ! empty(config('services.google.ai_key')),
-            'deepseek' => ! empty(config('services.deepseek.key')),
         ];
 
         $configured = array_keys(array_filter($providers));
