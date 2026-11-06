@@ -25,7 +25,7 @@
                 <div class="flex items-center justify-between mb-1">
                     <x-label for="password" value="{{ __('Password') }}" />
                     @if (Route::has('password.request'))
-                        <a href="{{ route('password.request') }}" class="text-xs text-[var(--teal-soft)] hover:text-[var(--teal)]">Forgot password?</a>
+                        <a href="{{ route('password.request') }}" class="inline-block py-1 text-xs text-[var(--teal-soft)] underline decoration-transparent underline-offset-4 decoration-2 hover:decoration-[var(--teal)]">Forgot password?</a>
                     @endif
                 </div>
                 <x-input id="password" class="block text-sm" type="password" name="password" required autocomplete="current-password" />
@@ -42,7 +42,7 @@
 
             <p class="text-center text-sm text-[var(--mist)]">
                 Accounts are made in InfoDot.
-                <a href="{{ config('ecosystem.platforms.infodot.url') }}" class="text-[var(--teal-soft)] font-medium underline" rel="noopener">Go to InfoDot</a>
+                <a href="{{ config('ecosystem.platforms.infodot.url') }}" class="inline-block py-1 text-[var(--teal-soft)] font-medium underline decoration-2 underline-offset-4 hover:decoration-[var(--teal)]" rel="noopener">Go to InfoDot</a>
             </p>
         </form>
     </x-authentication-card>
