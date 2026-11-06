@@ -100,7 +100,7 @@
                 <div role="group" aria-label="Trend range" style="display:flex;gap:0.25rem;">
                     @foreach(\App\Livewire\Analytics\MetricsPanel::RANGES as $range)
                         <button type="button" wire:click="setDays({{ $range }})" aria-pressed="{{ $days === $range ? 'true' : 'false' }}" class="press font-mono"
-                                style="font-size:0.66rem;padding:0.2rem 0.55rem;border-radius:0.3rem;background:{{ $days === $range ? 'rgba(241,198,46,0.1)' : 'transparent' }};color:{{ $days === $range ? 'var(--gold)' : 'var(--mist)' }};border:1px solid {{ $days === $range ? 'var(--gold)' : 'var(--line)' }};">{{ $range }}d</button>
+                                style="font-size:0.66rem;padding:0.2rem 0.55rem;border-radius:0.3rem;background:{{ $days === $range ? 'color-mix(in srgb, var(--gold) 10%, transparent)' : 'transparent' }};color:{{ $days === $range ? 'var(--gold)' : 'var(--mist)' }};border:1px solid {{ $days === $range ? 'var(--gold)' : 'var(--line)' }};">{{ $range }}d</button>
                     @endforeach
                 </div>
             </div>

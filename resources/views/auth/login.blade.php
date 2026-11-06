@@ -1,14 +1,14 @@
 <x-guest-layout>
     <x-authentication-card>
         <div class="mb-8">
-            <h2 class="font-display font-semibold text-2xl text-[var(--paper)]">Welcome back</h2>
-            <p class="text-sm text-[var(--mist)] mt-1">Sign in to your intelligence dashboard</p>
+            <h1 class="font-display font-bold text-3xl text-[var(--paper)]">Sign in</h1>
+            <p class="text-sm text-[var(--mist)] mt-2">To your company's intelligence. Reading the public library needs no account.</p>
         </div>
 
         <x-validation-errors class="mb-4" />
 
         @session('status')
-            <div class="mb-4 font-medium text-sm text-teal-300">
+            <div class="mb-4 font-medium text-sm text-[var(--teal-soft)]">
                 {{ $value }}
             </div>
         @endsession
@@ -40,12 +40,10 @@
                 Sign in to Dot.Analytics
             </x-button>
 
-            @if (Route::has('register'))
-                <p class="text-center text-sm text-[var(--mist)]">
-                    Don't have an account?
-                    <a href="{{ route('register') }}" class="text-[var(--teal-soft)] font-medium hover:text-[var(--teal)]">Get started free</a>
-                </p>
-            @endif
+            <p class="text-center text-sm text-[var(--mist)]">
+                Accounts are made in InfoDot.
+                <a href="{{ config('ecosystem.platforms.infodot.url') }}" class="text-[var(--teal-soft)] font-medium underline" rel="noopener">Go to InfoDot</a>
+            </p>
         </form>
     </x-authentication-card>
 </x-guest-layout>

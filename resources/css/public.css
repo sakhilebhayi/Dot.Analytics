@@ -398,3 +398,8 @@ button, input, select { font: inherit; color: inherit; }
 .form-stack select, .form-stack input[type='text'] { min-height: 44px; padding: 0 12px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--field); color: var(--ink); font-size: 16px; }
 .btn.danger { background: var(--fall); border-color: var(--fall); }
 @media (max-width: 720px) { .rows > li { grid-template-columns: minmax(0, 1fr); } }
+.notfound .lede { margin-top: 16px; max-width: 60ch; font-size: 19px; color: var(--muted); }
+.notfound .prov { margin-bottom: 14px; }
+.notfound .search-big { margin-top: 24px; }
+.notfound .btn-row { margin-top: 18px; }
+.notfound section { margin-top: 40px; }

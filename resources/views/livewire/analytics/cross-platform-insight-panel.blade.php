@@ -55,8 +55,8 @@
             @foreach($this->insights as $insight)
                 @php
                     $tone = match($insight->severity) {
-                        'critical' => ['border' => 'var(--danger)', 'bg' => 'rgba(240,138,108,0.08)'],
-                        'warning'  => ['border' => 'var(--gold)', 'bg' => 'rgba(241,198,46,0.06)'],
+                        'critical' => ['border' => 'var(--danger)', 'bg' => 'color-mix(in srgb, var(--danger) 8%, transparent)'],
+                        'warning'  => ['border' => 'var(--gold)', 'bg' => 'color-mix(in srgb, var(--gold) 6%, transparent)'],
                         default    => ['border' => 'var(--line)', 'bg' => 'transparent'],
                     };
                     $typeTone = match($insight->insight_type) {

@@ -44,7 +44,7 @@
                     {{ round($profile->confidence_score * 100) }}%
                 </span>
             </div>
-            <div class="w-full rounded-full" style="height:0.35rem;background:rgba(255,255,255,0.06);">
+            <div class="w-full rounded-full" style="height:0.35rem;background:color-mix(in srgb, var(--paper) 6%, transparent);">
                 <div
                     style="height:0.35rem;border-radius:9999px;width:{{ round($profile->confidence_score * 100) }}%;background:{{ $profile->confidence_score >= 0.7 ? 'var(--teal-soft)' : ($profile->confidence_score >= 0.4 ? 'var(--gold)' : 'var(--mist)') }};"
                 ></div>

@@ -1,12 +1,9 @@
 <?php
 
 use App\Http\Controllers\Auth\EcosystemAuthController;
+use App\Http\Controllers\WorkspaceController;
 use App\Http\Middleware\ReverifyWithInfoDot;
-use App\Models\AnalyticsAlert;
 use App\Models\AnalyticsReport;
-use App\Models\DataSource;
-use App\Models\Recommendation;
-use App\Services\IntelligenceEngineService;
 use App\Services\ReportGenerationService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -41,36 +38,11 @@ Route::middleware([
     'verified',
     ReverifyWithInfoDot::class,
 ])->group(function () {
-    Route::get('/dashboard', function () {
-        // No team-context middleware runs ahead of this route, so a user who
-        // belongs to no team (e.g. removed from their last team) reaches
-        // here with currentTeam genuinely null. Send them to team creation
-        // instead of crashing on the null dereference below.
-        $team = Auth::user()->currentTeam;
-        if (! $team) {
-            return redirect()->route('teams.create');
-        }
+    Route::get('/dashboard', [WorkspaceController::class, 'overview'])->name('dashboard');
 
-        $connectedPlatforms = DataSource::where('team_id', $team->id)
-            ->where('status', 'connected')
-            ->whereIn('platform', array_keys(IntelligenceEngineService::PLATFORMS))
-            ->pluck('platform')
-            ->toArray();
-
-        $activeEngineCount = count(
-            app(IntelligenceEngineService::class)->getActiveEngines($connectedPlatforms)
-        );
-
-        return view('dashboard', [
-            'connectedCount' => count($connectedPlatforms),
-            'platformTotal' => count(IntelligenceEngineService::PLATFORMS),
-            'activeEngineCount' => $activeEngineCount,
-            // Engines with no real platform able to feed them are dormant and not counted.
-            'engineTotal' => count(array_filter(IntelligenceEngineService::ENGINES, fn ($e) => $e['sources'] !== [])),
-            'openAlertCount' => AnalyticsAlert::where('team_id', $team->id)->where('status', 'open')->count(),
-            'pendingRecommendationCount' => Recommendation::where('team_id', $team->id)->where('status', 'pending')->count(),
-        ]);
-    })->name('dashboard');
+    foreach (['insights', 'briefing', 'ask', 'reports'] as $section) {
+        Route::get('/workspace/'.$section, fn () => app(WorkspaceController::class)->page($section))->name('workspace.'.$section);
+    }
 
     Route::get('/search', function () {
         // Same reachable-null case as /dashboard above.

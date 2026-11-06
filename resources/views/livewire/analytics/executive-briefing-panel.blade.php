@@ -57,7 +57,7 @@
         <div class="flex items-center gap-3 mb-5 pb-4" style="border-bottom:1px solid var(--line);">
             <span style="font-size:0.72rem;color:var(--mist);">{{ ucfirst($b->period) }} briefing &middot; {{ \Carbon\Carbon::parse($b->period_date)->format('D, d M Y') }}</span>
             @if($b->insight_count > 0)
-                <span style="font-size:0.68rem;background:rgba(43,182,183,0.08);color:var(--teal-soft);padding:0.15rem 0.55rem;border-radius:9999px;">{{ $b->insight_count }} insights analysed</span>
+                <span style="font-size:0.68rem;background:color-mix(in srgb, var(--teal) 8%, transparent);color:var(--teal-soft);padding:0.15rem 0.55rem;border-radius:9999px;">{{ $b->insight_count }} insights analysed</span>
             @endif
             @if(!empty($b->engines_consulted))
                 <span style="font-size:0.68rem;color:var(--mist);">{{ count($b->engines_consulted) }} engines</span>
@@ -73,7 +73,7 @@
 
             {{-- Highlights --}}
             @if(!empty($b->highlights))
-                <div class="rounded-xl p-4" style="background:rgba(43,182,183,0.06);border:1px solid rgba(43,182,183,0.3);">
+                <div class="rounded-xl p-4" style="background:color-mix(in srgb, var(--teal) 6%, transparent);border:1px solid color-mix(in srgb, var(--teal) 30%, transparent);">
                     <p class="font-mono" style="font-size:0.62rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--teal-soft);margin-bottom:0.5rem;">Highlights</p>
                     <ul class="space-y-1.5">
                         @foreach($b->highlights as $h)
@@ -88,7 +88,7 @@
 
             {{-- Risks --}}
             @if(!empty($b->risks))
-                <div class="rounded-xl p-4" style="background:rgba(240,138,108,0.06);border:1px solid rgba(240,138,108,0.3);">
+                <div class="rounded-xl p-4" style="background:color-mix(in srgb, var(--danger) 6%, transparent);border:1px solid color-mix(in srgb, var(--danger) 30%, transparent);">
                     <p class="font-mono" style="font-size:0.62rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--danger-soft);margin-bottom:0.5rem;">Risks</p>
                     <ul class="space-y-1.5">
                         @foreach($b->risks as $r)
@@ -103,7 +103,7 @@
 
             {{-- Recommendations --}}
             @if(!empty($b->recommendations))
-                <div class="rounded-xl p-4" style="background:rgba(241,198,46,0.06);border:1px solid rgba(241,198,46,0.3);">
+                <div class="rounded-xl p-4" style="background:color-mix(in srgb, var(--gold) 6%, transparent);border:1px solid color-mix(in srgb, var(--gold) 30%, transparent);">
                     <p class="font-mono" style="font-size:0.62rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--gold-soft);margin-bottom:0.5rem;">Top Actions</p>
                     <ul class="space-y-2">
                         @foreach($b->recommendations as $rec)

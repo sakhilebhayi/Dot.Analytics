@@ -48,7 +48,7 @@
     @endcan
 
     @error('intelligenceQuery')
-        <p style="color:#f08a6c;font-size:0.8rem;margin-top:0.5rem;">{{ $message }}</p>
+        <p style="color:var(--danger);font-size:0.8rem;margin-top:0.5rem;">{{ $message }}</p>
     @enderror
 
     @if($queryAnswer)
