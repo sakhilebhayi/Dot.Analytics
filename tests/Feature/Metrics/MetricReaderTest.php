@@ -67,7 +67,7 @@ class MetricReaderTest extends TestCase
     {
         $dashboard = $this->read();
 
-        $this->assertCount(12, $dashboard['platforms']);
+        $this->assertCount(13, $dashboard['platforms']);
         $this->assertTrue(collect($dashboard['platforms'])->every(fn ($p) => $p['connected'] === false && $p['tiles'] === []));
         $this->assertSame(0, $dashboard['summary']['connected']);
         $this->assertSame(0, $dashboard['summary']['metrics_reporting']);

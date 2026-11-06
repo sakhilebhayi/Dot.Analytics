@@ -61,6 +61,7 @@ publishing platform's own environment (never committed). Generate one with `php 
 | `notify` | `ANALYTICS_INGEST_SECRET_NOTIFY` |
 | `design` | `ANALYTICS_INGEST_SECRET_DESIGN` |
 | `projects` | `ANALYTICS_INGEST_SECRET_PROJECTS` |
+| `sheet` | `ANALYTICS_INGEST_SECRET_SHEET` |
 
 * A **blank or absent** secret means that platform cannot call at all. Nothing is enabled until an operator sets one.
 * The `platform` field in the body picks which secret is checked, so a platform can only ever publish **as itself**:
@@ -334,6 +335,19 @@ money facts Dot.Projects' own portfolio shows. "Off track" and "at risk" are its
 | `tasks_completed_7d` | Project tasks completed, 7 days | whole number >= 0 | higher |
 | `late_milestones` | Milestones past due | whole number >= 0 | lower |
 | `serious_risks` | Serious project risks | whole number >= 0 | lower |
+
+#### `sheet` (Dot.Sheets)
+
+Counted over the workbooks that belong to the company's team. Counts only: no workbook names, people or cell contents.
+
+| Key | Meaning | Kind | Better when |
+|---|---|---|---|
+| `workbooks` | Workbooks | whole number >= 0 | no preference |
+| `edited_7d` | Workbooks edited, 7 days | whole number >= 0 | higher |
+| `formula_errors` | Cells with a formula error | whole number >= 0 | lower |
+| `awaiting_approval` | Workbooks waiting for approval | whole number >= 0 | lower |
+| `approved` | Approved workbooks | whole number >= 0 | no preference |
+| `templates` | Team templates | whole number >= 0 | no preference |
 
 Money keys (`*_cents`) require `metrics.currency`.
 
