@@ -96,6 +96,10 @@ class AppServiceProvider extends ServiceProvider
             $user->currentTeam !== null && $user->belongsToTeam($user->currentTeam)
         );
 
+        // Public pages: generous for people, tight for anything that looks like extraction. Cached pages still count.
+        RateLimiter::for('public', fn (Request $request) => Limit::perMinute(240)->by($request->ip()));
+        RateLimiter::for('public-search', fn (Request $request) => Limit::perMinute(30)->by($request->ip()));
+
         // SSO token redemption: unauthenticated, so key by IP.
         RateLimiter::for('ecosystem-auth', fn (Request $request) => Limit::perMinute(10)->by($request->ip()));
 

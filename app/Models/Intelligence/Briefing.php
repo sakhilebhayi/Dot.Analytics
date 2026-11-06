@@ -7,6 +7,6 @@ class Briefing extends IntelligenceModel
 {
     protected function casts(): array
     {
-        return ['sections' => 'array', 'published_at' => 'datetime'];
+        return ['sections' => 'array', 'published_at' => 'datetime', 'edition_date' => 'date:Y-m-d'];
     }
 }

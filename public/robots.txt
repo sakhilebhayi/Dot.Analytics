@@ -1,2 +1,15 @@
 User-agent: *
-Disallow:
+Disallow: /api/
+Disallow: /dashboard
+Disallow: /reports
+Disallow: /search
+Disallow: /find
+Disallow: /login
+Disallow: /register
+Disallow: /auth/
+Disallow: /user/
+Disallow: /teams/
+Disallow: /team-invitations/
+Disallow: /livewire/
+
+Sitemap: https://analytics.infodot.co.za/sitemap.xml

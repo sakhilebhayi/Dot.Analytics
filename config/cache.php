@@ -34,6 +34,13 @@ return [
 
     'stores' => [
 
+        // Finished public pages. Files, so a busy page never waits on the private database.
+        'pages' => [
+            'driver' => 'file',
+            'path' => storage_path('framework/cache/pages'),
+            'lock_path' => storage_path('framework/cache/pages'),
+        ],
+
         'array' => [
             'driver' => 'array',
             'serialize' => false,

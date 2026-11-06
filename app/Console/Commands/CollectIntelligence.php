@@ -2,12 +2,16 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Intelligence\PlatformCheck;
 use App\Models\Intelligence\Source;
+use App\Services\Intelligence\BriefingBuilder;
 use App\Services\Intelligence\Classifier;
+use App\Services\Intelligence\Ecosystem;
 use App\Services\Intelligence\HealthMonitor;
 use App\Services\Intelligence\ReferenceData;
 use App\Services\Intelligence\SignalDetector;
 use App\Services\Intelligence\SourceRunner;
+use App\Support\PageCache;
 use Illuminate\Console\Command;
 
 class CollectIntelligence extends Command
@@ -16,7 +20,7 @@ class CollectIntelligence extends Command
 
     protected $description = 'Collect public intelligence from the sources that are due, file what arrived, and look for movements';
 
-    public function handle(SourceRunner $runner, ReferenceData $reference, Classifier $classifier, SignalDetector $signals, HealthMonitor $health): int
+    public function handle(SourceRunner $runner, ReferenceData $reference, Classifier $classifier, SignalDetector $signals, HealthMonitor $health, Ecosystem $ecosystem, BriefingBuilder $briefings): int
     {
         $reference->install();
 
@@ -31,10 +35,17 @@ class CollectIntelligence extends Command
             $this->line("{$source->key}: {$run->status} ({$run->created} new, {$run->updated} revised, {$run->unchanged} unchanged, {$run->rejected} refused)");
         }
 
+        if (PlatformCheck::where('checked_at', '>=', now()->subDay())->doesntExist()) {
+            $ecosystem->probe();
+            PageCache::flush();
+        }
+
         if ($due->isNotEmpty()) {
             $classifier->classifyPending();
             $signals->detect();
             $health->check();
+            $briefings->refreshToday();
+            PageCache::flush();
         }
 
         return self::SUCCESS;
