@@ -448,7 +448,7 @@ jobs:
               elif [ -d "$L" ]; then rsync -a public/$STATIC/ "$L/" && echo "== docroot $STATIC/ mirrored from public/$STATIC"
               else ln -s "$APPDIR/public/$STATIC" "$L" && echo "== docroot $STATIC/ did not exist; linked to $APPDIR/public/$STATIC"; fi
             done
-            for F in robots.txt favicon.ico favicon-16x16.png favicon-32x32.png apple-touch-icon.png; do
+            for F in robots.txt og-image.png favicon.ico favicon-16x16.png favicon-32x32.png apple-touch-icon.png; do
               if [ -f "public/$F" ] && [ ! -L "$DOCROOT/$F" ]; then cp -p "public/$F" "$DOCROOT/$F" && echo "== docroot $F refreshed"; fi
             done
           ) || echo "::warning::static files: could not refresh the docroot copies (deploy continues)"
