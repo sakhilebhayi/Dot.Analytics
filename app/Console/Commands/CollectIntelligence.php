@@ -30,8 +30,18 @@ class CollectIntelligence extends Command
             ->limit($this->option('source') ? 1 : (int) config('intelligence.sources_per_pass'))
             ->get();
 
+        $started = microtime(true);
+        $pass = (int) config('intelligence.seconds_per_pass', 45);
+
         foreach ($due as $source) {
-            $run = $runner->run($source, (int) config('intelligence.seconds_per_source'));
+            $left = (int) floor($pass - (microtime(true) - $started));
+
+            // Not enough of the pass is left to make a start worth it: the next pass takes this source first.
+            if ($left < 8) {
+                break;
+            }
+
+            $run = $runner->run($source, min((int) config('intelligence.seconds_per_source'), $left));
             $this->line("{$source->key}: {$run->status} ({$run->created} new, {$run->updated} revised, {$run->unchanged} unchanged, {$run->rejected} refused)");
         }
 

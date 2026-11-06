@@ -285,4 +285,16 @@ class CollectionTest extends TestCase
 
         $this->assertSame('The embassy said this. More.', $item->source_summary);
     }
+
+    public function test_a_scheduled_pass_does_not_start_a_source_it_has_no_time_for(): void
+    {
+        config(['intelligence.seconds_per_pass' => 5]);
+        Http::fake();
+
+        $this->artisan('intelligence:collect')->assertSuccessful();
+
+        // Only the daily platform check may go out; no source is asked.
+        Http::assertNotSent(fn ($request) => ! str_contains($request->url(), 'infodot.co.za'));
+        $this->assertSame(0, SourceRun::count(), 'the next pass takes those sources first');
+    }
 }

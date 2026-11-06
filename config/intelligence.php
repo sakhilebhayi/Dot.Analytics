@@ -24,6 +24,9 @@ return [
 
     'seconds_per_source' => (int) env('INTEL_SECONDS_PER_SOURCE', 35),
 
+    // The whole pass stops starting sources once this many seconds have gone, because the host's cron worker is short-lived.
+    'seconds_per_pass' => (int) env('INTEL_SECONDS_PER_PASS', 45),
+
     'measure' => (bool) env('INTEL_MEASURE', true),
     'page_cache' => (bool) env('INTEL_PAGE_CACHE', true),
     'page_cache_store' => env('INTEL_PAGE_CACHE_STORE', 'pages'),
