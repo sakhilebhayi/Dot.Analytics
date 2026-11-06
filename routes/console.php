@@ -62,3 +62,9 @@ Schedule::command(RunScheduledReportsCommand::class)->everyMinute()
     ->withoutOverlapping(30)
     ->onOneServer()
     ->description('Run due scheduled reports');
+
+// Public intelligence: a short pass every ten minutes. Each pass starts a few due sources and stops cleanly in time for
+// the host's short-lived worker, carrying on from where it stopped on the next pass.
+Schedule::command('intelligence:collect')->everyTenMinutes()
+    ->withoutOverlapping(15)
+    ->name('intelligence-collect');
