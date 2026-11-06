@@ -16,7 +16,7 @@
                         <dt>Kind</dt><dd>{{ $kind[$s->kind] ?? ucfirst($s->kind) }}, {{ $s->kind === 'statistics' ? $s->series_count.' '.\Illuminate\Support\Str::plural('series', $s->series_count) : $s->item_count.' '.\Illuminate\Support\Str::plural('item', $s->item_count) }}</dd>
                         <dt>Licence</dt><dd>@if($s->terms_url)<a href="{{ $s->terms_url }}" rel="noopener">{{ $s->licence }}</a>@else{{ $s->licence }}@endif</dd>
                         <dt>Credit line</dt><dd>{{ $s->attribution }}</dd>
-                        <dt>Last collected</dt><dd>{{ $s->last_success_at ? \App\Services\Intelligence\Reading\Format::age($s->last_success_at) : 'never' }}@if($s->consecutive_failures > 0), {{ $s->consecutive_failures }} {{ \Illuminate\Support\Str::plural('failure', $s->consecutive_failures) }} since @endif</dd>
+                        <dt>Last collected</dt><dd>{{ $s->last_success_at ? \App\Services\Intelligence\Reading\Format::age($s->last_success_at) : 'Not collected yet' }}@if($s->consecutive_failures > 0); {{ $s->consecutive_failures }} failed {{ \Illuminate\Support\Str::plural('attempt', $s->consecutive_failures) }} since @endif</dd>
                         @if($s->restrictions)<dt>Limits</dt><dd>{{ $s->restrictions }}</dd>@endif
                     </dl>
                 </article>

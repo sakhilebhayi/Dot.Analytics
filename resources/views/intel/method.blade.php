@@ -5,13 +5,14 @@
     </div>
     <div class="wrap section"><div class="prose">
         <h2>Five labels</h2>
-        <ul>
-            <li><x-intel.label kind="source"/> What a source published, shown as published, with its period and its licence.</li>
-            <li><x-intel.label kind="calculated"/> Arithmetic on source facts, such as a change since the last reading, or a move larger than usual for a series. Code does it and the page shows the working.</li>
-            <li><x-intel.label kind="ai"/> A machine summary of text we hold the right to summarise. It names the model and the time, and it is switched off for now. None is shown today.</li>
-            <li><x-intel.label kind="editorial"/> An opinion, signed and dated. None is published today.</li>
-            <li><x-intel.label kind="forecast"/> A projection with its assumptions stated. None is published today.</li>
-        </ul>
+        <dl class="labels">
+            <dt><x-intel.label kind="source"/></dt><dd>What a source published, shown as published, with its period and its licence.</dd>
+            <dt><x-intel.label kind="calculated"/></dt><dd>Arithmetic on source facts, such as a change since the last reading, or a move larger than usual for a series. Code does it and the page shows the working.</dd>
+            <dt><x-intel.label kind="ai"/></dt><dd>A machine summary of text we hold the right to summarise. It names the model and the time, and it is switched off for now. None is shown today.</dd>
+            <dt><x-intel.label kind="editorial"/></dt><dd>An opinion, signed and dated. None is published today.</dd>
+            <dt><x-intel.label kind="forecast"/></dt><dd>A projection with its assumptions stated. None is published today.</dd>
+        
+        </dl>
 
         <h2>Current, out of date, not available</h2>
         <p>Every series has a window in which a reading is still current: a day for an exchange rate, a few weeks for a monthly index, over two years for an annual national statistic. A reading older than its window is shown as out of date, with its date, and is never presented as the latest. A series we hold nothing for is shown as not available. Colour is never the only signal: the three states differ in shape as well.</p>

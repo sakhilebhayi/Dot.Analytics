@@ -445,3 +445,13 @@ button, input, select { font: inherit; color: inherit; }
 .pager a:hover { background: var(--ink); color: var(--ground); }
 .crumbs a, .foot a, .tape-links a { display: inline-block; padding-block: 3px; }
 .src-card dd a, .facts dd a { display: inline-block; padding-block: 2px; }
+
+/* Method page: the labels as a definition list, with room under each heading */
+.prose h2 { margin-bottom: 14px; }
+.labels { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 14px 24px; align-items: start; margin-top: 8px; }
+.labels dt { padding-top: 2px; }
+.labels dd { max-width: 58ch; color: var(--muted); }
+@media (max-width: 720px) { .labels { grid-template-columns: minmax(0, 1fr); gap: 4px; } .labels dd { margin-bottom: 14px; } .filters label, .filters select, .filters .btn { width: 100%; } }
+/* A country row answers the pointer as a whole */
+.matrix tbody tr { transition: transform 140ms var(--ease); }
+@media (min-width: 721px) { .matrix tbody tr:hover { transform: translateX(4px); } }
