@@ -33,6 +33,7 @@ class HealthApiTest extends TestCase
     public function test_detailed_health_returns_subsystem_checks(): void
     {
         $user = User::factory()->withPersonalTeam()->create();
+        $user->forceFill(['is_platform_operator' => true])->save();
         $token = $user->createToken('test')->plainTextToken;
 
         $response = $this->withToken($token)->getJson('/api/v1/health/detailed');
@@ -55,6 +56,7 @@ class HealthApiTest extends TestCase
     public function test_detailed_health_includes_database_latency(): void
     {
         $user = User::factory()->withPersonalTeam()->create();
+        $user->forceFill(['is_platform_operator' => true])->save();
         $token = $user->createToken('test')->plainTextToken;
 
         $response = $this->withToken($token)->getJson('/api/v1/health/detailed');
@@ -67,6 +69,7 @@ class HealthApiTest extends TestCase
     public function test_detailed_health_shows_no_ai_provider_configured(): void
     {
         $user = User::factory()->withPersonalTeam()->create();
+        $user->forceFill(['is_platform_operator' => true])->save();
         $token = $user->createToken('test')->plainTextToken;
 
         $response = $this->withToken($token)->getJson('/api/v1/health/detailed');
@@ -80,6 +83,7 @@ class HealthApiTest extends TestCase
     public function test_detailed_health_includes_application_version(): void
     {
         $user = User::factory()->withPersonalTeam()->create();
+        $user->forceFill(['is_platform_operator' => true])->save();
         $token = $user->createToken('test')->plainTextToken;
 
         $response = $this->withToken($token)->getJson('/api/v1/health/detailed');

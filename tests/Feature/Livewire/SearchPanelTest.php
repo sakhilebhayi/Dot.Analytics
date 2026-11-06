@@ -6,7 +6,6 @@ use App\Livewire\Analytics\SearchPanel;
 use App\Models\AnalyticsAlert;
 use App\Models\AnalyticsDashboard;
 use App\Models\CrossPlatformInsight;
-use App\Models\IntelligenceNode;
 use App\Models\Recommendation;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -20,24 +19,23 @@ class SearchPanelTest extends TestCase
     public function test_a_one_character_query_returns_nothing_from_every_type(): void
     {
         $user = User::factory()->withPersonalTeam()->create();
-        IntelligenceNode::factory()->create(['team_id' => $user->currentTeam->id, 'label' => 'A']);
+        AnalyticsAlert::factory()->create(['team_id' => $user->currentTeam->id, 'title' => 'A']);
 
         $component = Livewire::actingAs($user)->test(SearchPanel::class)->set('query', 'A');
 
-        $this->assertTrue($component->get('nodes')->isEmpty());
+        $this->assertTrue($component->get('alerts')->isEmpty());
     }
 
     public function test_a_real_query_finds_matches_across_multiple_types_simultaneously(): void
     {
         $user = User::factory()->withPersonalTeam()->create();
-        IntelligenceNode::factory()->create(['team_id' => $user->currentTeam->id, 'label' => 'Meridian Freight']);
+        AnalyticsAlert::factory()->create(['team_id' => $user->currentTeam->id, 'title' => 'Meridian Freight']);
         AnalyticsAlert::factory()->create(['team_id' => $user->currentTeam->id, 'title' => 'Meridian route delayed']);
         CrossPlatformInsight::factory()->create(['team_id' => $user->currentTeam->id, 'title' => 'Unrelated insight']);
 
         $component = Livewire::actingAs($user)->test(SearchPanel::class)->set('query', 'Meridian');
 
-        $this->assertCount(1, $component->get('nodes'));
-        $this->assertCount(1, $component->get('alerts'));
+        $this->assertCount(2, $component->get('alerts'));
         $this->assertCount(0, $component->get('insights'));
     }
 
@@ -72,10 +70,10 @@ class SearchPanelTest extends TestCase
     public function test_mount_accepts_an_initial_query_from_the_route(): void
     {
         $user = User::factory()->withPersonalTeam()->create();
-        IntelligenceNode::factory()->create(['team_id' => $user->currentTeam->id, 'label' => 'Preloaded Match']);
+        AnalyticsAlert::factory()->create(['team_id' => $user->currentTeam->id, 'title' => 'Preloaded Match']);
 
         $component = Livewire::actingAs($user)->test(SearchPanel::class, ['query' => 'Preloaded']);
 
-        $this->assertCount(1, $component->get('nodes'));
+        $this->assertCount(1, $component->get('alerts'));
     }
 }

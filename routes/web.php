@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\EcosystemAuthController;
+use App\Http\Middleware\ReverifyWithInfoDot;
 use App\Models\AnalyticsAlert;
 use App\Models\AnalyticsReport;
 use App\Models\DataSource;
@@ -40,6 +41,7 @@ Route::middleware([
     'auth:sanctum',
     config('jetstream.auth_session'),
     'verified',
+    ReverifyWithInfoDot::class,
 ])->group(function () {
     Route::get('/dashboard', function () {
         // No team-context middleware runs ahead of this route, so a user who

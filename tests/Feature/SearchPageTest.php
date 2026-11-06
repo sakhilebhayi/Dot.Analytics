@@ -2,7 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\Models\IntelligenceNode;
+use App\Models\AnalyticsAlert;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -23,7 +23,7 @@ class SearchPageTest extends TestCase
     public function test_a_query_string_reaches_the_component(): void
     {
         $user = User::factory()->withPersonalTeam()->create();
-        IntelligenceNode::factory()->create(['team_id' => $user->currentTeam->id, 'label' => 'Findable Corp']);
+        AnalyticsAlert::factory()->create(['team_id' => $user->currentTeam->id, 'title' => 'Findable Corp']);
 
         $this->actingAs($user)
             ->get(route('search', ['q' => 'Findable']))

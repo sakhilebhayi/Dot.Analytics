@@ -2,12 +2,14 @@
 
 namespace Tests\Feature\Metrics;
 
+use App\Actions\Analytics\DisconnectPlatformAction;
 use App\Models\AnalyticsSnapshot;
 use App\Models\AuditLog;
 use App\Models\ComputedMetric;
 use App\Models\DataSource;
 use App\Models\Team;
 use App\Services\Metrics\MetricReader;
+use App\Support\TeamContext;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Testing\TestResponse;
@@ -364,8 +366,8 @@ class ServerIngestTest extends TestCase
         $this->assertNull($this->snapshots()->firstWhere('team_id', $bystander->id));
 
         // And each team's own data source holds only its own snapshot.
-        $this->assertSame(1, $this->sources()->firstWhere('team_id', $this->team->id)->snapshots()->count());
-        $this->assertSame(1, $this->sources()->firstWhere('team_id', $other->id)->snapshots()->count());
+        $this->assertSame(1, $this->sources()->firstWhere('team_id', $this->team->id)->snapshots()->withoutGlobalScopes()->count());
+        $this->assertSame(1, $this->sources()->firstWhere('team_id', $other->id)->snapshots()->withoutGlobalScopes()->count());
         $this->assertNull($this->sources()->firstWhere('team_id', $bystander->id));
     }
 
@@ -522,7 +524,7 @@ class ServerIngestTest extends TestCase
         $this->assertNotNull($source->last_synced_at);
         $this->assertNull($source->webhook_secret, 'this path needs no owner-issued webhook secret');
         $this->assertNotEmpty($source->capabilities);
-        $this->assertCount(2, $source->snapshots);
+        $this->assertCount(2, $source->snapshots()->withoutGlobalScopes()->get());
     }
 
     public function test_provisioning_is_audited_as_the_system_and_leaks_no_secret(): void
@@ -721,5 +723,23 @@ class ServerIngestTest extends TestCase
             ->assertCreated()->assertJsonPath('platform', 'sheet')->assertJsonPath('dropped_keys', []);
 
         $this->assertEqualsCanonicalizing(array_keys($metrics), $response->json('accepted_keys'));
+    }
+
+    public function test_a_platform_the_owner_disconnected_stays_disconnected_until_they_reconnect_it(): void
+    {
+        $this->publish($this->body('tasks', ['open' => 1], null, '2026-10-16T06:00:00Z'))->assertStatus(201);
+        TeamContext::system(fn () => app(DisconnectPlatformAction::class)->handle($this->team, 'tasks'));
+
+        $this->publish($this->body('tasks', ['open' => 2], null, '2026-10-17T06:00:00Z'))->assertStatus(409);
+
+        $this->assertCount(1, $this->snapshots());
+        $this->assertSame('disconnected', $this->sources()->first()->status);
+    }
+
+    public function test_a_snapshot_from_long_ago_is_refused(): void
+    {
+        $this->publish($this->body('tasks', ['open' => 1], null, now()->subDays(500)->toIso8601ZuluString()))->assertStatus(422);
+
+        $this->assertCount(0, $this->snapshots());
     }
 }

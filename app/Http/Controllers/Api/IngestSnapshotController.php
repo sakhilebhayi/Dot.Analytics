@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Services\Metrics\MetricCatalogue;
 use App\Services\Metrics\ServerIngestSignature;
 use App\Services\Metrics\ServerSnapshotIngest;
+use App\Support\TeamContext;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -78,9 +79,13 @@ class IngestSnapshotController extends Controller
         }
 
         try {
-            $result = $ingest->ingest($platform, $body);
+            $result = TeamContext::system(fn () => $ingest->ingest($platform, $body));
         } catch (ValidationException $e) {
             return $this->invalid($e->errors());
+        }
+
+        if ($result === ServerSnapshotIngest::DISCONNECTED) {
+            return response()->json(['error' => 'disconnected'], 409);
         }
 
         if ($result === null) {

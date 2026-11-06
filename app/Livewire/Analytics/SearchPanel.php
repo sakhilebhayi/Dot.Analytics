@@ -30,12 +30,6 @@ class SearchPanel extends Component
     }
 
     #[Computed]
-    public function nodes(): Collection
-    {
-        return $this->resultsFor('nodes');
-    }
-
-    #[Computed]
     public function insights(): Collection
     {
         return $this->resultsFor('insights');
@@ -68,7 +62,7 @@ class SearchPanel extends Component
     #[Computed]
     public function totalCount(): int
     {
-        return $this->nodes->count() + $this->insights->count() + $this->alerts->count()
+        return $this->insights->count() + $this->alerts->count()
             + $this->recommendations->count() + $this->reports->count() + $this->dashboards->count();
     }
 

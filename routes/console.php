@@ -17,48 +17,48 @@ Artisan::command('inspire', function () {
 // Turn the latest platform snapshots into computed metrics (idempotent). Also
 // run right after each new snapshot arrives; the hourly run is the safety net.
 Schedule::command(ComputeMetricsCommand::class)->hourly()
-    ->withoutOverlapping()
+    ->withoutOverlapping(30)
     ->onOneServer()
     ->description('Compute metrics from platform snapshots');
 
 // ─── Intelligence Engine Schedule ─────────────────────────────────────────────
 // Run all intelligence engines for all teams every 6 hours
 Schedule::command(RunIntelligenceEnginesCommand::class)->everySixHours()
-    ->withoutOverlapping()
+    ->withoutOverlapping(30)
     ->onOneServer()
     ->description('Run intelligence engines across all teams');
 
 // Generate daily briefings at 06:00 every morning
 Schedule::command(GenerateBriefingsCommand::class, ['daily'])
     ->dailyAt('06:00')
-    ->withoutOverlapping()
+    ->withoutOverlapping(30)
     ->onOneServer()
     ->description('Generate daily executive intelligence briefings');
 
 // Generate weekly briefings on Monday mornings
 Schedule::command(GenerateBriefingsCommand::class, ['weekly'])
     ->weeklyOn(1, '06:30')
-    ->withoutOverlapping()
+    ->withoutOverlapping(30)
     ->onOneServer()
     ->description('Generate weekly executive intelligence briefings');
 
 // Generate monthly briefings on the 1st of each month
 Schedule::command(GenerateBriefingsCommand::class, ['monthly'])
     ->monthlyOn(1, '07:00')
-    ->withoutOverlapping()
+    ->withoutOverlapping(30)
     ->onOneServer()
     ->description('Generate monthly executive intelligence briefings');
 
 // Recompute Business DNA overnight for all teams
 Schedule::command(RecomputeDnaCommand::class)
     ->dailyAt('02:00')
-    ->withoutOverlapping()
+    ->withoutOverlapping(30)
     ->onOneServer()
     ->description('Recompute Business DNA profiles');
 
 // Run saved reports whose cron_expression is due. Every minute, so a schedule is
 // honoured to the minute; the command itself runs a report at most once per minute.
 Schedule::command(RunScheduledReportsCommand::class)->everyMinute()
-    ->withoutOverlapping()
+    ->withoutOverlapping(30)
     ->onOneServer()
     ->description('Run due scheduled reports');

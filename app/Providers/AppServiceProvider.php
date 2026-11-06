@@ -6,18 +6,10 @@ use App\Models\DataSource;
 use App\Models\User;
 use App\Observers\DataSourceObserver;
 use App\Services\AiModelRouter;
-use App\Services\AiSqlService;
 use App\Services\BusinessDnaService;
-use App\Services\Connectors\ConnectorRegistry;
-use App\Services\Connectors\DatabaseConnector;
-use App\Services\Connectors\FileConnector;
-use App\Services\Connectors\RestApiConnector;
 use App\Services\CrossPlatformIntelligenceService;
 use App\Services\CurrencyService;
-use App\Services\FeatureFlagService;
 use App\Services\IntelligenceEngineService;
-use App\Services\KnowledgeGraphService;
-use App\Services\PipelineExecutionService;
 use App\Services\ReportGenerationService;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -32,7 +24,6 @@ class AppServiceProvider extends ServiceProvider
         // Intelligence services as singletons — one instance per request
         $this->app->singleton(IntelligenceEngineService::class);
         $this->app->singleton(AiModelRouter::class);
-        $this->app->singleton(KnowledgeGraphService::class);
 
         $this->app->singleton(CrossPlatformIntelligenceService::class, fn ($app) => new CrossPlatformIntelligenceService(
             $app->make(IntelligenceEngineService::class),
@@ -46,29 +37,10 @@ class AppServiceProvider extends ServiceProvider
         )
         );
 
-        // Connector registry — register all built-in connectors
-        $this->app->singleton(ConnectorRegistry::class, function () {
-            $registry = new ConnectorRegistry;
-            $registry->register(new RestApiConnector);
-            $registry->register(new DatabaseConnector);
-            $registry->register(new FileConnector);
-
-            return $registry;
-        });
-
-        $this->app->singleton(PipelineExecutionService::class, fn ($app) => new PipelineExecutionService($app->make(ConnectorRegistry::class))
-        );
-
         $this->app->singleton(ReportGenerationService::class);
 
-        $this->app->singleton(FeatureFlagService::class);
         $this->app->singleton(CurrencyService::class);
 
-        $this->app->singleton(AiSqlService::class, fn ($app) => new AiSqlService(
-            $app->make(AiModelRouter::class),
-            $app->make(ConnectorRegistry::class),
-        )
-        );
     }
 
     public function boot(): void
@@ -89,12 +61,6 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('generate-briefing', fn ($user) => $this->isTeamOwnerOrAdmin($user)
         );
 
-        Gate::define('manage-connectors', fn ($user) => $this->isTeamOwnerOrAdmin($user)
-        );
-
-        Gate::define('execute-sql-query', fn ($user) => $this->isTeamOwnerOrAdmin($user)
-        );
-
         Gate::define('view-audit-logs', fn ($user) => $this->isTeamOwnerOrAdmin($user)
         );
 
@@ -107,9 +73,8 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('manage-reports', fn ($user) => $user->administersTeam($user->currentTeam)
         );
 
-        // Feature flags are GLOBAL (every tenant reads the same rows), so mutating
-        // them is reserved for platform operators. A team role must never grant it.
-        Gate::define('manage-feature-flags', fn ($user) => $user->isPlatformOperator()
+        // The running of the platform itself, across every tenant. A team role must never grant it.
+        Gate::define('operate-platform', fn ($user) => $user->isPlatformOperator()
         );
 
         // Working inside the layer without managing it (owner, admin, editor; never the
@@ -131,6 +96,9 @@ class AppServiceProvider extends ServiceProvider
 
         // SSO token redemption: unauthenticated, so key by IP.
         RateLimiter::for('ecosystem-auth', fn (Request $request) => Limit::perMinute(10)->by($request->ip()));
+
+        // A snapshot call before its signature is checked. Refused calls count too, so a stranger cannot fill the log.
+        RateLimiter::for('analytics-ingest-edge', fn (Request $request) => Limit::perMinute(240)->by($request->ip()));
 
         // API rate limiters
         RateLimiter::for('analytics-api', function (Request $request) {

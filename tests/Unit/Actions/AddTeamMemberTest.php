@@ -3,7 +3,6 @@
 namespace Tests\Unit\Actions;
 
 use App\Actions\Jetstream\AddTeamMember;
-use App\Models\Team;
 use App\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;

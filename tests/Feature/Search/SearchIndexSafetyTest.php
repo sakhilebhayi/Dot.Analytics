@@ -6,9 +6,7 @@ use App\Models\AnalyticsAlert;
 use App\Models\AnalyticsDashboard;
 use App\Models\AnalyticsReport;
 use App\Models\CrossPlatformInsight;
-use App\Models\DataConnector;
 use App\Models\DataSource;
-use App\Models\IntelligenceNode;
 use App\Models\Recommendation;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
@@ -29,7 +27,6 @@ class SearchIndexSafetyTest extends TestCase
         AnalyticsDashboard::class,
         AnalyticsReport::class,
         CrossPlatformInsight::class,
-        IntelligenceNode::class,
         Recommendation::class,
     ];
 
@@ -48,7 +45,7 @@ class SearchIndexSafetyTest extends TestCase
         return $found;
     }
 
-    public function test_exactly_the_six_content_models_are_searchable(): void
+    public function test_exactly_the_five_content_models_are_searchable(): void
     {
         $expected = self::SEARCHABLE;
         sort($expected);
@@ -58,7 +55,7 @@ class SearchIndexSafetyTest extends TestCase
 
     public function test_connection_models_that_hold_secrets_are_not_searchable(): void
     {
-        foreach ([DataSource::class, DataConnector::class, User::class] as $class) {
+        foreach ([DataSource::class, User::class] as $class) {
             $this->assertNotContains(Searchable::class, class_uses_recursive($class), $class);
         }
     }

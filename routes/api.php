@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Controllers\Api\IngestSnapshotController;
-use App\Http\Controllers\Api\V1\FeatureFlagController;
 use App\Http\Controllers\Api\V1\HealthController;
 use App\Http\Controllers\Api\V1\IngestController;
 use App\Http\Controllers\Api\V1\IntelligenceController;
@@ -9,7 +8,6 @@ use App\Http\Controllers\Api\V1\MetricsController;
 use App\Http\Controllers\Api\V1\PlatformController;
 use App\Http\Controllers\Api\V1\ReportController;
 use App\Http\Controllers\Api\V1\SavedReportController;
-use App\Http\Controllers\Api\V1\SqlController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -35,7 +33,7 @@ Route::get('/user', fn (Request $request) => $request->user())
 // caller proves itself with a per-platform HMAC over "{timestamp}.{raw body}" (see
 // ServerIngestSignature) and is rate limited per platform inside the controller.
 // The user-token ingest under /v1 below is a different, unchanged path.
-Route::post('/ingest/snapshots', IngestSnapshotController::class)->name('api.ingest.snapshots');
+Route::post('/ingest/snapshots', IngestSnapshotController::class)->middleware('throttle:analytics-ingest-edge')->name('api.ingest.snapshots');
 
 // ─── API v1 — requires Sanctum token ─────────────────────────────────────────
 Route::prefix('v1')
@@ -46,8 +44,6 @@ Route::prefix('v1')
         Route::prefix('intelligence')->group(function () {
             Route::get('engines', [IntelligenceController::class, 'engines']);
             Route::get('insights', [IntelligenceController::class, 'insights']);
-            Route::get('graph', [IntelligenceController::class, 'graph']);
-            Route::post('graph/traverse', [IntelligenceController::class, 'traverse']);
             Route::post('run', [IntelligenceController::class, 'run'])
                 ->middleware('throttle:analytics-ai');
         });
@@ -76,12 +72,6 @@ Route::prefix('v1')
             Route::get('{type}/html', [ReportController::class, 'html']);
         });
 
-        // AI SQL — natural language to SQL
-        Route::prefix('sql')->middleware('throttle:analytics-ai')->group(function () {
-            Route::post('query', [SqlController::class, 'query']);
-            Route::post('generate', [SqlController::class, 'generate']);
-        });
-
         // Webhook ingest — higher rate limit for platform data pushes
         Route::prefix('ingest')->middleware('throttle:analytics-ingest')->group(function () {
             Route::post('{platform}', [IngestController::class, 'receive']);
@@ -98,15 +88,6 @@ Route::prefix('v1')
         });
 
         // Detailed health diagnostics (auth required for sensitive data)
-        Route::get('health/detailed', [HealthController::class, 'detailed']);
+        Route::get('health/detailed', [HealthController::class, 'detailed'])->middleware('can:operate-platform');
 
-        // Feature flags — runtime feature management
-        Route::prefix('feature-flags')->group(function () {
-            Route::get('/', [FeatureFlagController::class, 'index']);
-            Route::post('/', [FeatureFlagController::class, 'store']);
-            Route::get('check/{key}', [FeatureFlagController::class, 'check']);
-            Route::patch('{key}/enable', [FeatureFlagController::class, 'enable']);
-            Route::patch('{key}/disable', [FeatureFlagController::class, 'disable']);
-            Route::patch('{key}/rollout', [FeatureFlagController::class, 'rollout']);
-        });
     });

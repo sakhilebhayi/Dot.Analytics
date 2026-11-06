@@ -35,7 +35,7 @@ class DisconnectPlatformActionTest extends TestCase
         $name = $this->action->handle($team, 'tasks');
 
         $this->assertEquals('Dot.Fleet', $name);
-        $this->assertDatabaseMissing('data_sources', ['team_id' => $team->id, 'platform' => 'tasks']);
+        $this->assertDatabaseHas('data_sources', ['team_id' => $team->id, 'platform' => 'tasks', 'status' => 'disconnected']);
     }
 
     public function test_disconnect_returns_null_when_not_connected(): void
@@ -57,7 +57,7 @@ class DisconnectPlatformActionTest extends TestCase
         $this->action->handle($team, 'tasks');
 
         $this->assertDatabaseHas('data_sources', ['team_id' => $team->id, 'platform' => 'emall']);
-        $this->assertDatabaseMissing('data_sources', ['team_id' => $team->id, 'platform' => 'tasks']);
+        $this->assertDatabaseHas('data_sources', ['team_id' => $team->id, 'platform' => 'tasks', 'status' => 'disconnected']);
     }
 
     public function test_disconnect_does_not_affect_other_teams(): void

@@ -6,15 +6,10 @@ use App\Models\AnalyticsDashboard;
 use App\Models\AnalyticsReport;
 use App\Models\AnalyticsSnapshot;
 use App\Models\BusinessDnaProfile;
-use App\Models\DataConnector;
-use App\Models\DataPipeline;
 use App\Models\DataSource;
 use App\Models\ExecutiveBriefing;
-use App\Models\IntelligenceEdge;
 use App\Models\IntelligenceEngineRun;
-use App\Models\IntelligenceNode;
 use App\Models\MetricDefinition;
-use App\Models\PipelineRun;
 use App\Models\ReportRun;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
@@ -145,73 +140,6 @@ class ModelsTest extends TestCase
         $this->assertNull($run->durationSeconds());
     }
 
-    // ─── DataConnector ───────────────────────────────────────────────────────
-
-    public function test_data_connector_is_active(): void
-    {
-        $team = $this->team();
-        $conn = DataConnector::create([
-            'team_id' => $team->id,
-            'name' => 'My DB',
-            'type' => 'database',
-            'driver' => 'postgres',
-            'config' => [],
-            'status' => 'active',
-        ]);
-
-        $this->assertTrue($conn->isActive());
-    }
-
-    public function test_data_connector_belongs_to_team(): void
-    {
-        $team = $this->team();
-        $conn = DataConnector::create([
-            'team_id' => $team->id,
-            'name' => 'My DB',
-            'type' => 'database',
-            'driver' => 'postgres',
-            'config' => [],
-            'status' => 'active',
-        ]);
-
-        $this->assertEquals($team->id, $conn->team->id);
-    }
-
-    public function test_data_connector_has_many_pipelines(): void
-    {
-        $team = $this->team();
-        $conn = DataConnector::create([
-            'team_id' => $team->id,
-            'name' => 'My DB',
-            'type' => 'database',
-            'driver' => 'postgres',
-            'config' => [],
-            'status' => 'active',
-        ]);
-
-        DataPipeline::create([
-            'team_id' => $team->id,
-            'data_connector_id' => $conn->id,
-            'name' => 'Pipeline A',
-            'source_config' => [],
-            'transform_config' => [],
-            'destination_config' => [],
-        ]);
-
-        $this->assertCount(1, $conn->pipelines);
-    }
-
-    public function test_data_connector_is_not_active_when_inactive(): void
-    {
-        $team = $this->team();
-        $conn = DataConnector::create([
-            'team_id' => $team->id, 'name' => 'DB', 'type' => 'database',
-            'driver' => 'postgres', 'config' => [], 'status' => 'inactive',
-        ]);
-
-        $this->assertFalse($conn->isActive());
-    }
-
     // ─── MetricDefinition ────────────────────────────────────────────────────
 
     public function test_metric_definition_has_computed_metrics_relationship(): void
@@ -226,28 +154,6 @@ class ModelsTest extends TestCase
 
         $this->assertInstanceOf(Collection::class, $def->computedMetrics);
         $this->assertInstanceOf(Collection::class, $def->alerts);
-    }
-
-    // ─── PipelineRun ─────────────────────────────────────────────────────────
-
-    public function test_pipeline_run_quality_score(): void
-    {
-        $team = $this->team();
-        $pipeline = DataPipeline::create([
-            'team_id' => $team->id,
-            'name' => 'Test',
-            'source_config' => [],
-            'transform_config' => [],
-            'destination_config' => [],
-        ]);
-
-        $run = PipelineRun::create([
-            'data_pipeline_id' => $pipeline->id,
-            'status' => 'completed',
-            'data_quality_report' => ['completeness_pct' => 92],
-        ]);
-
-        $this->assertEquals(92, $run->qualityScore());
     }
 
     // ─── ReportRun ───────────────────────────────────────────────────────────
@@ -266,38 +172,5 @@ class ModelsTest extends TestCase
         $run = ReportRun::create(['analytics_report_id' => $report->id, 'status' => 'completed']);
 
         $this->assertEquals($report->id, $run->report->id);
-    }
-
-    // ─── IntelligenceNode + Edge ─────────────────────────────────────────────
-
-    public function test_intelligence_node_has_edge_relationships(): void
-    {
-        $team = $this->team();
-        $nodeA = IntelligenceNode::create([
-            'team_id' => $team->id,
-            'entity_type' => 'customer',
-            'entity_id' => 'C-001',
-            'label' => 'Acme Corp',
-            'source_platform' => 'emall',
-        ]);
-        $nodeB = IntelligenceNode::create([
-            'team_id' => $team->id,
-            'entity_type' => 'invoice',
-            'entity_id' => 'I-001',
-            'label' => 'Invoice #1',
-            'source_platform' => 'billing',
-        ]);
-
-        IntelligenceEdge::create([
-            'team_id' => $team->id,
-            'from_node_id' => $nodeA->id,
-            'to_node_id' => $nodeB->id,
-            'relationship' => 'has',
-        ]);
-
-        $nodeA->load('outgoingEdges');
-        $this->assertCount(1, $nodeA->outgoingEdges);
-        $nodeB->load('incomingEdges');
-        $this->assertCount(1, $nodeB->incomingEdges);
     }
 }

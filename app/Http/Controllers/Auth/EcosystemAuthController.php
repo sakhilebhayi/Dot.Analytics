@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Actions\Ecosystem\ProvisionUserFromInfoDot;
 use App\Actions\Ecosystem\SyncTeamsFromInfoDot;
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\ReverifyWithInfoDot;
 use App\Models\User;
 use App\Services\InfoDot\IdentityClient;
 use App\Services\InfoDot\InfoDotUnavailable;
@@ -109,6 +110,7 @@ class EcosystemAuthController extends Controller
 
         // New session id on privilege change (prevents session fixation).
         $request->session()->regenerate();
+        $request->session()->put(ReverifyWithInfoDot::VERIFIED_AT, now()->getTimestamp());
 
         // A user arriving without a valid current team would otherwise land on a
         // dashboard that has to guess. Keep a valid current team; otherwise fall
@@ -125,7 +127,8 @@ class EcosystemAuthController extends Controller
 
     private function userFromLocalToken(PersonalAccessToken $accessToken): ?User
     {
-        $valid = $accessToken->can('ecosystem:read')
+        // The ability is named outright: a wildcard API key must not turn into a browser session.
+        $valid = in_array('ecosystem:read', (array) $accessToken->abilities, true)
             && ! ($accessToken->expires_at && $accessToken->expires_at->isPast());
 
         $user = $valid ? $accessToken->tokenable : null;

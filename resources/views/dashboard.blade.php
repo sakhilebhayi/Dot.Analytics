@@ -88,10 +88,6 @@
                 </div>
             </div>
 
-            {{-- Knowledge Graph --}}
-            <div style="background:var(--ink-soft);">
-                <livewire:analytics.knowledge-graph-panel />
-            </div>
 
             {{-- Business DNA Profile --}}
             <div style="background:var(--ink-soft);">
@@ -108,12 +104,6 @@
                 <livewire:analytics.saved-reports-panel />
             </div>
 
-            {{-- Feature Flags (admin) --}}
-            @can('manage-platforms')
-                <div style="background:var(--ink-soft);">
-                    <livewire:analytics.feature-flags-panel />
-                </div>
-            @endcan
 
         </div>
     </div>

@@ -82,6 +82,12 @@ class SnapshotContract
             return null;
         }
 
+        if ($takenAt->lt(now()->subDays((int) config('analytics.ingest.max_age_days', 400)))) {
+            $errors['taken_at'] = ['taken_at is too old.'];
+
+            return null;
+        }
+
         return $takenAt->startOfSecond();
     }
 

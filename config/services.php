@@ -41,23 +41,10 @@ return [
         'key' => env('ANTHROPIC_API_KEY', ''),
     ],
 
-    'openai' => [
-        'key' => env('OPENAI_API_KEY', ''),
-        'model' => env('OPENAI_MODEL', 'gpt-4o'),
-    ],
-
-    'google' => [
-        'ai_key' => env('GOOGLE_AI_KEY', ''),
-        'model' => env('GOOGLE_AI_MODEL', 'gemini-1.5-pro'),
-    ],
-
-    'deepseek' => [
-        'key' => env('DEEPSEEK_API_KEY', ''),
-        'model' => env('DEEPSEEK_MODEL', 'deepseek-chat'),
-    ],
-
     'ai' => [
-        'primary_provider' => env('AI_PRIMARY_PROVIDER', 'anthropic'),
+        'timeout' => (int) env('AI_TIMEOUT_SECONDS', 45),
+        'team_monthly_budget_usd' => (float) env('AI_TEAM_MONTHLY_BUDGET_USD', 5),
+        'platform_monthly_budget_usd' => (float) env('AI_PLATFORM_MONTHLY_BUDGET_USD', 50),
     ],
 
 ];

@@ -13,23 +13,6 @@
         <p style="font-size:0.85rem;color:var(--mist);text-align:center;padding:2rem 0;">No results for &ldquo;{{ $query }}&rdquo;.</p>
     @else
         <div style="display:flex;flex-direction:column;gap:1.75rem;">
-            @if($this->nodes->isNotEmpty())
-                <div>
-                    <p class="font-mono" style="font-size:0.65rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--teal-soft);margin:0 0 0.75rem;">Knowledge Graph ({{ $this->nodes->count() }})</p>
-                    <div style="display:flex;flex-direction:column;gap:0.5rem;">
-                        @foreach($this->nodes as $node)
-                            <a href="{{ route('dashboard') }}" style="display:block;padding:0.75rem 1rem;border:1px solid var(--line);border-radius:0.5rem;text-decoration:none;">
-                                <div class="flex items-center gap-2">
-                                    <span style="font-size:0.85rem;font-weight:600;color:var(--paper);">{{ $node->label }}</span>
-                                    <span style="font-size:0.65rem;color:var(--mist);border:1px solid var(--line);border-radius:0.25rem;padding:0.05rem 0.4rem;">{{ $node->entity_type }}</span>
-                                </div>
-                                <p style="font-size:0.72rem;color:var(--mist);margin:0.2rem 0 0;">{{ $node->entity_id }}</p>
-                            </a>
-                        @endforeach
-                    </div>
-                </div>
-            @endif
-
             @if($this->insights->isNotEmpty())
                 <div>
                     <p class="font-mono" style="font-size:0.65rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--teal-soft);margin:0 0 0.75rem;">Cross-Platform Insights ({{ $this->insights->count() }})</p>
