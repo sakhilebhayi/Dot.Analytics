@@ -88,7 +88,8 @@ class SiteMeasuresTest extends TestCase
         $hashes = $this->db()->table('visitor_days')->pluck('hash')->all();
         $this->assertCount(2, array_unique($hashes), 'a new week is a new hash for the same person');
         $this->assertSame(0, (int) $this->db()->table('visits')->where('day', now()->toDateString())->where('area', '_all')->value('returning'));
-        $this->assertNotSame($first, $hashes[1]);
+        $this->assertNotNull($first);
+        $this->assertContains($first, $hashes);
     }
 
     public function test_nothing_that_identifies_a_person_is_stored(): void
