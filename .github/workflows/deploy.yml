@@ -435,6 +435,24 @@ jobs:
             echo "== docroot build/ did not exist; linked to $APPDIR/public/build"
           fi
 
+          # ---- the other static files the browser asks for (fonts, images, robots.txt, favicons)
+          # Like build/, the docroot may hold its own copy of these instead of serving public/. The public library's fonts
+          # live in public/fonts, so a docroot that does not have them would serve the pages in a fallback face. Tolerant:
+          # a failure here is a warning, and the smoke check below fails the run if the font does not answer 200.
+          (
+            set +e
+            if [ "$(cd "$DOCROOT" && pwd -P)" = "$(cd public && pwd -P)" ]; then echo "== static files: the docroot is public/ itself; nothing to copy"; exit 0; fi
+            for STATIC in fonts images; do
+              L="$DOCROOT/$STATIC"
+              if [ -L "$L" ]; then echo "== docroot $STATIC/ is a symlink; nothing to copy"
+              elif [ -d "$L" ]; then rsync -a public/$STATIC/ "$L/" && echo "== docroot $STATIC/ mirrored from public/$STATIC"
+              else ln -s "$APPDIR/public/$STATIC" "$L" && echo "== docroot $STATIC/ did not exist; linked to $APPDIR/public/$STATIC"; fi
+            done
+            for F in robots.txt favicon.ico favicon-16x16.png favicon-32x32.png apple-touch-icon.png; do
+              if [ -f "public/$F" ] && [ ! -L "$DOCROOT/$F" ]; then cp -p "public/$F" "$DOCROOT/$F" && echo "== docroot $F refreshed"; fi
+            done
+          ) || echo "::warning::static files: could not refresh the docroot copies (deploy continues)"
+
           # ---- PHP settings files: carry .user.ini / php.ini into public/ (tolerant, never fails the deploy)
           # The owner is moving each subdomain's document root from ~/<host>/ to ~/<host>/<app>/public. The old docroot may hold
           # cPanel/MultiPHP per-directory PHP settings (.user.ini and/or php.ini: upload sizes, memory limits). PHP reads
@@ -473,6 +491,9 @@ jobs:
           $PHP artisan migrate:status --pending 2>&1 | tail -25 || true
           if [ "$MIGRATE" = "yes" ]; then
             $PHP artisan migrate --force
+            # The public library's reference data (industries, places, sources, series). Idempotent. Without it the front
+            # page would list no industries until the first scheduled collection ran.
+            $PHP artisan intelligence:install || echo "::warning::intelligence:install failed; the next scheduled collection installs it."
           else
             echo "== Migrations NOT run (takeover). Read the list above; the next confirm=deploy runs them, or re-run with migrate=migrate."
           fi
@@ -607,7 +628,7 @@ jobs:
             done
             printf '%s' "$code"
           }
-          for PAGE in "/" "/login" "/up"; do
+          for PAGE in "/" "/login" "/up" "/robots.txt" "/fonts/ibm-plex-sans-var.woff2" "/sitemap.xml" "/industries"; do
             CODE=$(status "$SITE_URL$PAGE")
             if [ "$CODE" = "200" ]; then echo "200 $SITE_URL$PAGE"; else echo "::error::$SITE_URL$PAGE answered ${CODE:-no response} (expected 200)"; FAILED=1; fi
           done
@@ -627,7 +648,7 @@ jobs:
           # SQLite file must not be downloadable (Dot.Central's health check
           # does the same for its database file).
           APPDIR="$(basename "$APP_PATH")"
-          for LEAK in ".env" "artisan" "database/database.sqlite"; do
+          for LEAK in ".env" "artisan" "database/database.sqlite" "storage/intelligence/intelligence.sqlite"; do
             CODE=$(curl -s --max-time 30 -o /dev/null -w '%{http_code}' "$SITE_URL/$APPDIR/$LEAK" || true)
             if [ "$CODE" = "200" ]; then echo "::error::$SITE_URL/$APPDIR/$LEAK answered 200: the application folder is readable over HTTP."; FAILED=1; else echo "Not served: $SITE_URL/$APPDIR/$LEAK (${CODE:-no response})"; fi
           done
@@ -643,7 +664,7 @@ jobs:
           set -uo pipefail
           KEY="$(basename "$APP_PATH")"
           EXPOSED=""
-          for P in .env .env.bak-secrets artisan composer.json composer.lock database/database.sqlite storage/logs/laravel.log vendor/autoload.php phpunit.xml; do
+          for P in .env .env.bak-secrets artisan composer.json composer.lock database/database.sqlite storage/intelligence/intelligence.sqlite storage/logs/laravel.log vendor/autoload.php phpunit.xml; do
             CODE=$(curl -s -o /dev/null -m 15 -w '%{http_code}' "$SITE_URL/$KEY/$P" || true)
             echo "$KEY/$P -> ${CODE:-000}"
             if [ "$CODE" = "200" ]; then EXPOSED="$EXPOSED $P"; fi
@@ -652,4 +673,4 @@ jobs:
             echo "::error::The application folder is readable over HTTP at $SITE_URL/$KEY/ for:$EXPOSED. Put 'Require all denied' in its .htaccess (InfoDot: App Folder Guard workflow) and redeploy."
             exit 1
           fi
-          echo "== Application folder not readable over HTTP (9 paths, none answered 200)."
+          echo "== Application folder not readable over HTTP (10 paths, none answered 200)."

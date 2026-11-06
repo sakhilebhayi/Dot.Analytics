@@ -21,7 +21,7 @@
                     @foreach($item->industries as $i)<li><a href="{{ route('intel.industry', $i) }}">{{ $i->name }}</a></li>@endforeach
                     @foreach($item->geographies as $g)<li><a href="{{ route('intel.country', $g) }}">{{ $g->name }}</a></li>@endforeach
                 </ul>
-                <p class="prov">Filed by words in the headline and summary, not by a person or a model. A wrong filing can be reported from the sources page.</p>
+                <p class="prov">Filed by words in the headline and summary, not by a person or a model.</p>
             @endif
         </article>
         <aside class="panel" aria-labelledby="p-h">
