@@ -15,6 +15,7 @@
             <p class="prov">Questions to try</p>
             <ul class="chips">@foreach($asks as $ask)<li><a href="{{ route('intel.find', ['q' => $ask]) }}">{{ $ask }}</a></li>@endforeach</ul>
         @else
+            <p><a class="btn quiet" href="{{ route('me.save.confirm', ['kind' => 'search', 'ref' => $q]) }}">Save this search</a></p>
             @if($answer)
                 <section class="answer" aria-labelledby="ans-h">
                     <h2 id="ans-h">{{ $answer['title'] }}</h2>

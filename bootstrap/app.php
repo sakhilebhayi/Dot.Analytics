@@ -21,6 +21,9 @@ return Application::configure(basePath: dirname(__DIR__))
         then: function () {
             // The public library: no session, no sign-in, finished pages cached. It never touches a company's data.
             Route::middleware('public')->group(base_path('routes/public.php'));
+
+            // A person's own library: watching, saving, alerts and email. Signed in, never cached, strict policy.
+            Route::middleware('web')->group(base_path('routes/me.php'));
         },
     )
     // Listeners are mapped explicitly in EventServiceProvider. Leaving framework

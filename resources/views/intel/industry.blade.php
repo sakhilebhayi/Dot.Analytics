@@ -6,6 +6,7 @@
         <ol class="crumbs"><li><a href="{{ route('intel.industries') }}">Industries</a></li><li aria-current="page">{{ $industry->name }}</li></ol>
         <h1>{{ $industry->name }}</h1>
         <p class="lede">{{ $industry->summary }}</p>
+        <p class="btn-row"><a class="btn quiet" href="{{ route('me.watch.confirm', ['kind' => 'industry', 'key' => $industry->slug]) }}">Watch this industry</a></p>
     </div>
 
     <section class="wrap section" aria-labelledby="cov-h">

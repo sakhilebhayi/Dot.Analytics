@@ -15,7 +15,7 @@
                 <p>{{ $item->ai_summary }}</p>
                 <p class="prov">Written by {{ $item->ai_model }} on {{ $item->ai_generated_at?->format('j F Y') }} from the publisher's text. Check it against the original.</p>
             @endif
-            <p class="btn-row"><a class="btn" href="{{ $item->url }}" rel="noopener nofollow">Read the original at {{ $item->source->name }}</a></p>
+            <p class="btn-row"><a class="btn" href="{{ $item->url }}" rel="noopener nofollow">Read the original at {{ $item->source->name }}</a><a class="btn quiet" href="{{ route('me.save.confirm', ['kind' => 'item', 'ref' => $item->uuid]) }}">Save</a></p>
             @if($item->industries->isNotEmpty() || $item->geographies->isNotEmpty())
                 <ul class="tags" aria-label="Filed under">
                     @foreach($item->industries as $i)<li><a href="{{ route('intel.industry', $i) }}">{{ $i->name }}</a></li>@endforeach

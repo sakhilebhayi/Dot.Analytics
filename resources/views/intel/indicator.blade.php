@@ -5,6 +5,7 @@
         <ol class="crumbs"><li><a href="{{ route('intel.indicators') }}">All figures</a></li><li aria-current="page">{{ $indicator->name }}</li></ol>
         <h1>{{ $indicator->name }}, {{ $place->name }}</h1>
         <p class="lede">{{ $indicator->definition }}</p>
+        <p class="btn-row"><a class="btn quiet" href="{{ route('me.watch.confirm', ['kind' => 'indicator', 'key' => $indicator->key, 'place' => $place->code]) }}">Watch this figure</a></p>
     </div>
 
     <div class="wrap big-figure"><x-intel.figure :figure="$figure" :chart="true" :place="false"/></div>

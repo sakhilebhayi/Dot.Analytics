@@ -46,13 +46,13 @@
                 <input id="q-top" type="search" name="q" placeholder="Search or ask" autocomplete="off" maxlength="160">
                 <button type="submit">Search</button>
             </form>
-            <a class="signin" href="{{ route('dashboard') }}">Workspace</a>
+            <a class="signin" href="{{ route('me.home') }}">My library</a>
         </div>
         <details class="menu">
             <summary aria-label="Menu">Menu</summary>
             <div class="menu-panel">
                 @foreach($nav as [$route, $label])<a href="{{ route($route) }}">{{ $label }}</a>@endforeach
-                <a href="{{ route('dashboard') }}">Workspace</a>
+                <a href="{{ route('me.home') }}">My library</a>
                 <form class="find" action="{{ route('intel.find') }}" method="get" role="search">
                     <label class="sr" for="q-menu">Search the library</label>
                     <input id="q-menu" type="search" name="q" placeholder="Search or ask" autocomplete="off" maxlength="160">
@@ -88,6 +88,7 @@
         <nav aria-label="Elsewhere">
             <h2>Elsewhere</h2>
             <a href="{{ route('intel.ecosystem') }}">The InfoDot ecosystem</a>
+            <a href="{{ route('intel.plans') }}">Free and paid</a>
             <a href="{{ route('terms.show') }}">Terms</a>
             <a href="{{ route('policy.show') }}">Privacy</a>
             <a href="{{ route('cookies') }}">Cookies</a>
