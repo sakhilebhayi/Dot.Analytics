@@ -8,7 +8,7 @@
         <p class="btn-row"><a class="btn quiet" href="{{ route('me.watch.confirm', ['kind' => 'indicator', 'key' => $indicator->key, 'place' => $place->code]) }}">Watch this figure</a></p>
     </div>
 
-    <div class="wrap big-figure"><x-intel.figure :figure="$figure" :chart="true" :place="false"/></div>
+    <div class="wrap big-figure"><x-intel.figure :figure="$figure" :chart="true" :place="false" :level="2"/></div>
 
     <section class="wrap section split" aria-labelledby="cmp-h">
         <div>

@@ -60,10 +60,12 @@
     @livewire('navigation-menu')
 
     <div class="ws-page">
-        @if(isset($header))
-        <div class="ws-head">{{ $header }}</div>
-        @endif
-        <main id="main">{{ $slot }}</main>
+        <main id="main">
+            @if(isset($header))
+            <div class="ws-head">{{ $header }}</div>
+            @endif
+            {{ $slot }}
+        </main>
     </div>
 
     @stack('modals')

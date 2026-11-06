@@ -1,11 +1,11 @@
-@props(['figure', 'chart' => false, 'working' => true, 'place' => true])
+@props(['figure', 'chart' => false, 'working' => true, 'place' => true, 'level' => 3])
 @php
     $f = $figure; $i = $f->indicator; $change = $f->change();
     $arrow = ['up' => 'M6 1 L11 8 H1 Z', 'down' => 'M6 11 L1 4 H11 Z', 'flat' => 'M1 6 H11'];
 @endphp
 <article class="plate">
     <div class="figure-head">
-        <h3 class="figure-name"><a href="{{ route('intel.indicator', [$i, 'place' => $f->geography->code]) }}">{{ $i->name }}</a></h3>
+        <h{{ $level }} class="figure-name"><a href="{{ route('intel.indicator', [$i, 'place' => $f->geography->code]) }}">{{ $i->name }}</a></h{{ $level }}>
         @if($place)<p class="figure-place">{{ $f->geography->name }}</p>@endif
     </div>
     <p class="figure-value"><span class="big num">{{ $f->value() }}</span> <span class="note">{{ $f->note() }}</span></p>

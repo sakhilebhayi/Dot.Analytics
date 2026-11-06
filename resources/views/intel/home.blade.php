@@ -7,7 +7,7 @@
         <div>
             <h1>Business figures that show their working.</h1>
             <p class="says">Developments and statistics from central banks, regulators and statistics offices, each with its source, its period and its licence. Where we do not have something, we say so. <a href="{{ route('intel.method') }}">How figures are labelled</a>.</p>
-            <form class="search-big" action="{{ route('intel.find') }}" method="get" role="search">
+            <form class="search-big" action="{{ route('intel.find') }}" method="get" role="search" aria-label="Ask a question or search">
                 <label class="sr" for="q-home">Search the library or ask a question</label>
                 <input id="q-home" type="search" name="q" placeholder="Search, or ask a question" autocomplete="off" maxlength="160">
                 <button type="submit">Search</button>

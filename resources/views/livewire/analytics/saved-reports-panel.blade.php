@@ -2,7 +2,7 @@
     <div class="flex items-center justify-between mb-4">
         <div>
             <p class="font-mono" style="font-size:0.65rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--gold-soft);margin:0 0 0.35rem;">Reports</p>
-            <h3 class="font-display" style="font-size:1.1rem;font-weight:700;color:var(--paper);margin:0;">Saved Reports</h3>
+            <h2 class="font-display" style="font-size:1.1rem;font-weight:700;color:var(--paper);margin:0;">Saved Reports</h2>
             <p style="font-size:0.75rem;color:var(--mist);margin:0.3rem 0 0;">Define, run, and re-run analytics reports on demand</p>
         </div>
         @can('manage-reports')

@@ -3,7 +3,7 @@
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap;margin-bottom:1.25rem;">
         <div>
             <p class="font-mono" style="font-size:0.65rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--gold-soft);margin:0 0 0.35rem;">Dashboards</p>
-            <h3 class="font-display" style="font-size:1.1rem;font-weight:700;color:var(--paper);margin:0;">Dashboard Builder</h3>
+            <h2 class="font-display" style="font-size:1.1rem;font-weight:700;color:var(--paper);margin:0;">Dashboard Builder</h2>
             <p style="font-size:0.75rem;color:var(--mist);margin:0.3rem 0 0;max-width:62ch;">Save the metrics you watch together. Widgets show real numbers from connected platforms, as a KPI tile or a trend.</p>
         </div>
         @can('edit-dashboards')
@@ -47,7 +47,7 @@
             @if($active)
                 <div style="display:flex;justify-content:space-between;align-items:center;gap:0.75rem;flex-wrap:wrap;padding:0.65rem 1rem;background:var(--panel);border-bottom:1px solid var(--line);">
                     <div style="display:flex;align-items:center;gap:0.75rem;">
-                        <h4 class="font-display" style="font-size:0.85rem;font-weight:600;color:var(--paper);margin:0;">{{ $active->title }}</h4>
+                        <h3 class="font-display" style="font-size:0.85rem;font-weight:600;color:var(--paper);margin:0;">{{ $active->title }}</h3>
                         <span class="font-mono" style="font-size:0.62rem;color:var(--mist);">{{ $widgets->count() }} {{ \Illuminate\Support\Str::plural('widget', $widgets->count()) }}</span>
                         @unless($active->is_default)
                             @can('edit-dashboards')

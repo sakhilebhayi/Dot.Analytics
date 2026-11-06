@@ -2,7 +2,7 @@
     <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
         <div>
             <p class="font-mono" style="font-size:0.65rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--teal-soft);margin:0 0 0.35rem;">Cross-Platform Intelligence</p>
-            <h3 class="font-display" style="font-size:1.1rem;font-weight:700;color:var(--paper);margin:0;">Insights No Single Tool Can See</h3>
+            <h2 class="font-display" style="font-size:1.1rem;font-weight:700;color:var(--paper);margin:0;">Insights No Single Tool Can See</h2>
         </div>
         <div class="flex items-center gap-2">
             <select aria-label="Filtertype" wire:model.live="filterType" class="text-xs px-2 py-1 rounded" style="background:var(--ink-soft);border:1px solid var(--line);color:var(--mist);">

@@ -16,7 +16,7 @@
         </form>
     </div>
     <div class="wrap section">
-        <x-intel.news :items="$items" empty="Nothing matches these filters. Items are filed by words in their headlines, so a thin result can mean a thin filing, not a quiet week."/>
+        <x-intel.news :items="$items" :level="2" empty="Nothing matches these filters. Items are filed by words in their headlines, so a thin result can mean a thin filing, not a quiet week."/>
         @if($items->hasPages())
             <nav class="pager" aria-label="Pages">
                 @if($items->onFirstPage())<span></span>@else<a href="{{ $items->previousPageUrl() }}" rel="prev">Newer</a>@endif
