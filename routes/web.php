@@ -25,8 +25,6 @@ Route::post('/auth/ecosystem', [EcosystemAuthController::class, 'handle'])
 // the visitor is sent to the normal sign-in page and the token in the URL is never read.
 Route::get('/auth/ecosystem', [EcosystemAuthController::class, 'legacy']);
 
-Route::get('/', fn () => view('welcome'));
-
 // Cookie Policy — Jetstream's termsAndPrivacyPolicy feature covers terms.show/policy.show
 // natively (registered at /terms-of-service and /privacy-policy, reading resources/markdown/
 // terms.md and policy.md). There's no Jetstream equivalent for a Cookie Policy, so this one is

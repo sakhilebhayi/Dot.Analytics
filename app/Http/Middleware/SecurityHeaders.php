@@ -86,6 +86,20 @@ class SecurityHeaders
         //    config('reverb.servers.reverb.host'), which is 0.0.0.0 in containers.
         $realtime = (bool) config('echo.enabled');
 
+        // The public library carries no inline script or style, so it gets the strict policy.
+        if ($request->routeIs('intel.*')) {
+            $response->headers->set('X-Frame-Options', 'DENY');
+            $response->headers->set('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'");
+
+            if (config('app.env') === 'production') {
+                $response->headers->set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+            }
+
+            $response->headers->remove('X-Powered-By');
+
+            return $response;
+        }
+
         $csp = implode('; ', [
             "default-src 'self'",
             "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://fonts.bunny.net https://cdn.tailwindcss.com https://unpkg.com".($realtime ? ' https://cdn.jsdelivr.net' : ''),

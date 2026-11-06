@@ -2,6 +2,7 @@
 
 namespace App\Models\Intelligence;
 
+use App\Services\Intelligence\Reading\Freshness;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
@@ -48,5 +49,14 @@ class Source extends IntelligenceModel
     public function isStale(): bool
     {
         return $this->last_success_at === null || $this->last_success_at->lt(now()->subHours($this->stale_after_hours));
+    }
+
+    public function freshness(): Freshness
+    {
+        return match (true) {
+            $this->last_success_at === null => Freshness::Missing,
+            $this->isStale() => Freshness::Stale,
+            default => Freshness::Current,
+        };
     }
 }

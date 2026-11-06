@@ -10,6 +10,8 @@ use App\Models\Intelligence\Item;
 use App\Models\Intelligence\Observation;
 use App\Models\Intelligence\ObservationRevision;
 use App\Models\Intelligence\Source;
+use App\Models\Intelligence\SourceRun;
+use App\Services\Intelligence\Collector;
 use App\Services\Intelligence\ReferenceData;
 use App\Services\Intelligence\SourceRunner;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -271,5 +273,16 @@ class CollectionTest extends TestCase
     {
         $this->assertFalse(Source::where('key', 'eia')->first()->is_enabled);
         $this->assertSame('needs-key', Source::where('key', 'eia')->first()->status);
+    }
+
+    public function test_press_release_text_loses_the_captions_of_attached_files(): void
+    {
+        $source = Source::where('key', 'apo-africa-newsroom')->firstOrFail();
+        $source->update(['allows_summary' => true]);
+        $collector = new Collector($source, SourceRun::create(['source_id' => $source->id, 'started_at' => now()]));
+
+        $item = $collector->item('press-release', 'A title', 'https://www.africa-newsroom.com/x', now(), 'Download logoThe embassy said <b>this</b>. Download image More.');
+
+        $this->assertSame('The embassy said this. More.', $item->source_summary);
     }
 }

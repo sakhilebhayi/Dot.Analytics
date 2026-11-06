@@ -27,6 +27,8 @@
         <env name="DB_DATABASE" value=":memory:" force="true"/>
         <env name="DB_URL" value="" force="true"/>
         <env name="INTEL_CONNECTION" value="sqlite" force="true"/>
+        <env name="INTEL_PAGE_CACHE_STORE" value="array" force="true"/>
+        <env name="INTEL_PAGE_CACHE" value="false" force="true"/>
         <env name="MAIL_MAILER" value="array"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array" force="true"/>

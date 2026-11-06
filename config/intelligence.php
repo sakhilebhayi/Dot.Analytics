@@ -24,6 +24,9 @@ return [
 
     'seconds_per_source' => (int) env('INTEL_SECONDS_PER_SOURCE', 35),
 
+    'page_cache' => (bool) env('INTEL_PAGE_CACHE', true),
+    'page_cache_store' => env('INTEL_PAGE_CACHE_STORE', 'pages'),
+
     'keys' => [
         'eia' => env('EIA_API_KEY'),
     ],

@@ -140,6 +140,9 @@ class Collector
 
     private function clean(string $text): string
     {
+        // Some press-release feeds leave the captions of their attached files in the text ("Download logoThe Ethiopian...").
+        $text = (string) preg_replace('/Download (?:logo|image|photo|picture|document)s?\s*/iu', '', $text);
+
         return trim((string) preg_replace('/\s+/u', ' ', html_entity_decode(strip_tags($text), ENT_QUOTES | ENT_HTML5, 'UTF-8')));
     }
 

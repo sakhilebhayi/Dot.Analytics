@@ -22,7 +22,7 @@ class SecurityHeadersTest extends TestCase
 {
     public function test_csp_allows_unsafe_eval_for_alpine_livewire_expressions(): void
     {
-        $response = $this->get('/');
+        $response = $this->get('/login');
 
         $csp = $response->headers->get('Content-Security-Policy');
 
@@ -32,7 +32,7 @@ class SecurityHeadersTest extends TestCase
 
     public function test_csp_allows_the_cdns_the_app_layout_actually_loads(): void
     {
-        $response = $this->get('/');
+        $response = $this->get('/login');
 
         $csp = $response->headers->get('Content-Security-Policy');
 
@@ -42,7 +42,7 @@ class SecurityHeadersTest extends TestCase
 
     public function test_csp_allows_the_google_fonts_domains_every_layout_actually_uses(): void
     {
-        $response = $this->get('/');
+        $response = $this->get('/login');
 
         $csp = $response->headers->get('Content-Security-Policy');
 
@@ -52,7 +52,7 @@ class SecurityHeadersTest extends TestCase
 
     public function test_csp_still_restricts_default_src_to_self(): void
     {
-        $response = $this->get('/');
+        $response = $this->get('/login');
 
         $csp = $response->headers->get('Content-Security-Policy');
 
@@ -64,7 +64,7 @@ class SecurityHeadersTest extends TestCase
     {
         config(['echo.enabled' => false]);
 
-        $csp = $this->get('/')->headers->get('Content-Security-Policy');
+        $csp = $this->get('/login')->headers->get('Content-Security-Policy');
 
         $this->assertStringContainsString("connect-src 'self';", $csp);
         $this->assertStringNotContainsString('ws://', $csp);
@@ -84,7 +84,7 @@ class SecurityHeadersTest extends TestCase
             'reverb.servers.reverb.host' => '0.0.0.0',
         ]);
 
-        $csp = $this->get('/')->headers->get('Content-Security-Policy');
+        $csp = $this->get('/login')->headers->get('Content-Security-Policy');
 
         $this->assertStringContainsString("connect-src 'self' ws://ws.example.test:8081;", $csp);
         $this->assertStringNotContainsString('0.0.0.0', $csp);
@@ -94,7 +94,7 @@ class SecurityHeadersTest extends TestCase
     {
         config(['echo.enabled' => true, 'echo.host' => 'ws.example.test', 'echo.port' => 443, 'echo.scheme' => 'https']);
 
-        $csp = $this->get('/')->headers->get('Content-Security-Policy');
+        $csp = $this->get('/login')->headers->get('Content-Security-Policy');
 
         $this->assertStringContainsString('wss://ws.example.test:443', $csp);
     }
@@ -103,7 +103,7 @@ class SecurityHeadersTest extends TestCase
     {
         config(['echo.enabled' => true]);
 
-        $csp = $this->get('/')->headers->get('Content-Security-Policy');
+        $csp = $this->get('/login')->headers->get('Content-Security-Policy');
 
         $this->assertStringContainsString('https://cdn.jsdelivr.net', $csp);
     }
