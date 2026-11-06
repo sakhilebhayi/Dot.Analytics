@@ -2,7 +2,7 @@
     <div class="flex items-center justify-between mb-4">
         <div>
             <p class="font-mono" style="font-size:0.65rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--gold-soft);margin:0 0 0.35rem;">Recommendations</p>
-            <h3 class="font-display" style="font-size:1.1rem;font-weight:700;color:var(--paper);margin:0;">AI Recommendations</h3>
+            <h2 class="font-display" style="font-size:1.1rem;font-weight:700;color:var(--paper);margin:0;">AI Recommendations</h2>
         </div>
         @can('run-intelligence-engines')
         <button

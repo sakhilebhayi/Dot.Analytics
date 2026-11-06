@@ -136,7 +136,7 @@ button, input, select { font: inherit; color: inherit; }
 .tape dt { color: var(--tape-muted); font: 400 12.5px/1.6 var(--mono); }
 .tape dd a { color: var(--tape-ink); }
 .tape .attr { margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(255, 255, 255, 0.16); color: var(--tape-muted); font-size: 13.5px; }
-.tape h4 { margin: 18px 0 8px; font: 500 12.5px/1.4 var(--mono); color: var(--tape-muted); }
+.tape .tape-h { margin: 18px 0 8px; font: 500 12.5px/1.4 var(--mono); color: var(--tape-muted); }
 .tape table { width: 100%; border-collapse: collapse; font-size: 14px; }
 .tape th, .tape td { padding: 4px 0; text-align: left; font-weight: 400; }
 .tape th { color: var(--tape-muted); font: 400 12.5px/1.6 var(--mono); }
@@ -190,9 +190,9 @@ button, input, select { font: inherit; color: inherit; }
 /* Newsroom rows */
 .news li { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 8px 24px; padding: 16px 0; border-bottom: 1px solid var(--line); }
 .news .when { font: 400 13px/1.6 var(--mono); color: var(--muted); padding-top: 4px; }
-.news h3 { font: 600 20px/1.3 var(--sans); }
-.news h3 a { text-decoration: none; }
-.news h3 a:hover { text-decoration: underline; }
+.news h2, .news h3 { font: 600 20px/1.3 var(--sans); }
+.news h2 a, .news h3 a { text-decoration: none; }
+.news h2 a:hover, .news h3 a:hover { text-decoration: underline; }
 .news .by { margin-top: 6px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; font-size: 14px; color: var(--muted); }
 .news p.summary { margin-top: 8px; max-width: 68ch; color: var(--muted); font-size: 16px; }
 .label { display: inline-flex; align-items: center; gap: 6px; padding: 1px 8px; border-radius: 2px; box-shadow: inset 0 0 0 1px var(--line); font-size: 12.5px; font-weight: 500; color: var(--ink); background: var(--field); }
@@ -246,7 +246,8 @@ button, input, select { font: inherit; color: inherit; }
 .chart .dot { fill: var(--field); stroke: var(--accent); stroke-width: 2; vector-effect: non-scaling-stroke; opacity: 0; }
 .chart .hit { fill: transparent; cursor: crosshair; }
 .chart .hit:hover + .dot, .chart .hit:focus + .dot { opacity: 1; }
-.chart .hit:focus { outline: none; }
+.chart .dot.on { opacity: 1; }
+.chart svg:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
 .chart-read { min-height: 28px; margin-top: 6px; font: 500 15px/1.4 var(--sans); }
 .chart-read span { color: var(--muted); font-weight: 400; }
 .chart-cap { margin-top: 6px; color: var(--muted); font-size: 14px; max-width: 70ch; }

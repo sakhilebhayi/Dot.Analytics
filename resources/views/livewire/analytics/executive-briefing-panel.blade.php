@@ -2,7 +2,7 @@
     <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
         <div>
             <p class="font-mono" style="font-size:0.65rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--teal-soft);margin:0 0 0.35rem;">Executive Briefing</p>
-            <h3 class="font-display" style="font-size:1.1rem;font-weight:700;color:var(--paper);margin:0;">AI-Synthesised Signals</h3>
+            <h2 class="font-display" style="font-size:1.1rem;font-weight:700;color:var(--paper);margin:0;">AI-Synthesised Signals</h2>
             <p style="font-size:0.75rem;color:var(--mist);margin:0.3rem 0 0;">Across every connected platform</p>
         </div>
         <div class="flex items-center gap-3">

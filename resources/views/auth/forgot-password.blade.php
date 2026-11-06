@@ -6,7 +6,7 @@
         </div>
 
         @session('status')
-            <div class="mb-4 font-medium text-sm text-teal-300">
+            <div class="mb-4 font-medium text-sm text-[var(--teal-soft)]">
                 {{ $value }}
             </div>
         @endsession

@@ -15,11 +15,9 @@ class HomeController extends Controller
     public function __invoke(Reader $reader, BriefingBuilder $briefings, Ecosystem $ecosystem): View
     {
         $za = $reader->geographyByCode('ZAF');
-        $industries = Industry::orderBy('sort')->get()->map(function (Industry $industry) use ($reader, $za) {
-            $cells = $za ? $reader->coverage($industry->indicators()->where('is_published', true)->get(), $za) : [];
-
-            return ['industry' => $industry, 'cells' => $cells, 'grade' => $reader->grade($cells)];
-        });
+        $all = Industry::orderBy('sort')->get();
+        $coverage = $reader->industryCoverage($all, $za);
+        $industries = $all->map(fn (Industry $i) => ['industry' => $i] + $coverage[$i->slug]);
 
         return view('intel.home', [
             'figures' => $reader->keyFigures(4),

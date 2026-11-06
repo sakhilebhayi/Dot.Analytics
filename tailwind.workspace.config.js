@@ -6,7 +6,7 @@ import defaultTheme from 'tailwindcss/defaultTheme';
  * third-party script in every signed-in session.
  */
 export default {
-    content: ['./resources/views/**/*.blade.php', './app/Livewire/**/*.php'],
+    content: ['./resources/views/**/*.blade.php', './app/Livewire/**/*.php', './app/Services/IntelligenceEngineService.php'],
     corePlugins: { preflight: false },
     theme: { extend: { fontFamily: { sans: ['Figtree', ...defaultTheme.fontFamily.sans] } } },
     plugins: [],

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="robots" content="noindex">
+    <meta name="description" content="Sign in to Dot.Analytics. The public library needs no account.">
     <title>{{ $attributes->get('title', 'Sign in') }} · Dot.Analytics</title>
 
     <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon-32x32.png') }}">
@@ -23,7 +24,7 @@
     </style>
 </head>
 <body class="antialiased font-sans">
-    <div class="min-h-screen flex flex-col items-center justify-center px-5 py-12 sm:py-16">
+    <main class="min-h-screen flex flex-col items-center justify-center px-5 py-12 sm:py-16">
         <a href="{{ route('intel.home') }}" class="press mb-8 flex items-center gap-3 shrink-0 no-underline" aria-label="Dot.Analytics home">
             <img src="{{ asset('images/mark.png') }}" alt="" width="32" height="32">
             <span class="font-display text-2xl font-bold" style="color:var(--paper)">Dot.Analytics</span>
@@ -32,7 +33,7 @@
         <div class="w-full flex justify-center">
             {{ $slot }}
         </div>
-    </div>
+    </main>
 
     @livewireScripts
 </body>

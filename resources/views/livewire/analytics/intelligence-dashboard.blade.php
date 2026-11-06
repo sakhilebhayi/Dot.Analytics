@@ -1,7 +1,7 @@
 <div style="padding:2rem 2.25rem;">
     <div class="mb-5">
         <p class="font-mono" style="font-size:0.65rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--teal-soft);margin:0 0 0.35rem;">Universal Query</p>
-        <h3 class="font-display" style="font-size:1.1rem;font-weight:700;color:var(--paper);margin:0;">Ask the Ecosystem</h3>
+        <h2 class="font-display" style="font-size:1.1rem;font-weight:700;color:var(--paper);margin:0;">Ask the Ecosystem</h2>
         <p style="font-size:0.8rem;color:var(--mist);margin:0.3rem 0 0;">
             Ask any question. Dot.Analytics traces relationships across every connected platform to answer what no single tool can see.
         </p>

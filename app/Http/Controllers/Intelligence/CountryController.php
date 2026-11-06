@@ -21,11 +21,9 @@ class CountryController extends Controller
     public function show(Geography $geography, Reader $reader): View
     {
         $byTopic = $reader->countryFigures($geography);
-        $industries = Industry::orderBy('sort')->get()->map(function (Industry $i) use ($reader, $geography) {
-            $cells = $reader->coverage($i->indicators()->where('is_published', true)->get(), $geography);
-
-            return ['industry' => $i, 'cells' => $cells, 'grade' => $reader->grade($cells)];
-        });
+        $all = Industry::orderBy('sort')->get();
+        $coverage = $reader->industryCoverage($all, $geography);
+        $industries = $all->map(fn (Industry $i) => ['industry' => $i] + $coverage[$i->slug]);
 
         return view('intel.country', [
             'geography' => $geography, 'byTopic' => $byTopic, 'industries' => $industries,

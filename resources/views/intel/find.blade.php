@@ -3,7 +3,7 @@
     <div class="wrap page-head">
         <h1>Search, or ask a question.</h1>
         <p class="lede">Answers come from figures and releases we have stored, with the source beside each. If we hold nothing that answers, we say that, and we do not guess.</p>
-        <form class="search-big" action="{{ route('intel.find') }}" method="get" role="search">
+        <form class="search-big" action="{{ route('intel.find') }}" method="get" role="search" aria-label="Search again">
             <label class="sr" for="q-find">Search the library or ask a question</label>
             <input id="q-find" type="search" name="q" value="{{ $q }}" placeholder="Search, or ask a question" autocomplete="off" maxlength="160">
             <button type="submit">Search</button>

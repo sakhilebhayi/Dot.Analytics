@@ -1,7 +1,7 @@
 @php
     use App\Services\Intelligence\Reading\Freshness;
 @endphp
-<x-public-layout :title="$industry->name" section="intel.industries" :description="$industry->summary">
+<x-public-layout :title="$industry->name" section="intel.industries" :description="\Illuminate\Support\Str::limit($industry->summary.' Figures, developments and what is missing, each with its source.', 155)">
     <div class="wrap page-head">
         <ol class="crumbs"><li><a href="{{ route('intel.industries') }}">Industries</a></li><li aria-current="page">{{ $industry->name }}</li></ol>
         <h1>{{ $industry->name }}</h1>

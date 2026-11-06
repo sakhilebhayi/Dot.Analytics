@@ -8,7 +8,7 @@
 <div id="metrics" data-testid="metrics-panel" style="padding:2rem 2.25rem;">
     <div style="margin-bottom:1.25rem;">
         <p class="font-mono" style="font-size:0.65rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--teal-soft);margin:0 0 0.35rem;">Platform Metrics</p>
-        <h3 class="font-display" style="font-size:1.1rem;font-weight:700;color:var(--paper);margin:0;">What your platforms report</h3>
+        <h2 class="font-display" style="font-size:1.1rem;font-weight:700;color:var(--paper);margin:0;">What your platforms report</h2>
     </div>
 
     {{-- State bar: the answer in words first, the counts behind it. --}}
@@ -46,7 +46,7 @@
             @foreach($connected as $platform)
                 <section data-platform="{{ $platform['key'] }}">
                     <div style="display:flex;justify-content:space-between;align-items:baseline;gap:1rem;padding:0.7rem 1rem;background:var(--panel);border-bottom:1px solid var(--line);">
-                        <h4 class="font-display" style="font-size:0.85rem;font-weight:600;color:var(--paper);margin:0;">{{ $platform['label'] }}</h4>
+                        <h3 class="font-display" style="font-size:0.85rem;font-weight:600;color:var(--paper);margin:0;">{{ $platform['label'] }}</h3>
                         <span class="font-mono" style="font-size:0.62rem;color:var(--mist);">
                             @if($platform['last_synced_at'])
                                 last snapshot received {{ \Illuminate\Support\Carbon::parse($platform['last_synced_at'])->diffForHumans() }}
@@ -84,7 +84,7 @@
         <div data-testid="trend-panel" style="margin-top:1.5rem;border:1px solid var(--line);background:var(--ink-soft);">
             <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:0.75rem;padding:0.7rem 1rem;background:var(--panel);border-bottom:1px solid var(--line);">
                 <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
-                    <h4 class="font-display" style="font-size:0.85rem;font-weight:600;color:var(--paper);margin:0;">Trend</h4>
+                    <h3 class="font-display" style="font-size:0.85rem;font-weight:600;color:var(--paper);margin:0;">Trend</h3>
                     <label class="sr-only" for="metrics-trend-select" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);">Metric</label>
                     <select id="metrics-trend-select" wire:model.live="selectedKey" style="background:var(--ink-soft);border:1px solid var(--line);color:var(--paper);font-size:0.75rem;padding:0.25rem 0.5rem;border-radius:0.3rem;max-width:100%;">
                         <option value="">Choose a metric</option>

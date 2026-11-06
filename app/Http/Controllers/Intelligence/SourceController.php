@@ -14,9 +14,11 @@ class SourceController extends Controller
 {
     public function __invoke(Reader $reader): View
     {
-        $sources = Source::where('status', '!=', 'waiting')->orderBy('kind')->orderBy('name')->get()->each(function (Source $s) {
-            $s->series_count = Indicator::where('source_id', $s->id)->where('is_published', true)->whereHas('observations')->count();
-            $s->item_count = Item::where('source_id', $s->id)->count();
+        $series = Indicator::where('is_published', true)->whereHas('observations')->selectRaw('source_id, count(*) as n')->groupBy('source_id')->pluck('n', 'source_id');
+        $items = Item::selectRaw('source_id, count(*) as n')->groupBy('source_id')->pluck('n', 'source_id');
+        $sources = Source::where('status', '!=', 'waiting')->orderBy('kind')->orderBy('name')->get()->each(function (Source $s) use ($series, $items) {
+            $s->series_count = (int) ($series[$s->id] ?? 0);
+            $s->item_count = (int) ($items[$s->id] ?? 0);
         });
 
         return view('intel.sources', [

@@ -23,7 +23,7 @@
                 <dt>Revised</dt><dd>@foreach($figure->revisions as $r){{ \Carbon\Carbon::parse($r['period'])->format('Y') }}: {{ Format::number($r['previous'], $i->decimals) }} became {{ Format::number($r['now'], $i->decimals) }} on {{ $r['revised_at'] }}@if(!$loop->last)<br>@endif @endforeach</dd>
             @endif
         </dl>
-        <h4>Every value we hold</h4>
+        <p class="tape-h">Every value we hold</p>
         <div class="table-scroll" tabindex="0" role="region" aria-label="Values for {{ $i->name }}, {{ $figure->geography->name }}">
             <table>
                 <caption class="sr">{{ $i->name }}, {{ $figure->geography->name }}, {{ $i->unit }}</caption>

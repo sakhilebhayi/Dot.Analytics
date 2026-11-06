@@ -2,7 +2,7 @@
     <div class="flex items-center justify-between mb-6">
         <div>
             <p class="font-mono" style="font-size:0.65rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--teal-soft);margin:0 0 0.35rem;">Ecosystem Map</p>
-            <h3 class="font-display" style="font-size:1.1rem;font-weight:700;color:var(--paper);margin:0;">Connected Platforms</h3>
+            <h2 class="font-display" style="font-size:1.1rem;font-weight:700;color:var(--paper);margin:0;">Connected Platforms</h2>
             <p style="font-size:0.75rem;color:var(--mist);margin:0.3rem 0 0;">
                 {{ $this->connectedCount }} of {{ count($this->platformCatalog) }} platforms connected
                 &middot; {{ count($this->activeEngines) }} intelligence engines active
@@ -85,7 +85,7 @@
     {{-- Active Intelligence Engines --}}
     @if(count($this->activeEngines) > 0)
         <div>
-            <h4 class="font-mono" style="font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--mist);margin-bottom:0.75rem;">Active Intelligence Engines</h4>
+            <h3 class="font-mono" style="font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--mist);margin-bottom:0.75rem;">Active Intelligence Engines</h3>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                 @foreach($this->activeEngines as $key => $engine)
                     <div class="rounded-lg px-3 py-2 flex items-center justify-between" style="border:1px solid var(--line);">

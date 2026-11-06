@@ -11,9 +11,9 @@ class BriefingController extends Controller
 {
     public function index(): View
     {
-        $editions = collect((array) config('intelligence_briefings.editions'))->map(fn ($def, $key) => $def + [
-            'key' => $key, 'latest' => Briefing::where('edition', $key)->orderByDesc('edition_date')->first(),
-        ]);
+        $latest = Briefing::whereIn('edition', array_keys((array) config('intelligence_briefings.editions')))
+            ->where('edition_date', '>=', now()->subDays(60)->toDateString())->orderByDesc('edition_date')->get()->groupBy('edition')->map->first();
+        $editions = collect((array) config('intelligence_briefings.editions'))->map(fn ($def, $key) => $def + ['key' => $key, 'latest' => $latest[$key] ?? null]);
 
         return view('intel.briefings', ['editions' => $editions]);
     }

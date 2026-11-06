@@ -2,6 +2,7 @@
 @php
     $site = 'Dot.Analytics';
     $fullTitle = $title === $site ? $site.'. Business intelligence you can check' : $title.' · '.$site;
+    $fullTitle = \Illuminate\Support\Str::limit($fullTitle, 68);
     $description ??= 'Business developments, industry and country figures, each with its source, period, licence and last update. Free to read.';
     $canonical ??= url()->current();
     $nav = [['intel.industries', 'Industries'], ['intel.countries', 'Countries'], ['intel.newsroom', 'Newsroom'], ['intel.briefings', 'Briefings'], ['intel.sources', 'Sources']];
@@ -41,7 +42,7 @@
             @endforeach
         </nav>
         <div class="top-end">
-            <form class="find wide" action="{{ route('intel.find') }}" method="get" role="search">
+            <form class="find wide" action="{{ route('intel.find') }}" method="get" role="search" aria-label="Search the library">
                 <label class="sr" for="q-top">Search the library</label>
                 <input id="q-top" type="search" name="q" placeholder="Search or ask" autocomplete="off" maxlength="160">
                 <button type="submit">Search</button>
@@ -53,7 +54,7 @@
             <div class="menu-panel">
                 @foreach($nav as [$route, $label])<a href="{{ route($route) }}">{{ $label }}</a>@endforeach
                 <a href="{{ route('me.home') }}">My library</a>
-                <form class="find" action="{{ route('intel.find') }}" method="get" role="search">
+                <form class="find" action="{{ route('intel.find') }}" method="get" role="search" aria-label="Search from the menu">
                     <label class="sr" for="q-menu">Search the library</label>
                     <input id="q-menu" type="search" name="q" placeholder="Search or ask" autocomplete="off" maxlength="160">
                     <button type="submit">Search</button>
