@@ -262,7 +262,7 @@ class PublicPagesTest extends TestCase
         Source::where('key', 'world-bank')->update(['last_success_at' => now()->subDays(40), 'consecutive_failures' => 3, 'last_error' => 'The source could not be reached.']);
 
         $page = $this->get('/sources')->assertOk();
-        $page->assertSee('World Bank Indicators')->assertSee('3 failures since')->assertSee('Waiting for permission')->assertSee('South African Reserve Bank');
+        $page->assertSee('World Bank Indicators')->assertSee('3 failed attempts since')->assertSee('Waiting for permission')->assertSee('South African Reserve Bank');
         $page->assertSee('Out of date');
     }
 

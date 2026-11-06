@@ -10,7 +10,7 @@
                     @if($e['latest'])
                         <a href="{{ route('intel.briefing', [$e['key'], $e['latest']->edition_date->toDateString()]) }}">
                             <span class="name">{{ $e['name'] }}</span><span class="says">{{ $e['purpose'] }}</span>
-                            <span class="grade"><b>Latest edition</b><span class="num">{{ $e['latest']->edition_date->format('j F Y') }}</span></span>
+                            <span class="grade"><b>{{ collect($e['latest']->sections)->sum(fn ($s) => count($s['entries'])) }} lines, {{ $e['latest']->edition_date->format('j M Y') }}</b><span>{{ count($e['latest']->sections) }} {{ \Illuminate\Support\Str::plural('section', count($e['latest']->sections)) }}</span></span>
                         </a>
                     @else
                         <div class="row-static">
