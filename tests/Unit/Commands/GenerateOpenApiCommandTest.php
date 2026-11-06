@@ -76,6 +76,5 @@ class GenerateOpenApiCommandTest extends TestCase
         $this->assertContains('Intelligence', $tagNames);
         $this->assertContains('Platforms', $tagNames);
         $this->assertContains('Metrics', $tagNames);
-        $this->assertContains('Feature Flags', $tagNames);
     }
 }

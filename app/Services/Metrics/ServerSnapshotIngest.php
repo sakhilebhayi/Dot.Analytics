@@ -8,6 +8,7 @@ use App\Models\DataSource;
 use App\Models\Team;
 use App\Services\IntelligenceEngineService;
 use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Support\Carbon;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -27,6 +28,9 @@ class ServerSnapshotIngest
     /** The company's owner switched this platform off. Only they can switch it back on. */
     public const DISCONNECTED = 'disconnected';
 
+    /** More snapshots for one company and platform today than any real publisher sends. */
+    public const QUOTA = 'quota';
+
     public function __construct(
         private readonly SnapshotIngestService $ingest,
         private readonly SnapshotContract $contract,
@@ -35,8 +39,8 @@ class ServerSnapshotIngest
 
     /**
      * @param  array<string, mixed>  $body  the decoded, authenticated request body
-     * @return array{snapshot: AnalyticsSnapshot, replayed: bool, accepted: list<string>, dropped: list<string>}|self::DISCONNECTED|null
-     *                                                                                                                                   null when no team maps to the company
+     * @return array{snapshot: AnalyticsSnapshot, replayed: bool, accepted: list<string>, dropped: list<string>}|self::DISCONNECTED|self::QUOTA|null
+     *                                                                                                                                               null when no team maps to the company
      *
      * @throws ValidationException
      */
@@ -52,6 +56,16 @@ class ServerSnapshotIngest
 
         if ($this->find($team, $platform)?->status === 'disconnected') {
             return self::DISCONNECTED;
+        }
+
+        // One real publisher sends a snapshot a day. A secret that leaked, or a publisher with a bug, cannot fill one company's
+        // history: past the daily cap a new snapshot is refused (a replay of one we hold is still answered).
+        $cap = (int) config('analytics.ingest.max_snapshots_per_team_platform_day', 48);
+        $existing = $this->find($team, $platform);
+        $today = $existing === null ? 0 : AnalyticsSnapshot::withoutGlobalScopes()->where('data_source_id', $existing->id)->where('created_at', '>=', now()->startOfDay())->count();
+
+        if ($today >= $cap && ! $this->alreadyHeld($existing, $body)) {
+            return self::QUOTA;
         }
 
         $source = $this->sourceFor($team, $platform);
@@ -92,6 +106,13 @@ class ServerSnapshotIngest
         }
 
         return $source;
+    }
+
+    private function alreadyHeld(?DataSource $source, array $body): bool
+    {
+        $takenAt = $body['taken_at'] ?? null;
+
+        return $source !== null && is_string($takenAt) && AnalyticsSnapshot::withoutGlobalScopes()->where('data_source_id', $source->id)->where('taken_at', Carbon::parse($takenAt)->utc())->exists();
     }
 
     private function find(Team $team, string $platform): ?DataSource

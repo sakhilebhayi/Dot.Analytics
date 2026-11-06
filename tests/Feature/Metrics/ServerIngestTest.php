@@ -742,4 +742,19 @@ class ServerIngestTest extends TestCase
 
         $this->assertCount(0, $this->snapshots());
     }
+
+    public function test_one_company_and_platform_cannot_be_flooded_with_snapshots_in_a_day(): void
+    {
+        config(['analytics.ingest.max_snapshots_per_team_platform_day' => 3]);
+
+        foreach ([1, 2, 3] as $n) {
+            $this->publish($this->body(takenAt: "2026-10-1{$n}T06:00:00Z"))->assertStatus(201);
+        }
+
+        $this->publish($this->body(takenAt: '2026-10-14T06:00:00Z'))->assertStatus(429)->assertJson(['error' => 'quota_exceeded']);
+        $this->assertSame(3, $this->snapshots()->count());
+
+        // A publisher that retries one it already sent is still answered, not refused.
+        $this->publish($this->body(takenAt: '2026-10-13T06:00:00Z'))->assertStatus(200);
+    }
 }

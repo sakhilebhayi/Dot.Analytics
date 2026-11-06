@@ -88,6 +88,12 @@ class IngestSnapshotController extends Controller
             return response()->json(['error' => 'disconnected'], 409);
         }
 
+        if ($result === ServerSnapshotIngest::QUOTA) {
+            Log::warning('Snapshot ingest over the daily quota', ['platform' => $platform]);
+
+            return response()->json(['error' => 'quota_exceeded'], 429, ['Retry-After' => 3600]);
+        }
+
         if ($result === null) {
             Log::warning('Snapshot ingest for an unknown company', ['platform' => $platform]);
 

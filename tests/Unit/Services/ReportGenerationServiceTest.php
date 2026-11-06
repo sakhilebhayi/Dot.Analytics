@@ -90,7 +90,7 @@ class ReportGenerationServiceTest extends TestCase
 
         $this->assertStringStartsWith('<!DOCTYPE html>', $html);
         $this->assertStringContainsString('<table>', $html);
-        $this->assertStringContainsString($team->name, $html);
+        $this->assertStringContainsString(e($team->name), $html);
     }
 
     public function test_generate_html_escapes_dangerous_content(): void

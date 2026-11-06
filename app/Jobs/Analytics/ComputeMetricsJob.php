@@ -5,6 +5,7 @@ namespace App\Jobs\Analytics;
 use App\Models\Team;
 use App\Services\Metrics\ComputeMetrics;
 use App\Services\Metrics\MetricAnomalyDetector;
+use Illuminate\Contracts\Queue\ShouldBeUniqueUntilProcessing;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 
@@ -13,7 +14,7 @@ use Illuminate\Foundation\Queue\Queueable;
  * tile does not wait for the hourly run. Safe to run any number of times: the
  * computation is idempotent.
  */
-class ComputeMetricsJob implements ShouldQueue
+class ComputeMetricsJob implements ShouldBeUniqueUntilProcessing, ShouldQueue
 {
     use Queueable;
 
@@ -21,7 +22,15 @@ class ComputeMetricsJob implements ShouldQueue
 
     public int $timeout = 60;
 
+    /** A burst of pushes for one company queues one recompute, not one per snapshot. */
+    public int $uniqueFor = 120;
+
     public function __construct(public readonly int $teamId) {}
+
+    public function uniqueId(): string
+    {
+        return (string) $this->teamId;
+    }
 
     public function handle(ComputeMetrics $compute, MetricAnomalyDetector $detector): void
     {

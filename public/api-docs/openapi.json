@@ -2,7 +2,7 @@
     "openapi": "3.0.3",
     "info": {
         "title": "Dot.Analytics API",
-        "description": "The Enterprise Intelligence Platform API for the Dot Ecosystem. Provides cross-platform intelligence, knowledge graph traversal, metric computation, and AI-powered recommendations.",
+        "description": "The Enterprise Intelligence Platform API for the Dot Ecosystem. Provides cross-platform intelligence, metric computation and recommendations for the data a company shares.",
         "version": "v1",
         "contact": {
             "name": "Dot Ecosystem",
@@ -14,7 +14,7 @@
     },
     "servers": [
         {
-            "url": "http://analytics.infodot.app/api",
+            "url": "http://localhost/api",
             "description": "Current server"
         },
         {
@@ -33,7 +33,7 @@
                 "type": "http",
                 "scheme": "bearer",
                 "bearerFormat": "Sanctum API Token",
-                "description": "Obtain a token via POST /api/v1/tokens/create or from the dashboard."
+                "description": "Tokens are issued by the platform operators; none are issued to the public today."
             }
         },
         "responses": {
@@ -444,92 +444,6 @@
                                         "items": {
                                             "type": "string"
                                         }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/intelligence/graph": {
-            "get": {
-                "tags": [
-                    "Intelligence"
-                ],
-                "summary": "Knowledge graph statistics.",
-                "operationId": "graph-stats",
-                "responses": {
-                    "200": {
-                        "description": "Success",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/SuccessResponse"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "$ref": "#/components/responses/Unauthorized"
-                    },
-                    "422": {
-                        "$ref": "#/components/responses/Unprocessable"
-                    },
-                    "429": {
-                        "$ref": "#/components/responses/TooManyRequests"
-                    }
-                }
-            }
-        },
-        "/v1/intelligence/graph/traverse": {
-            "post": {
-                "tags": [
-                    "Intelligence"
-                ],
-                "summary": "Traverse entity relationships in the knowledge graph.",
-                "operationId": "graph-traverse",
-                "responses": {
-                    "200": {
-                        "description": "Success",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/SuccessResponse"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "$ref": "#/components/responses/Unauthorized"
-                    },
-                    "422": {
-                        "$ref": "#/components/responses/Unprocessable"
-                    },
-                    "429": {
-                        "$ref": "#/components/responses/TooManyRequests"
-                    }
-                },
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "type": "object",
-                                "properties": {
-                                    "entity_type": {
-                                        "type": "string",
-                                        "example": "customer"
-                                    },
-                                    "entity_id": {
-                                        "type": "string",
-                                        "example": "CUST-001"
-                                    },
-                                    "max_depth": {
-                                        "type": "integer",
-                                        "minimum": 1,
-                                        "maximum": 5,
-                                        "default": 3
                                     }
                                 }
                             }
@@ -1030,104 +944,6 @@
                 ]
             }
         },
-        "/v1/sql/query": {
-            "post": {
-                "tags": [
-                    "AI SQL"
-                ],
-                "summary": "Execute a natural-language SQL query against a connected database.",
-                "operationId": "sql-query",
-                "responses": {
-                    "200": {
-                        "description": "Success",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/SuccessResponse"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "$ref": "#/components/responses/Unauthorized"
-                    },
-                    "422": {
-                        "$ref": "#/components/responses/Unprocessable"
-                    },
-                    "429": {
-                        "$ref": "#/components/responses/TooManyRequests"
-                    }
-                },
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "type": "object",
-                                "properties": {
-                                    "question": {
-                                        "type": "string",
-                                        "minLength": 5
-                                    },
-                                    "connector_id": {
-                                        "type": "integer"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/sql/generate": {
-            "post": {
-                "tags": [
-                    "AI SQL"
-                ],
-                "summary": "Generate SQL from natural language without executing it.",
-                "operationId": "sql-generate",
-                "responses": {
-                    "200": {
-                        "description": "Success",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/SuccessResponse"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "$ref": "#/components/responses/Unauthorized"
-                    },
-                    "422": {
-                        "$ref": "#/components/responses/Unprocessable"
-                    },
-                    "429": {
-                        "$ref": "#/components/responses/TooManyRequests"
-                    }
-                },
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "type": "object",
-                                "properties": {
-                                    "question": {
-                                        "type": "string",
-                                        "minLength": 5
-                                    },
-                                    "connector_id": {
-                                        "type": "integer"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/ingest/snapshots": {
             "post": {
                 "tags": [
@@ -1289,166 +1105,6 @@
                     }
                 ]
             }
-        },
-        "/v1/feature-flags": {
-            "get": {
-                "tags": [
-                    "Feature Flags"
-                ],
-                "summary": "List all feature flags.",
-                "operationId": "flags-list",
-                "responses": {
-                    "200": {
-                        "description": "Success",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/SuccessResponse"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "$ref": "#/components/responses/Unauthorized"
-                    },
-                    "422": {
-                        "$ref": "#/components/responses/Unprocessable"
-                    },
-                    "429": {
-                        "$ref": "#/components/responses/TooManyRequests"
-                    }
-                }
-            }
-        },
-        "/v1/feature-flags/check/{key}": {
-            "get": {
-                "tags": [
-                    "Feature Flags"
-                ],
-                "summary": "Check if a flag is enabled for the authenticated user.",
-                "operationId": "flag-check",
-                "responses": {
-                    "200": {
-                        "description": "Success",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/SuccessResponse"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "$ref": "#/components/responses/Unauthorized"
-                    },
-                    "422": {
-                        "$ref": "#/components/responses/Unprocessable"
-                    },
-                    "429": {
-                        "$ref": "#/components/responses/TooManyRequests"
-                    }
-                },
-                "parameters": [
-                    {
-                        "name": "key",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ]
-            }
-        },
-        "/v1/feature-flags/{key}/enable": {
-            "patch": {
-                "tags": [
-                    "Feature Flags"
-                ],
-                "summary": "Enable a feature flag globally.",
-                "operationId": "flag-enable",
-                "responses": {
-                    "200": {
-                        "description": "Success",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/SuccessResponse"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "$ref": "#/components/responses/Unauthorized"
-                    },
-                    "422": {
-                        "$ref": "#/components/responses/Unprocessable"
-                    },
-                    "429": {
-                        "$ref": "#/components/responses/TooManyRequests"
-                    }
-                }
-            }
-        },
-        "/v1/feature-flags/{key}/disable": {
-            "patch": {
-                "tags": [
-                    "Feature Flags"
-                ],
-                "summary": "Disable a feature flag globally.",
-                "operationId": "flag-disable",
-                "responses": {
-                    "200": {
-                        "description": "Success",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/SuccessResponse"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "$ref": "#/components/responses/Unauthorized"
-                    },
-                    "422": {
-                        "$ref": "#/components/responses/Unprocessable"
-                    },
-                    "429": {
-                        "$ref": "#/components/responses/TooManyRequests"
-                    }
-                }
-            }
-        },
-        "/v1/feature-flags/{key}/rollout": {
-            "patch": {
-                "tags": [
-                    "Feature Flags"
-                ],
-                "summary": "Set gradual rollout percentage.",
-                "operationId": "flag-rollout",
-                "responses": {
-                    "200": {
-                        "description": "Success",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/SuccessResponse"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "$ref": "#/components/responses/Unauthorized"
-                    },
-                    "422": {
-                        "$ref": "#/components/responses/Unprocessable"
-                    },
-                    "429": {
-                        "$ref": "#/components/responses/TooManyRequests"
-                    }
-                }
-            }
         }
     },
     "tags": [
@@ -1477,16 +1133,8 @@
             "description": "Persistent report definitions with run history"
         },
         {
-            "name": "AI SQL",
-            "description": "Natural language to SQL query generation"
-        },
-        {
             "name": "Ingest",
             "description": "Webhook data ingestion from Dot platforms"
-        },
-        {
-            "name": "Feature Flags",
-            "description": "Runtime feature flag management"
         }
     ]
 }

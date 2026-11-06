@@ -43,6 +43,11 @@ class ExecutiveBriefingPanel extends Component
     {
         Gate::authorize('generate-briefing');
 
+        // The period reaches the job and the prompt, so only the three real ones are accepted.
+        if (! in_array($this->period, ['daily', 'weekly', 'monthly'], true)) {
+            $this->period = 'weekly';
+        }
+
         $this->generating = true;
 
         app(GenerateExecutiveBriefingAction::class)

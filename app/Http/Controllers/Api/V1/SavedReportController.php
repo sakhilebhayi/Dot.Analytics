@@ -58,6 +58,8 @@ class SavedReportController extends BaseApiController
             'cron_expression' => ['nullable', 'string', 'max:100', function (string $attribute, mixed $value, \Closure $fail) {
                 if (! CronExpression::isValidExpression($value)) {
                     $fail('The cron expression is not valid (five fields, e.g. "0 6 * * 1").');
+                } elseif (! AnalyticsReport::scheduleIsSpaced($value)) {
+                    $fail('A saved report may run at most once an hour.');
                 }
             }],
             'config' => 'nullable|array',

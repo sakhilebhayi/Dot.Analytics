@@ -58,6 +58,12 @@ class SavedReportsPanel extends Component
             return;
         }
 
+        if ($schedule !== '' && ! AnalyticsReport::scheduleIsSpaced($schedule)) {
+            $this->addError('schedule', 'A saved report may run at most once an hour.');
+
+            return;
+        }
+
         if (! Auth::user()->currentTeam) {
             $this->addError('title', 'You need a team before creating reports.');
 

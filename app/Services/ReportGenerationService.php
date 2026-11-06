@@ -34,9 +34,9 @@ class ReportGenerationService
 
             [$headers, $rows] = $this->getData($team, $reportType, $options);
 
-            fputcsv($output, $headers);
+            fputcsv($output, array_map([$this, 'safeCell'], $headers));
             foreach ($rows as $row) {
-                fputcsv($output, $row);
+                fputcsv($output, array_map([$this, 'safeCell'], $row));
             }
 
             fclose($output);
@@ -68,8 +68,9 @@ class ReportGenerationService
         [$headers, $rows] = $this->getData($team, $reportType, $options);
         $title = ucwords(str_replace('_', ' ', $reportType));
         $date = now()->format('D, d M Y H:i');
+        $teamName = e($team->name);
 
-        $headerHtml = implode('', array_map(fn ($h) => "<th>{$h}</th>", $headers));
+        $headerHtml = implode('', array_map(fn ($h) => '<th>'.e($h).'</th>', $headers));
         $rowsHtml = implode('', array_map(function ($row) {
             $cells = implode('', array_map(fn ($v) => '<td>'.e($v).'</td>', $row));
 
@@ -95,7 +96,7 @@ class ReportGenerationService
 </head>
 <body>
 <h1>Dot.Analytics — {$title}</h1>
-<p class="meta">{$team->name} &middot; Generated {$date}</p>
+<p class="meta">{$teamName} &middot; Generated {$date}</p>
 <table>
   <thead><tr>{$headerHtml}</tr></thead>
   <tbody>{$rowsHtml}</tbody>
@@ -103,6 +104,15 @@ class ReportGenerationService
 </body>
 </html>
 HTML;
+    }
+
+    /**
+     * A spreadsheet runs a cell that begins with = + - or @ as a formula, and some of these values come from outside. A
+     * leading apostrophe makes it plain text.
+     */
+    private function safeCell(mixed $value): mixed
+    {
+        return is_string($value) && $value !== '' && in_array($value[0], ['=', '+', '-', '@', "\t", "\r"], true) && ! is_numeric($value) ? "'".$value : $value;
     }
 
     // ─── Data providers ────────────────────────────────────────────────────────

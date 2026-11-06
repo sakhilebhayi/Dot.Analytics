@@ -21,7 +21,7 @@ RUN composer install \
 # ─── Stage 2: Node.js assets ──────────────────────────────────────────────────
 FROM node:22-alpine AS assets
 WORKDIR /app
-COPY package.json package-lock.json vite.config.js postcss.config.js tailwind.config.js ./
+COPY package.json package-lock.json vite.config.js postcss.config.js tailwind.config.js tailwind.workspace.config.js ./
 COPY resources ./resources
 RUN npm ci && npm run build
 
