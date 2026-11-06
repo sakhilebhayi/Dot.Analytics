@@ -109,7 +109,7 @@
                     <h2 id="disc-h">Looking for a business rather than a figure?</h2>
                     <p>InfoDot lists South African businesses by sector and place, with the ones that have been verified marked. It is a separate site with its own rules.</p>
                 </div>
-                <a class="btn" href="{{ $infodot }}/businesses">Browse the directory</a>
+                <a class="btn" href="{{ route('intel.go', ['infodot', 'directory']) }}" rel="noopener">Browse the directory</a>
             </div>
         </section>
     @endif

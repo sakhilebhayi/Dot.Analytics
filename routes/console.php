@@ -74,3 +74,6 @@ Schedule::command('intelligence:collect')->everyTenMinutes()
 Schedule::command('library:scan')->everyThirtyMinutes()->withoutOverlapping(25)->name('library-scan');
 Schedule::command('library:digest daily')->dailyAt('05:00')->withoutOverlapping(30)->name('library-digest-daily');
 Schedule::command('library:digest weekly')->weeklyOn(1, '05:00')->withoutOverlapping(30)->name('library-digest-weekly');
+
+// Retention: weekly visitor hashes after eight days, questions after ninety, run records and closed issues after ninety.
+Schedule::command('intelligence:prune')->dailyAt('01:30')->withoutOverlapping(30)->name('intelligence-prune');

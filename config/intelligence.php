@@ -24,6 +24,7 @@ return [
 
     'seconds_per_source' => (int) env('INTEL_SECONDS_PER_SOURCE', 35),
 
+    'measure' => (bool) env('INTEL_MEASURE', true),
     'page_cache' => (bool) env('INTEL_PAGE_CACHE', true),
     'page_cache_store' => env('INTEL_PAGE_CACHE_STORE', 'pages'),
 

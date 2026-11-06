@@ -3,6 +3,7 @@
 use App\Http\Controllers\Intelligence\BriefingController;
 use App\Http\Controllers\Intelligence\CountryController;
 use App\Http\Controllers\Intelligence\FindController;
+use App\Http\Controllers\Intelligence\GoController;
 use App\Http\Controllers\Intelligence\HomeController;
 use App\Http\Controllers\Intelligence\IndicatorController;
 use App\Http\Controllers\Intelligence\IndustryController;
@@ -43,4 +44,5 @@ Route::get('/find', FindController::class)->middleware('throttle:public-search')
 Route::get('/method', [PageController::class, 'method'])->name('intel.method');
 Route::get('/plans', [PageController::class, 'plans'])->name('intel.plans');
 Route::get('/ecosystem', [PageController::class, 'ecosystem'])->name('intel.ecosystem');
+Route::get('/go/{kind}/{slug}', GoController::class)->where(['kind' => '[a-z-]+', 'slug' => '[a-z0-9-]+'])->name('intel.go');
 Route::get('/sitemap.xml', [PageController::class, 'sitemap'])->name('intel.sitemap');

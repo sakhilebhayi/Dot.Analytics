@@ -6,7 +6,7 @@
     <div class="wrap section">
         @forelse($platforms as $p)
             <article class="src-card">
-                <h3><a href="{{ $p['url'] }}" rel="noopener">{{ $p['name'] }}</a></h3>
+                <h3><a href="{{ route('intel.go', ['platform', $p['key']]) }}" rel="noopener">{{ $p['name'] }}</a></h3>
                 <p>{{ $p['does'] }}</p>
             </article>
         @empty

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Me\LibraryController;
+use App\Http\Controllers\Me\OperateController;
 use App\Http\Controllers\Me\PreferenceController;
 use App\Http\Controllers\Me\SavedController;
 use App\Http\Controllers\Me\WatchController;
@@ -29,5 +30,6 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     Route::get('/preferences', [PreferenceController::class, 'show'])->name('me.preferences');
     Route::put('/preferences', [PreferenceController::class, 'update'])->name('me.preferences.update');
     Route::get('/export', [PreferenceController::class, 'export'])->name('me.export');
+    Route::get('/operate', OperateController::class)->name('me.operate');
     Route::delete('/data', [PreferenceController::class, 'erase'])->name('me.erase');
 });

@@ -271,7 +271,7 @@ class PublicPagesTest extends TestCase
         $this->get('/industries/manufacturing')->assertDontSee('Browse the directory');
 
         PlatformCheck::create(['key' => 'infodot', 'url' => 'https://infodot.co.za', 'status' => 200, 'checked_at' => now(), 'last_ok_at' => now()]);
-        $this->get('/industries/manufacturing')->assertSee('Browse the directory')->assertSee('https://infodot.co.za/businesses?category=manufacturing', false);
+        $this->get('/industries/manufacturing')->assertSee('Browse the directory')->assertSee('/go/directory/manufacturing', false);
 
         PlatformCheck::where('key', 'infodot')->update(['last_ok_at' => now()->subDays(10), 'status' => 503]);
         $this->get('/industries/manufacturing')->assertDontSee('Browse the directory');
