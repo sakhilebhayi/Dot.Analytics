@@ -6,7 +6,7 @@
 @endphp
 @if($cells !== [])
 <span class="cover" role="img" aria-label="{{ $summary }}">
-    @foreach($cells as $cell)<i class="{{ $cell['freshness']->value }}"></i>@endforeach
+    @foreach(collect($cells)->sortBy(fn ($c) => ['current' => 0, 'stale' => 1, 'missing' => 2][$c['freshness']->value])->values() as $cell)<i class="{{ $cell['freshness']->value }}"></i>@endforeach
 </span>
 @endif
 @if($key)

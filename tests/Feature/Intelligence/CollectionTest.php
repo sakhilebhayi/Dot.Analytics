@@ -12,6 +12,7 @@ use App\Models\Intelligence\ObservationRevision;
 use App\Models\Intelligence\Source;
 use App\Models\Intelligence\SourceRun;
 use App\Services\Intelligence\Collector;
+use App\Services\Intelligence\Reading\Freshness;
 use App\Services\Intelligence\ReferenceData;
 use App\Services\Intelligence\SourceRunner;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -296,5 +297,19 @@ class CollectionTest extends TestCase
         // Only the daily platform check may go out; no source is asked.
         Http::assertNotSent(fn ($request) => ! str_contains($request->url(), 'infodot.co.za'));
         $this->assertSame(0, SourceRun::count(), 'the next pass takes those sources first');
+    }
+
+    public function test_a_source_that_has_stored_some_data_but_has_more_to_do_is_not_called_missing(): void
+    {
+        $this->onlyIndicator();
+        config(['intelligence.seconds_per_source' => 0]);
+        Http::fake(['api.worldbank.org/v2/sources/*' => Http::response($this->metadata()), 'api.worldbank.org/v2/country/*' => Http::response($this->wbRows([2024 => 0.6, 2025 => 1.1]))]);
+        $source = Source::where('key', 'world-bank')->first();
+
+        app(SourceRunner::class)->run($source, 30);
+
+        $fresh = $source->refresh();
+        $this->assertNotNull($fresh->last_success_at, 'a pass that stored data is a collection, finished or not');
+        $this->assertSame(Freshness::Current, $fresh->freshness());
     }
 }

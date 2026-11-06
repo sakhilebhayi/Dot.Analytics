@@ -52,7 +52,8 @@ class SourceRunner
             'cursor' => $cursor,
             'consecutive_failures' => 0,
             'last_error' => null,
-            'last_success_at' => $unfinished ? $source->last_success_at : now(),
+            // A pass that stored something and has more to do is still a collection: the data is there and fresh.
+            'last_success_at' => $unfinished && ($collector->counts['created'] + $collector->counts['updated'] + $collector->counts['unchanged']) === 0 ? $source->last_success_at : now(),
             'next_due_at' => $unfinished ? now()->addMinute() : now()->addMinutes($source->collect_every_minutes),
         ])->save();
     }

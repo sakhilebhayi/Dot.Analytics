@@ -39,10 +39,10 @@
     <section class="wrap section" aria-labelledby="ind-h">
         <div class="section-head">
             <h2 id="ind-h">By industry</h2>
-            <p>South Africa first. The squares show how many of an industry's series are current, out of date or not available.</p>
+            <p>The six we hold the most on, for South Africa. The squares show current, out of date and not available series. <a class="more" href="{{ route('intel.industries') }}">All 17 industries</a></p>
         </div>
         <ul class="index">
-            @foreach($industries as $row)
+            @foreach($industries->sortByDesc(fn ($r) => collect($r['cells'])->where('freshness', \App\Services\Intelligence\Reading\Freshness::Current)->count())->take(6) as $row)
                 <li>
                     <a href="{{ route('intel.industry', $row['industry']) }}">
                         <span class="name">{{ $row['industry']->name }}</span>
