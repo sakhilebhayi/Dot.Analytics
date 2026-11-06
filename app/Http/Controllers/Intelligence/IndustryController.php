@@ -16,11 +16,10 @@ class IndustryController extends Controller
     {
         $za = $reader->geographyByCode('ZAF');
 
-        return view('intel.industries', ['rows' => Industry::orderBy('sort')->get()->map(function (Industry $i) use ($reader, $za) {
-            $cells = $za ? $reader->coverage($i->indicators()->where('is_published', true)->get(), $za) : [];
+        $all = Industry::orderBy('sort')->get();
+        $coverage = $reader->industryCoverage($all, $za);
 
-            return ['industry' => $i, 'cells' => $cells, 'grade' => $reader->grade($cells)];
-        })]);
+        return view('intel.industries', ['rows' => $all->map(fn (Industry $i) => ['industry' => $i] + $coverage[$i->slug])]);
     }
 
     public function show(Request $request, Industry $industry, Reader $reader, Ecosystem $ecosystem): View
