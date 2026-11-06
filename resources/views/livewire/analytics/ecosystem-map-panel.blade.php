@@ -35,7 +35,7 @@
                         class="w-full rounded px-3 py-2 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
                         style="background:var(--ink-soft);border:1px solid var(--line);color:var(--paper);"
                     />
-                    @error('connectUrl') <p style="color:#f08a6c;font-size:0.7rem;margin-top:0.25rem;">{{ $message }}</p> @enderror
+                    @error('connectUrl') <p style="color:var(--danger);font-size:0.7rem;margin-top:0.25rem;">{{ $message }}</p> @enderror
                 </div>
                 <button wire:click="confirmConnect" class="press" style="background:var(--gold);color:var(--ink);padding:0.5rem 1rem;border-radius:0.35rem;font-size:0.8rem;font-weight:600;">Connect</button>
                 <button wire:click="cancelConnect" class="press" style="background:transparent;color:var(--mist);border:1px solid var(--line);padding:0.5rem 1rem;border-radius:0.35rem;font-size:0.8rem;">Cancel</button>
@@ -50,7 +50,7 @@
                 $connected = $platform['status'] === 'connected';
                 $colors    = $platform['colors'];
             @endphp
-            <div class="border rounded-xl p-3 flex flex-col gap-2 {{ $connected ? $colors['border'] . ' ' . $colors['bg'] : '' }}" style="{{ $connected ? '' : 'border-color:var(--line);background:rgba(255,255,255,0.02);' }}">
+            <div class="border rounded-xl p-3 flex flex-col gap-2 {{ $connected ? $colors['border'] . ' ' . $colors['bg'] : '' }}" style="{{ $connected ? '' : 'border-color:var(--line);background:color-mix(in srgb, var(--paper) 2%, transparent);' }}">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-1.5">
                         <span class="w-2 h-2 rounded-full {{ $connected ? $colors['dot'] : '' }}" style="{{ $connected ? '' : 'background:var(--mist);' }}"></span>
@@ -68,7 +68,7 @@
                             wire:click="disconnect('{{ $key }}')"
                             wire:confirm="Disconnect {{ $platform['label'] }}? Intelligence data already collected will be preserved."
                             style="font-size:0.7rem;color:var(--mist);background:none;border:none;cursor:pointer;"
-                            onmouseover="this.style.color='#f08a6c'" onmouseout="this.style.color='var(--mist)'"
+                            onmouseover="this.style.color='var(--danger)'" onmouseout="this.style.color='var(--mist)'"
                         >Disconnect</button>
                     @else
                         <button

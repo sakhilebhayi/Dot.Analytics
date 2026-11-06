@@ -1,12 +1,11 @@
-<x-app-layout>
+<x-app-layout title="Search">
     <x-slot name="header">
-        <p class="font-mono" style="font-size:0.7rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--teal-soft);margin:0 0 0.6rem;">Search</p>
-        <h1 class="font-display" style="font-size:1.75rem;font-weight:700;color:var(--paper);letter-spacing:-0.01em;margin:0;">Search Results</h1>
+        <p class="eyebrow">Company intelligence</p>
+        <h1>Search your workspace.</h1>
+        <p class="lede">Alerts, insights, recommendations and reports for the company you are signed in to. The public library has its own search.</p>
     </x-slot>
 
-    <div style="padding:2rem 2.5rem 4rem;">
-        <div style="max-width:1180px;margin:0 auto;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--ink-soft);">
-            <livewire:analytics.search-panel :query="request('q', '')" />
-        </div>
+    <div class="ws-frame">
+        <div><livewire:analytics.search-panel :query="request('q', '')" /></div>
     </div>
 </x-app-layout>

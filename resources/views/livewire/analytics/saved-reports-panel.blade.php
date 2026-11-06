@@ -56,7 +56,7 @@
                     <div class="flex-1 min-w-0">
                         <div class="flex items-center gap-2 mb-0.5">
                             <p style="font-size:0.85rem;font-weight:600;color:var(--paper);margin:0;" class="truncate">{{ $report->title }}</p>
-                            <span style="font-size:0.68rem;padding:0.1rem 0.5rem;background:rgba(43,182,183,0.08);color:var(--teal-soft);border-radius:9999px;flex-shrink:0;">
+                            <span style="font-size:0.68rem;padding:0.1rem 0.5rem;background:color-mix(in srgb, var(--teal) 8%, transparent);color:var(--teal-soft);border-radius:9999px;flex-shrink:0;">
                                 {{ ucfirst($report->config['report_type'] ?? 'insights') }}
                             </span>
                         </div>

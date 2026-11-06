@@ -80,7 +80,7 @@
                                 <div class="flex items-center gap-2">
                                     <span style="font-size:0.85rem;font-weight:600;color:var(--paper);">{{ $dash->title }}</span>
                                     @if($dash->visibility === 'team')
-                                        <span class="font-mono" style="font-size:0.58rem;background:rgba(43,182,183,0.1);color:var(--teal-soft);padding:0.1rem 0.4rem;border-radius:0.25rem;">shared</span>
+                                        <span class="font-mono" style="font-size:0.58rem;background:color-mix(in srgb, var(--teal) 10%, transparent);color:var(--teal-soft);padding:0.1rem 0.4rem;border-radius:0.25rem;">shared</span>
                                     @endif
                                 </div>
                             </a>

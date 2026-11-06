@@ -25,7 +25,7 @@
                         <a
                             href="{{ $notification->data['url'] ?? route('dashboard') }}"
                             wire:click="markAsRead('{{ $notification->id }}')"
-                            style="display:block;padding:0.6rem 1rem;border-bottom:1px solid var(--line);text-decoration:none;background:{{ $notification->read_at ? 'transparent' : 'rgba(241,198,46,0.05)' }};"
+                            style="display:block;padding:0.6rem 1rem;border-bottom:1px solid var(--line);text-decoration:none;background:{{ $notification->read_at ? 'transparent' : 'color-mix(in srgb, var(--gold) 5%, transparent)' }};"
                         >
                             <p style="font-size:0.8rem;font-weight:600;color:var(--paper);margin:0;">{{ $notification->data['title'] ?? 'Notification' }}</p>
                             @if(!empty($notification->data['description']))

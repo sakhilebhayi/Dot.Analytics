@@ -1,0 +1,38 @@
+/*
+ * The signed-in company workspace, in the same language as the public library (DESIGN.md): a light reading surface,
+ * IBM Plex, one blue. The panels were written against these older variable names, so they are kept and mapped onto the
+ * library's tokens here, which is what lets every panel follow light and dark without being rewritten.
+ */
+@font-face { font-family: 'IBM Plex Sans'; src: url('/fonts/ibm-plex-sans-var.woff2') format('woff2'); font-weight: 400 600; font-style: normal; font-display: swap; }
+@font-face { font-family: 'IBM Plex Sans Condensed'; src: url('/fonts/ibm-plex-sans-condensed-600-normal.woff2') format('woff2'); font-weight: 600; font-style: normal; font-display: swap; }
+@font-face { font-family: 'IBM Plex Sans Condensed'; src: url('/fonts/ibm-plex-sans-condensed-700-normal.woff2') format('woff2'); font-weight: 700; font-style: normal; font-display: swap; }
+@font-face { font-family: 'IBM Plex Mono'; src: url('/fonts/ibm-plex-mono-400-normal.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: 'IBM Plex Mono'; src: url('/fonts/ibm-plex-mono-500-normal.woff2') format('woff2'); font-weight: 500; font-style: normal; font-display: swap; }
+
+:root {
+    --ink: #f4f6f8;        /* page ground */
+    --ink-soft: #ffffff;   /* raised surface */
+    --panel: #ffffff;
+    --paper: #10151c;      /* text */
+    --mist: #566070;       /* secondary text */
+    --line: #d7dce3;
+    --teal: #2338d8;
+    --teal-soft: #2338d8;
+    --gold: #2338d8;
+    --gold-soft: #1a2bb0;
+    --danger: #b3261e;
+    --danger-soft: #b3261e;
+    --font-display: 'IBM Plex Sans Condensed', 'IBM Plex Sans', system-ui, sans-serif;
+    --font-body: 'IBM Plex Sans', system-ui, sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+    color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --ink: #0e1116; --ink-soft: #161b22; --panel: #161b22; --paper: #eef1f5; --mist: #9aa6b6; --line: #2a323d;
+        --teal: #8fa2ff; --teal-soft: #8fa2ff; --gold: #8fa2ff; --gold-soft: #b7c3ff; --danger: #ff8a80; --danger-soft: #ff8a80;
+        color-scheme: dark;
+    }
+}
+

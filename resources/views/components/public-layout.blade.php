@@ -34,7 +34,7 @@
 
 <header class="top">
     <div class="wrap top-in">
-        <a class="mark" href="{{ route('intel.home') }}" aria-label="Dot.Analytics home"><img src="{{ asset('images/logo.png') }}" alt="" width="26" height="26"><span>Dot.</span>Analytics</a>
+        <a class="mark" href="{{ route('intel.home') }}" aria-label="Dot.Analytics home"><img src="{{ asset('images/mark.png') }}" alt="" width="26" height="26"><span>Dot.</span>Analytics</a>
         <nav class="nav" aria-label="Main">
             @foreach($nav as [$route, $label])
                 <a href="{{ route($route) }}" @if($section === $route) aria-current="page" @endif>{{ $label }}</a>
