@@ -51,10 +51,35 @@ four pages. The public library has its own database, cannot name a company, and 
 
 ## Evidence
 
-- Tests: see the Checked section of each pull request; the full suite passes in CI.
-- Browser crawl, desktop and phone, of every page type with axe: _filled in below_.
-- Performance at volume: the front page runs 35 queries (it ran 195), the countries comparison 5 (it ran 119), at 30,000+ readings.
+**Tests.** 1,046 tests, 1,039 pass, 7 skipped (as before this work). New in this work: the public pages, My library, site measures,
+hardening, workspace pages, the 25 acceptance checks, and the collection and derivation tests, about 130 in all. CI (tests with
+coverage, static analysis, dependency audit, Docker build) was green on every merged pull request.
 
+**Real browser, every public page type and the signed-in pages.** Phone (390), tablet (768) and desktop (1440), light and dark:
+- Axe: no violations on any page at any size, signed in or out, after the fixes below.
+- No horizontal overflow on any page at any size.
+- Mobile LCP 0.8 to 1.6 s, layout shift 0, no loader, JavaScript 119 KB gzipped on the heaviest page (the company workspace).
+- Keyboard: a skip link first on every page, every focus stop visible, a chart is one stop that reads each point with the arrow keys.
+- The run found real problems that were then fixed: a chart with 36 focus stops carrying labels it may not have, headings that skipped
+  levels, a header outside any landmark, duplicate search landmarks, a badge unreadable in light mode, a table wider than a phone,
+  and a source shown as "not available" while its figures were current.
+
+**Outside design review.** A fresh reviewer given only screenshots and the audit (the awwwards rubric) scored the public pages 6.6, then,
+after a round of fixes, 6.85 out of 10. The target was 8 or more, and it was not reached. Its remaining points are about a lack of
+a signature layout or moment (the honesty idea lives in components rather than driving the layout), a sign-in page outside the site
+shell (only seen if SSO-only mode is off; production redirects to InfoDot), and small items fixed after that pass. The library is
+quiet by decision (see `DESIGN.md`): a reading product should hold still.
+
+**Performance at volume.** With over 30,000 readings and 1,500 developments loaded, the front page runs 35 queries (it ran 195), the
+countries comparison 5 (it ran 119), a country page 13 (it ran 102); every page is held to a query budget and a time limit in the tests.
+Pages are also cached whole for five minutes, with a generation key so a takedown retires every page at once.
+
+**Rehearsed.** The migrations ran on a populated database (foreign key check clean). `route:cache`, `config:cache`, `view:cache` and
+`event:cache` all build. Real collection ran against the live World Bank, OECD, BIS and four newsroom feeds (about 50,000 readings). The ECB
+sources could not connect from the development machine (its certificate store); the host will show whether they do.
+
+**Merged, not deployed** (trunk `feature/ecosystem-sso`): #42 foundations and security, #43 intelligence store and collection, #44 public library,
+#45 My library, #46 site measures, #47 hardening, #48 workspace, #49 acceptance, #50 to #52 polish after outside review.
 
 ## What is not done, and why
 

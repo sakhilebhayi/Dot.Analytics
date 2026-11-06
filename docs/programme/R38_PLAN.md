@@ -58,3 +58,8 @@ Brief: `requirements/dot-analytics-transformation.md`. Research: `R38_RESEARCH.m
 - `ANALYTICS_INGEST_URL` and the secret pairs on the Dot platforms, so the workspace has data.
 - The host: disk quota, whether MySQL is available, and the `INTEL_DB_*` settings.
 - Privacy and terms wording needs a lawyer.
+
+## Where it stands (2026-11-07)
+
+Phases A0, B1, B2, C, D1, E1, E2, E3 (groundwork), F1, F2 (for the library and the main audit items) and F3 are built and merged. B3 company pages
+are not built. See `R38_READINESS.md` for evidence, what is not done and the owner's list, and `R38_ACCEPTANCE.md` for the 25 checks.
