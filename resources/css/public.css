@@ -435,3 +435,13 @@ button, input, select { font: inherit; color: inherit; }
     .matrix td small { grid-column: 1 / -1; }
     .matrix td:first-of-type, .matrix td:last-child { border-radius: 0; }
 }
+
+/* Hover and tap size for the links the review found still and small */
+.mark { text-decoration: underline; text-decoration-color: transparent; text-decoration-thickness: 2px; text-underline-offset: 6px; transition: text-decoration-color 140ms; }
+.mark:hover, .mark:focus-visible { text-decoration-color: var(--accent); }
+.more { display: inline-block; padding-block: 4px; text-decoration: underline; text-decoration-color: transparent; text-decoration-thickness: 2px; text-underline-offset: 4px; transition: text-decoration-color 140ms; }
+.more:hover { text-decoration-color: var(--accent); }
+.pager a { display: inline-flex; align-items: center; min-height: 40px; padding: 0 12px; border-radius: var(--radius); box-shadow: inset 0 0 0 1px var(--line); text-decoration: none; transition: background 140ms, color 140ms; }
+.pager a:hover { background: var(--ink); color: var(--ground); }
+.crumbs a, .foot a, .tape-links a { display: inline-block; padding-block: 3px; }
+.src-card dd a, .facts dd a { display: inline-block; padding-block: 2px; }
