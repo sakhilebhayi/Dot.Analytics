@@ -3,6 +3,7 @@
         <ol class="crumbs"><li><a href="{{ route('intel.countries') }}">Countries</a></li><li aria-current="page">{{ $geography->name }}</li></ol>
         <h1>{{ $geography->name }}</h1>
         <p class="lede">{{ $geography->region ?: 'World' }}. @if($count > 0){{ $count }} {{ \Illuminate\Support\Str::plural('figure', $count) }} held, grouped by what they measure.@else We hold no figures for this country yet. Nothing is estimated in their place.@endif</p>
+        <p class="btn-row"><a class="btn quiet" href="{{ route('me.watch.confirm', ['kind' => 'country', 'key' => $geography->code]) }}">Watch {{ $geography->name }}</a></p>
     </div>
 
     @forelse($byTopic as $topic => $figures)

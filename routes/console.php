@@ -68,3 +68,9 @@ Schedule::command(RunScheduledReportsCommand::class)->everyMinute()
 Schedule::command('intelligence:collect')->everyTenMinutes()
     ->withoutOverlapping(15)
     ->name('intelligence-collect');
+
+// The library's personal side: record what touches what people watch, then email the digests people asked for. Mornings in
+// South Africa are 05:00 UTC plus two hours.
+Schedule::command('library:scan')->everyThirtyMinutes()->withoutOverlapping(25)->name('library-scan');
+Schedule::command('library:digest daily')->dailyAt('05:00')->withoutOverlapping(30)->name('library-digest-daily');
+Schedule::command('library:digest weekly')->weeklyOn(1, '05:00')->withoutOverlapping(30)->name('library-digest-weekly');

@@ -87,7 +87,7 @@ class SecurityHeaders
         $realtime = (bool) config('echo.enabled');
 
         // The public library carries no inline script or style, so it gets the strict policy.
-        if ($request->routeIs('intel.*')) {
+        if ($request->routeIs('intel.*', 'me.*')) {
             $response->headers->set('X-Frame-Options', 'DENY');
             $response->headers->set('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'");
 

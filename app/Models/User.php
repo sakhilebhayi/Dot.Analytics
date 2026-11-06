@@ -3,8 +3,14 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Models\Library\Alert;
+use App\Models\Library\Preference;
+use App\Models\Library\Saved;
+use App\Models\Library\Watch;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
@@ -120,5 +126,29 @@ class User extends Authenticatable
     public function isPlatformOperator(): bool
     {
         return $this->is_platform_operator === true;
+    }
+
+    /** @return HasMany<Watch, $this> */
+    public function libraryWatches(): HasMany
+    {
+        return $this->hasMany(Watch::class);
+    }
+
+    /** @return HasMany<Saved, $this> */
+    public function librarySaved(): HasMany
+    {
+        return $this->hasMany(Saved::class);
+    }
+
+    /** @return HasMany<Alert, $this> */
+    public function libraryAlerts(): HasMany
+    {
+        return $this->hasMany(Alert::class);
+    }
+
+    /** @return HasOne<Preference, $this> */
+    public function libraryPreference(): HasOne
+    {
+        return $this->hasOne(Preference::class);
     }
 }

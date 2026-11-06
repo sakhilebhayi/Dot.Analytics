@@ -18,6 +18,11 @@ class PageController extends Controller
         return view('intel.method');
     }
 
+    public function plans(): View
+    {
+        return view('intel.plans', ['plans' => (array) config('intelligence_plans.plans'), 'always' => (array) config('intelligence_plans.always_free')]);
+    }
+
     public function ecosystem(Ecosystem $ecosystem): View
     {
         return view('intel.ecosystem', ['platforms' => $ecosystem->platforms()]);
@@ -25,7 +30,7 @@ class PageController extends Controller
 
     public function sitemap(): Response
     {
-        $urls = [route('intel.home'), route('intel.industries'), route('intel.countries'), route('intel.indicators'), route('intel.newsroom'), route('intel.briefings'), route('intel.sources'), route('intel.method'), route('intel.ecosystem')];
+        $urls = [route('intel.home'), route('intel.industries'), route('intel.countries'), route('intel.indicators'), route('intel.newsroom'), route('intel.briefings'), route('intel.sources'), route('intel.method'), route('intel.plans'), route('intel.ecosystem')];
 
         foreach (Industry::orderBy('sort')->get() as $i) {
             $urls[] = route('intel.industry', $i);

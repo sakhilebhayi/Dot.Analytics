@@ -41,5 +41,6 @@ Route::get('/briefings/{edition}/{date}', [BriefingController::class, 'show'])->
 Route::get('/sources', SourceController::class)->name('intel.sources');
 Route::get('/find', FindController::class)->middleware('throttle:public-search')->name('intel.find');
 Route::get('/method', [PageController::class, 'method'])->name('intel.method');
+Route::get('/plans', [PageController::class, 'plans'])->name('intel.plans');
 Route::get('/ecosystem', [PageController::class, 'ecosystem'])->name('intel.ecosystem');
 Route::get('/sitemap.xml', [PageController::class, 'sitemap'])->name('intel.sitemap');
