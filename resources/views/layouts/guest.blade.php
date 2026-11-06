@@ -24,7 +24,8 @@
     </style>
 </head>
 <body class="antialiased font-sans">
-    <main class="min-h-screen flex flex-col items-center justify-center px-5 py-12 sm:py-16">
+    <a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-50 focus:px-3 focus:py-2" style="background:var(--paper);color:var(--ink)">Skip to the content</a>
+    <main id="main" class="min-h-screen flex flex-col items-center justify-center px-5 py-12 sm:py-16">
         <a href="{{ route('intel.home') }}" class="press mb-8 flex items-center gap-3 shrink-0 no-underline" aria-label="Dot.Analytics home">
             <img src="{{ asset('images/mark.png') }}" alt="" width="32" height="32">
             <span class="font-display text-2xl font-bold" style="color:var(--paper)">Dot.Analytics</span>

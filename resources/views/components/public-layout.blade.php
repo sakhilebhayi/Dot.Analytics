@@ -69,7 +69,7 @@
 <footer class="foot">
     <div class="wrap foot-grid">
         <div>
-            <p class="big">Understand business. Discover opportunity. Make informed decisions.</p>
+            <p class="big">Figures you can check.</p>
             <p>Every figure here comes with its source, its period and its licence. When we do not have something, we say so.</p>
         </div>
         <nav aria-label="Library">

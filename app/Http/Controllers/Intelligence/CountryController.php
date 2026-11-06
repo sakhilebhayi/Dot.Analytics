@@ -14,7 +14,8 @@ class CountryController extends Controller
     {
         return view('intel.countries', [
             'matrix' => $reader->matrix((array) config('intelligence_home.matrix'), (array) config('intelligence_home.matrix_countries')),
-            'regions' => Geography::where('kind', 'country')->orderBy('region')->orderBy('name')->get()->groupBy('region'),
+            'regions' => Geography::where('kind', 'country')->orderBy('name')->get()->groupBy('region')
+                ->sortBy(fn ($group, $region) => (str_contains((string) $region, 'Africa') ? '0' : '1').$region),
         ]);
     }
 

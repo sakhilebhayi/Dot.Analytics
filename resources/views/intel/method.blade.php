@@ -3,12 +3,12 @@
         <h1>How figures are labelled, and what we will not do.</h1>
         <p class="lede">A reader should be able to tell a fact from an opinion at a glance, and to check any figure against where it came from.</p>
     </div>
-    <div class="wrap section prose">
+    <div class="wrap section"><div class="prose">
         <h2>Five labels</h2>
         <ul>
             <li><x-intel.label kind="source"/> What a source published, shown as published, with its period and its licence.</li>
             <li><x-intel.label kind="calculated"/> Arithmetic on source facts, such as a change since the last reading, or a move larger than usual for a series. Code does it and the page shows the working.</li>
-            <li><x-intel.label kind="ai"/> A machine summary of text we hold the right to summarise. It names the model and the time, and it is switched off until the owner of this site sets a provider and a spending cap. None is shown today.</li>
+            <li><x-intel.label kind="ai"/> A machine summary of text we hold the right to summarise. It names the model and the time, and it is switched off for now. None is shown today.</li>
             <li><x-intel.label kind="editorial"/> An opinion, signed and dated. None is published today.</li>
             <li><x-intel.label kind="forecast"/> A projection with its assumptions stated. None is published today.</li>
         </ul>
@@ -30,5 +30,6 @@
 
         <h2>Limits</h2>
         <p>This is information, not advice. It is not investment, legal, tax or accounting advice, and nothing here predicts what any price or business will do.</p>
+    </div>
     </div>
 </x-public-layout>

@@ -15,12 +15,12 @@
                     @foreach($matrix['indicators'] as $i)
                         @php $f = $row['cells'][$i->key] ?? null; @endphp
                         @if($f)
-                            <td class="{{ $f->freshness() === \App\Services\Intelligence\Reading\Freshness::Stale ? 'stale' : '' }}">
+                            <td data-label="{{ $i->name }}" class="{{ $f->freshness() === \App\Services\Intelligence\Reading\Freshness::Stale ? 'stale' : '' }}">
                                 <a href="{{ route('intel.indicator', [$i, 'place' => $row['geography']->code]) }}" class="num">{{ $f->value() }}</a>
                                 <small>{{ $f->period() }}@if($f->freshness() === \App\Services\Intelligence\Reading\Freshness::Stale), out of date @endif</small>
                             </td>
                         @else
-                            <td class="missing">Not available</td>
+                            <td data-label="{{ $i->name }}" class="missing">Not available</td>
                         @endif
                     @endforeach
                 </tr>
