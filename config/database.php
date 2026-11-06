@@ -46,6 +46,24 @@ return [
             'transaction_mode' => 'IMMEDIATE',
         ],
 
+        // Public intelligence lives apart from every company's private data, so a long import cannot hold up a sign-in.
+        'intel' => [
+            'driver' => env('INTEL_DB_DRIVER', 'sqlite'),
+            'database' => env('INTEL_DB_DATABASE', storage_path('intelligence/intelligence.sqlite')),
+            'host' => env('INTEL_DB_HOST', '127.0.0.1'),
+            'port' => env('INTEL_DB_PORT', '3306'),
+            'username' => env('INTEL_DB_USERNAME'),
+            'password' => env('INTEL_DB_PASSWORD'),
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'foreign_key_constraints' => true,
+            'busy_timeout' => 15000,
+            'journal_mode' => 'wal',
+            'synchronous' => 'normal',
+            'transaction_mode' => 'IMMEDIATE',
+        ],
+
         'mysql' => [
             'driver' => 'mysql',
             'url' => env('DB_URL'),

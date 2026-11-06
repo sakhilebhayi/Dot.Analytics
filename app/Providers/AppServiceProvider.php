@@ -45,6 +45,8 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        $this->prepareIntelligenceStore();
+
         // Register model observer for audit logging and domain events
         DataSource::observe(DataSourceObserver::class);
 
@@ -124,6 +126,21 @@ class AppServiceProvider extends ServiceProvider
                 ? Limit::perMinute(10)->by($user->id)   // AI calls are expensive
                 : Limit::perMinute(2)->by($request->ip());
         });
+    }
+
+    /** The public library keeps its own SQLite file. Make its folder and file so the first collection has somewhere to write. */
+    private function prepareIntelligenceStore(): void
+    {
+        if (config('intelligence.connection') !== 'intel' || config('database.connections.intel.driver') !== 'sqlite') {
+            return;
+        }
+
+        $path = (string) config('database.connections.intel.database');
+
+        if ($path !== '' && $path !== ':memory:' && ! is_file($path)) {
+            @mkdir(dirname($path), 0775, true);
+            @touch($path);
+        }
     }
 
     private function isTeamOwnerOrAdmin(User $user): bool
