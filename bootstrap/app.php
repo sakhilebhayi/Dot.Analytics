@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\CachePublicPage;
+use App\Http\Middleware\CountVisit;
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SetLocale;
 use Illuminate\Foundation\Application;
@@ -40,6 +41,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->group('public', [
             SubstituteBindings::class,
             'throttle:public',
+            CountVisit::class,
             CachePublicPage::class,
         ]);
 

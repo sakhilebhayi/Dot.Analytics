@@ -11,6 +11,7 @@
             @endforeach
         </nav>
         <div class="me-end">
+            @can('operate-platform')<a href="{{ route('me.operate') }}">Operations</a>@endcan
             <a href="{{ route('dashboard') }}">Company intelligence</a>
             <form method="post" action="{{ route('logout') }}">@csrf<button type="submit">Sign out</button></form>
         </div>

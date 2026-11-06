@@ -53,8 +53,8 @@
                     <p>InfoDot's directory lists South African businesses in this sector. Verified ones are marked there. It is a separate site with its own rules.</p>
                 </div>
                 <div class="btn-row">
-                    <a class="btn" href="{{ $directory }}">Browse the directory</a>
-                    @if($directoryVerified)<a class="btn quiet" href="{{ $directoryVerified }}">Verified only</a>@endif
+                    <a class="btn" href="{{ route('intel.go', ['directory', $industry->slug]) }}" rel="noopener">Browse the directory</a>
+                    @if($directoryVerified)<a class="btn quiet" href="{{ route('intel.go', ['directory-verified', $industry->slug]) }}" rel="noopener">Verified only</a>@endif
                 </div>
             </div>
         </section>

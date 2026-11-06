@@ -4,6 +4,7 @@ Disallow: /dashboard
 Disallow: /reports
 Disallow: /search
 Disallow: /find
+Disallow: /go/
 Disallow: /login
 Disallow: /register
 Disallow: /auth/
