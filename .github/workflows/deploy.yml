@@ -628,10 +628,18 @@ jobs:
             done
             printf '%s' "$code"
           }
-          for PAGE in "/" "/login" "/up" "/robots.txt" "/fonts/ibm-plex-sans-var.woff2" "/sitemap.xml" "/industries"; do
+          for PAGE in "/" "/up" "/robots.txt" "/fonts/ibm-plex-sans-var.woff2" "/sitemap.xml" "/industries"; do
             CODE=$(status "$SITE_URL$PAGE")
             if [ "$CODE" = "200" ]; then echo "200 $SITE_URL$PAGE"; else echo "::error::$SITE_URL$PAGE answered ${CODE:-no response} (expected 200)"; FAILED=1; fi
           done
+          # Production signs in through InfoDot (SSO only), so a guest on
+          # /login is sent on (302) rather than shown a form: either answer
+          # means the route is alive. Anything else is a fault.
+          CODE=$(curl -s --max-time 30 -o /dev/null -w '%{http_code}' "$SITE_URL/login" || true)
+          case "$CODE" in
+            200|302) echo "$CODE $SITE_URL/login" ;;
+            *) echo "::error::$SITE_URL/login answered ${CODE:-no response} (expected 200 or 302)"; FAILED=1 ;;
+          esac
           for ASSET in $(python3 -c "import json; m=json.load(open('public/build/manifest.json')); print(' '.join(sorted({v['file'] for v in m.values() if v.get('isEntry')} | {f for v in m.values() if v.get('isEntry') for f in v.get('css', [])})))"); do
             CODE=$(status "$SITE_URL/build/$ASSET")
             if [ "$CODE" = "200" ]; then echo "200 $SITE_URL/build/$ASSET"; else echo "::error::$SITE_URL/build/$ASSET answered ${CODE:-no response} (expected 200): the docroot is not serving the new build"; FAILED=1; fi
