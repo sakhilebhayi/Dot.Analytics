@@ -24,13 +24,18 @@ use Livewire\Component;
 #[Lazy]
 class BusinessPlatformsPanel extends Component
 {
+    /*
+     * Every state InfoDot can send (PlatformAccess::businessState) is in one of these lists or deliberately in none:
+     * not_launched is not shown, and company_required (a personal workspace) is said in a sentence instead.
+     */
+
     /** States in which an entitled company is using the platform. */
-    public const IN_USE = ['active' => 'Active', 'included' => 'Included', 'trial' => 'On trial'];
+    public const IN_USE = ['included' => 'Included', 'active' => 'Active', 'trial' => 'On trial'];
 
     /** States a company can act on to start using a platform. */
     public const AVAILABLE = [
         'free_to_activate' => 'Free to activate',
-        'unpriced_free' => 'Free while pricing is being finalised',
+        'free_while_pricing_finalised' => 'Free while pricing is being finalised',
         'trial_available' => 'Trial available',
         'available_for_purchase' => 'Available to buy',
         'managed_in_platform' => 'Managed in the platform',
@@ -38,12 +43,15 @@ class BusinessPlatformsPanel extends Component
 
     /** States that stop or threaten access until someone acts. */
     public const ATTENTION = [
-        'payment_required' => 'Payment required',
-        'suspended' => 'Suspended',
-        'expired' => 'Subscription expired',
         'activation_pending' => 'Activation pending',
+        'payment_required' => 'Payment required',
+        'subscription_expired' => 'Subscription expired',
+        'suspended' => 'Suspended',
         'temporarily_unavailable' => 'Temporarily unavailable',
     ];
+
+    /** A personal workspace: platforms beyond the free core need a company. */
+    public const COMPANY_REQUIRED = 'company_required';
 
     public static function enabled(): bool
     {
@@ -51,7 +59,7 @@ class BusinessPlatformsPanel extends Component
     }
 
     /**
-     * @return array{state: 'loaded'|'unavailable'|'unlinked', read_at: ?Carbon, groups: array<string, list<array{key: string, name: string, label: string, url: string}>>}
+     * @return array{state: 'loaded'|'unavailable'|'unlinked'|'personal', read_at: ?Carbon, groups: array<string, list<array{key: string, name: string, label: string, url: string}>>}
      */
     #[Computed]
     public function platforms(): array
@@ -69,10 +77,20 @@ class BusinessPlatformsPanel extends Component
             return ['state' => 'unavailable', 'read_at' => null, 'groups' => []];
         }
 
+        if ($answer['personal'] || in_array(self::COMPANY_REQUIRED, array_column($answer['platforms'], 'status'), true)) {
+            return ['state' => 'personal', 'read_at' => Carbon::parse($answer['read_at']), 'groups' => []];
+        }
+
         $groups = ['in_use' => [], 'available' => [], 'attention' => []];
 
         foreach ($answer['platforms'] as $platform) {
             $status = $platform['status'];
+
+            // InfoDot lists itself; it is where this list is kept, not a platform to open from it.
+            if ($platform['key'] === 'infodot') {
+                continue;
+            }
+
             $row = ['key' => $platform['key'], 'name' => $platform['name'], 'url' => $this->infodot().'/platforms/'.$platform['key']];
 
             if (isset(self::ATTENTION[$status]) && ($status !== 'temporarily_unavailable' || $platform['entitled'])) {
@@ -107,7 +125,7 @@ class BusinessPlatformsPanel extends Component
      * A company's answer is kept for a few minutes; a failure is remembered for a minute so a struggling InfoDot is
      * not asked again on every page.
      *
-     * @return array{platforms: list<array{key: string, name: string, status: string, entitled: bool, is_core: bool}>, read_at: string}|null
+     * @return array{personal: bool, platforms: list<array{key: string, name: string, status: string, entitled: bool, is_core: bool}>, read_at: string}|null
      */
     private function read(string $uuid): ?array
     {
@@ -115,16 +133,16 @@ class BusinessPlatformsPanel extends Component
         $cached = Cache::get($key);
 
         if (is_array($cached)) {
-            return $cached['platforms'] === null ? null : $cached;
+            return ($cached['platforms'] ?? null) === null ? null : $cached;
         }
 
-        $platforms = app(IdentityClient::class)->companyPlatforms($uuid);
-        $answer = ['platforms' => $platforms, 'read_at' => now()->toIso8601String()];
+        $read = app(IdentityClient::class)->companyPlatforms($uuid);
+        $answer = ['personal' => $read['personal'] ?? false, 'platforms' => $read['platforms'] ?? null, 'read_at' => now()->toIso8601String()];
 
-        Cache::put($key, $answer, $platforms === null
+        Cache::put($key, $answer, $read === null
             ? now()->addSeconds((int) config('analytics.business_platforms.retry_seconds', 60))
             : now()->addMinutes((int) config('analytics.business_platforms.cache_minutes', 10)));
 
-        return $platforms === null ? null : $answer;
+        return $read === null ? null : $answer;
     }
 }

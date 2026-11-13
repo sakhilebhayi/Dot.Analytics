@@ -15,7 +15,7 @@ return [
 
     /*
     | "Your business platforms" on the workspace: which Dot platforms the company has, read from InfoDot
-    | (GET /api/ecosystem/companies/{team uuid}/platforms, signed with INFODOT_SERVICE_SECRET). Off until InfoDot
+    | (GET /api/ecosystem/companies/{team uuid}/platforms?platform=analytics, signed with INFODOT_SERVICE_SECRET). Off until InfoDot
     | serves that address. When InfoDot cannot answer, the panel says so; it never guesses.
     */
     'business_platforms' => [

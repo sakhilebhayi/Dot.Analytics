@@ -64,27 +64,30 @@ class IdentityClient
     }
 
     /**
-     * The platforms InfoDot lists for one company, each with the state the business sees.
+     * What InfoDot records for one company: whether it is a personal workspace, and each discoverable platform with
+     * the state the business sees. InfoDot asks the caller to name itself (`platform`) as well as prove its secret.
      *
      * Read-only and never fatal: InfoDot being slow, down, refusing the call, not knowing the company or answering
      * with something unexpected all return null, which the caller shows as "could not be loaded just now". One
      * incomplete entry makes the whole answer unexpected, and nothing is ever assumed to be active.
      *
-     * @return list<array{key: string, name: string, status: string, entitled: bool, is_core: bool}>|null
+     * @return array{personal: bool, platforms: list<array{key: string, name: string, status: string, entitled: bool, is_core: bool}>}|null
      */
     public function companyPlatforms(string $teamUuid): ?array
     {
         $base = $this->companiesUrl();
+        $caller = (string) config('ecosystem.infodot.platform');
 
-        if (! $this->enabled() || $base === null || ! Str::isUuid($teamUuid)) {
+        if (! $this->enabled() || $base === null || $caller === '' || ! Str::isUuid($teamUuid)) {
             return null;
         }
 
         try {
             $response = Http::withToken((string) config('ecosystem.infodot.secret'))
+                ->withHeaders(['X-Dot-Platform' => $caller])
                 ->acceptJson()
                 ->timeout((int) config('ecosystem.infodot.timeout', 5))
-                ->get($base.'/'.$teamUuid.'/platforms');
+                ->get($base.'/'.$teamUuid.'/platforms', ['platform' => $caller]);
         } catch (ConnectionException $e) {
             Log::warning('InfoDot platforms read unreachable.', ['error' => class_basename($e)]);
 
@@ -99,9 +102,10 @@ class IdentityClient
         }
 
         $data = $response->json();
-        $rows = is_array($data) && array_key_exists('platforms', $data) ? $data['platforms'] : $data;
+        $rows = is_array($data) ? ($data['platforms'] ?? null) : null;
+        $personal = is_array($data) ? ($data['company']['personal'] ?? null) : null;
 
-        if (! is_array($rows) || ! array_is_list($rows)) {
+        if (! is_array($rows) || ! array_is_list($rows) || ! is_bool($personal)) {
             Log::warning('InfoDot platforms read returned an unexpected body.');
 
             return null;
@@ -125,7 +129,7 @@ class IdentityClient
             ];
         }
 
-        return $platforms;
+        return ['personal' => $personal, 'platforms' => $platforms];
     }
 
     /** Where company reads live. Set outright, or taken from the redeem address so one setting moves both. */

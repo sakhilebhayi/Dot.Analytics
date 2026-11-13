@@ -16,6 +16,8 @@
 
         @if($answer['state'] === 'unlinked')
             <p class="bp-note" data-testid="business-platforms-unlinked">This workspace is not linked to a company in InfoDot, so there is nothing to read. <a href="{{ $infodot }}/platforms">Open Platforms in InfoDot</a>.</p>
+        @elseif($answer['state'] === 'personal')
+            <p class="bp-note" data-testid="business-platforms-personal">This is a personal workspace. It has the platforms included for everyone, and the rest need a company. <a href="{{ $infodot }}/platforms">See what a company can use in InfoDot</a>.</p>
         @elseif($answer['state'] === 'unavailable')
             <p class="bp-note" data-testid="business-platforms-unavailable">Your platforms could not be loaded just now. Nothing has changed on your account. <a href="{{ $infodot }}/platforms">See them in InfoDot</a>, or try again in a minute.</p>
         @elseif(collect($answer['groups'])->flatten(1)->isEmpty())
