@@ -267,8 +267,8 @@ class DashboardWidgetsTest extends TestCase
         $this->assertStringNotContainsString('value="emall.revenue_7d_cents"', $html);
     }
 
-    public function test_the_dashboard_page_mounts_the_builder(): void
+    public function test_the_figures_page_mounts_the_builder(): void
     {
-        $this->actingAs($this->owner)->get('/dashboard')->assertOk()->assertSee('Dashboard Builder')->assertSee('Board One');
+        $this->actingAs($this->owner)->get('/workspace/figures')->assertOk()->assertSee('Dashboard Builder')->assertSee('Board One');
     }
 }

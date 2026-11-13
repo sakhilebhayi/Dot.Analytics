@@ -1,10 +1,12 @@
 @php
     $items = [
         ['dashboard', 'Overview', 'dashboard'],
+        ['workspace.figures', 'Figures', 'workspace.figures'],
         ['workspace.insights', 'Insights', 'workspace.insights'],
         ['workspace.briefing', 'Briefing', 'workspace.briefing'],
         ['workspace.ask', 'Ask', 'workspace.ask'],
         ['workspace.reports', 'Reports', 'workspace.reports'],
+        ['workspace.sources', 'Sources', 'workspace.sources'],
     ];
     $team = Auth::user()->currentTeam;
 @endphp
@@ -26,7 +28,7 @@
                 <div class="relative ws-team">
                     <x-dropdown align="right" width="60">
                         <x-slot name="trigger">
-                            <button type="button" class="press font-mono inline-flex items-center px-3" style="min-height:40px;font-size:13px;color:var(--mist);background:transparent;border:1px solid var(--line);border-radius:4px;">
+                            <button type="button" class="press ws-team-button">
                                 {{ $team->name }}
                                 <svg class="ms-2 size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 15L12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9" /></svg>
                             </button>
@@ -58,7 +60,7 @@
             <div class="relative ws-user">
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
-                        <button type="button" class="press" aria-label="Account" style="width:40px;height:40px;border-radius:9999px;background:var(--paper);color:var(--ink);font:700 14px/1 var(--font-display);">{{ strtoupper(substr(Auth::user()->name, 0, 1)) }}</button>
+                        <button type="button" class="press ws-account" aria-label="Account">{{ strtoupper(substr(Auth::user()->name, 0, 1)) }}</button>
                     </x-slot>
                     <x-slot name="content">
                         <div class="block px-4 py-2 text-xs text-gray-500">{{ __('Manage Account') }}</div>

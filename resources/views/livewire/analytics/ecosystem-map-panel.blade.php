@@ -2,9 +2,9 @@
     <div class="flex items-center justify-between mb-6">
         <div>
             <p class="font-mono" style="font-size:0.65rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--teal-soft);margin:0 0 0.35rem;">Ecosystem Map</p>
-            <h2 class="font-display" style="font-size:1.1rem;font-weight:700;color:var(--paper);margin:0;">Connected Platforms</h2>
+            <h2 class="font-display" style="font-size:1.1rem;font-weight:700;color:var(--paper);margin:0;">Data sources</h2>
             <p style="font-size:0.75rem;color:var(--mist);margin:0.3rem 0 0;">
-                {{ $this->connectedCount }} of {{ count($this->platformCatalog) }} platforms connected
+                {{ $this->connectedCount }} of {{ count($this->platformCatalog) }} platforms connected as data sources
                 &middot; {{ count($this->activeEngines) }} intelligence engines active
             </p>
         </div>

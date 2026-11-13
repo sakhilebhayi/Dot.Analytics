@@ -22,6 +22,13 @@
     --gold-soft: #1a2bb0;
     --danger: #b3261e;
     --danger-soft: #b3261e;
+    --stale: #8a5a00;
+    --tape: #10151c;        /* the working tape: the one dark object on a light page */
+    --tape-ink: #eef1f5;
+    --tape-muted: #a3aebd;
+    --tape-line: #2f3742;
+    --tape-accent: #b7c3ff;
+    --on-accent: #ffffff;
     --font-display: 'IBM Plex Sans Condensed', 'IBM Plex Sans', system-ui, sans-serif;
     --font-body: 'IBM Plex Sans', system-ui, sans-serif;
     --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
@@ -32,6 +39,7 @@
     :root {
         --ink: #0e1116; --ink-soft: #161b22; --panel: #161b22; --paper: #eef1f5; --mist: #9aa6b6; --line: #2a323d;
         --teal: #8fa2ff; --teal-soft: #8fa2ff; --gold: #8fa2ff; --gold-soft: #b7c3ff; --danger: #ff8a80; --danger-soft: #ff8a80;
+        --stale: #e0b04a; --tape: #05080c; --tape-ink: #eef1f5; --tape-muted: #8e9aab; --tape-line: #232a33; --tape-accent: #b7c3ff; --on-accent: #0e1116;
         color-scheme: dark;
     }
 }

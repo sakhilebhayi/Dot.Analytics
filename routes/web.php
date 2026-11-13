@@ -40,7 +40,7 @@ Route::middleware([
 ])->group(function () {
     Route::get('/dashboard', [WorkspaceController::class, 'overview'])->name('dashboard');
 
-    foreach (['insights', 'briefing', 'ask', 'reports'] as $section) {
+    foreach (WorkspaceController::SECTIONS as $section) {
         Route::get('/workspace/'.$section, fn () => app(WorkspaceController::class)->page($section))->name('workspace.'.$section);
     }
 

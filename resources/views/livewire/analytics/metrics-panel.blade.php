@@ -15,8 +15,8 @@
     <div data-testid="metrics-state" style="display:flex;flex-wrap:wrap;align-items:baseline;gap:0.5rem 1.5rem;padding:0.75rem 1rem;border:1px solid var(--line);border-bottom:0;background:var(--panel);">
         <span class="font-display" style="font-size:0.95rem;font-weight:600;color:{{ $summary['open_anomalies'] > 0 ? 'var(--danger-soft)' : ($summary['stale_metrics'] > 0 ? 'var(--gold-soft)' : 'var(--paper)') }};">{{ $summary['headline'] }}</span>
         <span class="font-mono" style="font-size:0.66rem;color:var(--mist);letter-spacing:0.04em;">
-            {{ $summary['connected'] }} of {{ count($dash['platforms']) }} platforms connected
-            &middot; {{ $summary['reporting_platforms'] }} reporting
+            {{ $summary['connected'] }} of {{ count($dash['platforms']) }} platforms connected as data sources
+            &middot; {{ $summary['reporting_platforms'] }} reporting data
             &middot; {{ $summary['metrics_reporting'] }} {{ \Illuminate\Support\Str::plural('metric', $summary['metrics_reporting']) }} with data
             @if($summary['has_demo']) &middot; <span style="color:var(--gold-soft);">includes DEMO DATA</span> @endif
         </span>
@@ -31,7 +31,7 @@
             <ol style="margin:0 0 1.25rem;padding-left:1.1rem;font-size:0.8rem;color:var(--paper);line-height:1.7;">
                 <li>
                     @can('manage-platforms')
-                        <a href="#connected-platforms" style="color:var(--teal-soft);">Connect a platform in Connected Platforms</a> below. You are shown its webhook secret once.
+                        <a href="{{ route('workspace.sources') }}" style="color:var(--teal-soft);">Connect a platform under Sources</a>. You are shown its webhook secret once.
                     @else
                         Ask an owner or admin to connect a platform; they are shown its webhook secret once.
                     @endcan
@@ -73,7 +73,7 @@
             <p style="font-size:0.72rem;color:var(--mist);margin:0.75rem 0 0;">
                 Not connected: {{ $notConnected->pluck('label')->implode(', ') }}.
                 @can('manage-platforms')
-                    <a href="#connected-platforms" style="color:var(--teal-soft);">Connect a platform in Connected Platforms</a>.
+                    <a href="{{ route('workspace.sources') }}" style="color:var(--teal-soft);">Connect a platform under Sources</a>.
                 @else
                     Ask an owner or admin to connect them.
                 @endcan

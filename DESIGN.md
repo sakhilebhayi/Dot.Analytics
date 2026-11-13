@@ -1,6 +1,6 @@
 # Dot.Analytics: design
 
-Direction for the public library and, later, the workspace. Written with the awwwards skill and checked with the Impeccable detector. The product is a reading product first: a person should be able to trust what they read within three seconds of arriving.
+Direction for the public library and the signed-in workspace. Written with the awwwards skill and checked with the Impeccable detector. The product is a reading product first: a person should be able to trust what they read within three seconds of arriving.
 
 ## Concept card
 
@@ -71,6 +71,11 @@ HOME   statement (7 cols) + "the numbers today" plate stack (5 cols)
        what moved: a full-width ink band with three plain sentences from the numbers
        how it is labelled: the key of five labels and what is not shown yet
        InfoDot: a short row, only where a real directory search exists
+LANDING (signed in, /dashboard) the real logo and the way back to InfoDot; welcome, statement and one action (7 cols)
+       beside the working tape (5 cols): the newest stored figure from each reporting platform, each with the platform
+       that sent it, the day it is for and when it arrived; with nothing reporting the tape is hatched and prints no number
+       waiting for a decision: open alerts and recommended actions as rows, or one sentence
+       your business platforms (from InfoDot, when switched on); the rest of the workspace as an index, no cards
 FIGURE one large figure, the chart, the working tape, related figures, the table
 INDUSTRY title, coverage strip, figures, newsroom, InfoDot businesses, what is missing
 COUNTRY  title, coverage strip, figures by topic, newsroom, comparison with neighbours
