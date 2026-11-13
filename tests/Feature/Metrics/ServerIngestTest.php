@@ -45,7 +45,7 @@ class ServerIngestTest extends TestCase
         config(['analytics.ingest.secrets' => array_merge(config('analytics.ingest.secrets'), [
             'tasks' => self::TASKS_SECRET,
             'hr' => self::HR_SECRET,
-            'billing' => '',
+            'emall' => '',
         ])]);
 
         $this->team = $this->ownerWithTeam()->currentTeam;
@@ -264,7 +264,7 @@ class ServerIngestTest extends TestCase
 
     public function test_a_platform_with_a_blank_secret_cannot_call_even_with_a_signature_made_from_nothing(): void
     {
-        $body = $this->body('billing', ['open_invoices' => 4]);
+        $body = $this->body('emall', ['orders_7d' => 4]);
 
         $this->publish($body, '')->assertStatus(401);
         $this->publish($body, 'guess')->assertStatus(401);
@@ -281,8 +281,8 @@ class ServerIngestTest extends TestCase
     {
         // Tasks holds the tasks secret and signs a body that claims to be HR.
         $this->publish($this->body('hr', ['headcount' => 40]), self::TASKS_SECRET)->assertStatus(401);
-        // Tasks signs as billing, whose secret is blank.
-        $this->publish($this->body('billing', ['open_invoices' => 40]), self::TASKS_SECRET)->assertStatus(401);
+        // Tasks signs as emall, whose secret is blank.
+        $this->publish($this->body('emall', ['orders_7d' => 40]), self::TASKS_SECRET)->assertStatus(401);
 
         $this->assertCount(0, $this->snapshots());
         $this->assertCount(0, $this->sources());
@@ -301,7 +301,7 @@ class ServerIngestTest extends TestCase
             'future' => $this->publish($this->body(), self::TASKS_SECRET, now()->timestamp + 4000),
             'tampered' => $this->postRaw($raw.' ', ['X-InfoDot-Timestamp' => (string) $timestamp, 'X-InfoDot-Signature' => $good]),
             'unknown platform' => $this->publish($this->body('fleet'), self::TASKS_SECRET),
-            'blank-secret platform' => $this->publish($this->body('billing', ['open_invoices' => 1]), ''),
+            'blank-secret platform' => $this->publish($this->body('emall', ['orders_7d' => 1]), ''),
             'other platform key' => $this->publish($this->body('hr', ['headcount' => 1]), self::TASKS_SECRET),
             'not json' => $this->postRaw('not json at all', ['X-InfoDot-Timestamp' => (string) $timestamp, 'X-InfoDot-Signature' => $good]),
         ];
@@ -491,13 +491,13 @@ class ServerIngestTest extends TestCase
 
     public function test_money_needs_a_currency_and_unknown_keys_are_dropped(): void
     {
-        config(['analytics.ingest.secrets.billing' => 'billing-publisher-secret-9d2']);
+        config(['analytics.ingest.secrets.emall' => 'emall-publisher-secret-9d2']);
 
-        $response = $this->publish($this->body('billing', ['mrr_cents' => 125000]), 'billing-publisher-secret-9d2');
+        $response = $this->publish($this->body('emall', ['revenue_7d_cents' => 125000]), 'emall-publisher-secret-9d2');
         $response->assertStatus(422);
         $this->assertArrayHasKey('metrics.currency', $response->json('errors'));
 
-        $ok = $this->publish($this->body('billing', ['mrr_cents' => 125000, 'currency' => 'zar', 'made_up' => 4]), 'billing-publisher-secret-9d2');
+        $ok = $this->publish($this->body('emall', ['revenue_7d_cents' => 125000, 'currency' => 'zar', 'made_up' => 4]), 'emall-publisher-secret-9d2');
         $ok->assertStatus(201)->assertJsonPath('dropped_keys', ['made_up']);
         $this->assertSame('ZAR', $this->snapshots()->first()->payload['currency']);
     }

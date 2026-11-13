@@ -61,10 +61,10 @@ class SnapshotContractTest extends TestCase
 
     public function test_a_key_from_another_platforms_catalogue_is_not_accepted(): void
     {
-        $result = $this->contract()->validate('tasks', $this->valid(['metrics' => ['open' => 1, 'mrr_cents' => 100]]));
+        $result = $this->contract()->validate('tasks', $this->valid(['metrics' => ['open' => 1, 'revenue_7d_cents' => 100]]));
 
         $this->assertSame(['open' => 1], $result['metrics']);
-        $this->assertSame(['mrr_cents'], $result['dropped']);
+        $this->assertSame(['revenue_7d_cents'], $result['dropped']);
     }
 
     public function test_null_means_not_reported_and_is_not_stored_as_zero(): void
@@ -118,26 +118,29 @@ class SnapshotContractTest extends TestCase
 
     public function test_decimal_quantities_are_kept_as_decimals(): void
     {
-        $result = $this->contract()->validate('farms', $this->valid(['platform' => 'farms', 'metrics' => ['harvested_kg_30d' => 1234.5]]));
+        // No platform in the catalogue declares a quantity today, so the kind is exercised with one added for the test.
+        config(['metrics.platforms.tasks.metrics.hours_logged_7d' => ['label' => 'Hours logged, 7 days', 'type' => 'quantity', 'good' => 'neutral']]);
 
-        $this->assertSame(['harvested_kg_30d' => 1234.5], $result['metrics']);
+        $result = $this->contract()->validate('tasks', $this->valid(['platform' => 'tasks', 'metrics' => ['hours_logged_7d' => 1234.5]]));
+
+        $this->assertSame(['hours_logged_7d' => 1234.5], $result['metrics']);
     }
 
     public function test_money_is_whole_cents_with_a_currency(): void
     {
-        $result = $this->contract()->validate('billing', $this->valid([
-            'platform' => 'billing',
-            'metrics' => ['mrr_cents' => 1250000, 'currency' => 'zar'],
+        $result = $this->contract()->validate('emall', $this->valid([
+            'platform' => 'emall',
+            'metrics' => ['revenue_7d_cents' => 1250000, 'currency' => 'zar'],
         ]));
 
-        $this->assertSame(['mrr_cents' => 1250000], $result['metrics']);
+        $this->assertSame(['revenue_7d_cents' => 1250000], $result['metrics']);
         $this->assertSame('ZAR', $result['currency']);
     }
 
     public function test_money_without_a_currency_is_rejected(): void
     {
         try {
-            $this->contract()->validate('billing', $this->valid(['platform' => 'billing', 'metrics' => ['mrr_cents' => 100]]));
+            $this->contract()->validate('emall', $this->valid(['platform' => 'emall', 'metrics' => ['revenue_7d_cents' => 100]]));
             $this->fail('Expected a ValidationException.');
         } catch (ValidationException $e) {
             $this->assertArrayHasKey('metrics.currency', $e->errors());
@@ -148,9 +151,9 @@ class SnapshotContractTest extends TestCase
     {
         $this->expectException(ValidationException::class);
 
-        $this->contract()->validate('billing', $this->valid([
-            'platform' => 'billing',
-            'metrics' => ['mrr_cents' => 100.5, 'currency' => 'ZAR'],
+        $this->contract()->validate('emall', $this->valid([
+            'platform' => 'emall',
+            'metrics' => ['revenue_7d_cents' => 100.5, 'currency' => 'ZAR'],
         ]));
     }
 
@@ -158,9 +161,9 @@ class SnapshotContractTest extends TestCase
     {
         foreach (['RAND', 'Z', '12$', 7, ''] as $bad) {
             try {
-                $this->contract()->validate('billing', $this->valid([
-                    'platform' => 'billing',
-                    'metrics' => ['mrr_cents' => 100, 'currency' => $bad],
+                $this->contract()->validate('emall', $this->valid([
+                    'platform' => 'emall',
+                    'metrics' => ['revenue_7d_cents' => 100, 'currency' => $bad],
                 ]));
                 $this->fail('Expected a ValidationException for '.json_encode($bad));
             } catch (ValidationException $e) {
@@ -173,7 +176,7 @@ class SnapshotContractTest extends TestCase
     {
         $this->expectException(ValidationException::class);
 
-        $this->contract()->validate('tasks', $this->valid(['platform' => 'billing']));
+        $this->contract()->validate('tasks', $this->valid(['platform' => 'emall']));
     }
 
     public function test_period_must_be_day(): void
@@ -225,7 +228,7 @@ class SnapshotContractTest extends TestCase
         $this->assertSame('Overdue tasks', $catalogue->metric('tasks', 'overdue')['label']);
         $this->assertSame(['platform' => 'tasks', 'metric' => 'overdue'], $catalogue->parse('tasks.overdue'));
         $this->assertNull($catalogue->parse('tasks.nope'));
-        $this->assertTrue($catalogue->isMoney('billing', 'mrr_cents'));
-        $this->assertFalse($catalogue->isMoney('billing', 'open_invoices'));
+        $this->assertTrue($catalogue->isMoney('emall', 'revenue_7d_cents'));
+        $this->assertFalse($catalogue->isMoney('emall', 'orders_7d'));
     }
 }

@@ -166,7 +166,7 @@ class CrossPlatformIntelligenceServiceTest extends TestCase
     public function test_run_for_team_with_multiple_platforms_activates_more_engines(): void
     {
         $singlePlatformTeam = $this->teamWithPlatforms(['pulse']);
-        $multiPlatformTeam = $this->teamWithPlatforms(['tasks', 'emall', 'hr', 'billing', 'pulse']);
+        $multiPlatformTeam = $this->teamWithPlatforms(['tasks', 'emall', 'hr', 'auction', 'pulse']);
 
         $this->service->runForTeam($singlePlatformTeam);
         $this->service->runForTeam($multiPlatformTeam);

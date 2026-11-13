@@ -15,7 +15,7 @@
 |   type   count     non-negative whole number
 |          cents     non-negative whole number of minor currency units; the
 |                    snapshot must also carry `currency`
-|          quantity  non-negative number (e.g. kilograms)
+|          quantity  non-negative number (e.g. kilograms); no platform declares one today
 |          rating    number between `min` and `max`
 |   good   Which direction of change is favourable: up, down or neutral. Only
 |          used to colour a delta; the numbers are never altered by it.
@@ -99,27 +99,6 @@ return [
                 'headcount' => ['label' => 'Headcount', 'type' => 'count', 'good' => 'neutral'],
                 'on_leave_today' => ['label' => 'On leave today', 'type' => 'count', 'good' => 'neutral'],
                 'pending_leave_requests' => ['label' => 'Pending leave requests', 'type' => 'count', 'good' => 'down'],
-            ],
-        ],
-
-        'farms' => [
-            'label' => 'Dot.Farms',
-            'engine' => 'agriculture',
-            'metrics' => [
-                'active_cycles' => ['label' => 'Active crop cycles', 'type' => 'count', 'good' => 'neutral'],
-                'harvests_30d' => ['label' => 'Harvests, 30 days', 'type' => 'count', 'good' => 'up'],
-                'harvested_kg_30d' => ['label' => 'Harvested, 30 days (kg)', 'type' => 'quantity', 'good' => 'up'],
-            ],
-        ],
-
-        'billing' => [
-            'label' => 'Dot.Billing',
-            'engine' => 'financial',
-            'metrics' => [
-                'mrr_cents' => ['label' => 'Monthly recurring revenue', 'type' => 'cents', 'good' => 'up'],
-                'open_invoices' => ['label' => 'Open invoices', 'type' => 'count', 'good' => 'neutral'],
-                'overdue_invoices' => ['label' => 'Overdue invoices', 'type' => 'count', 'good' => 'down'],
-                'overdue_cents' => ['label' => 'Overdue amount', 'type' => 'cents', 'good' => 'down'],
             ],
         ],
 

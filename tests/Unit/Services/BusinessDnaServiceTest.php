@@ -79,7 +79,7 @@ class BusinessDnaServiceTest extends TestCase
     public function test_confidence_increases_with_more_platforms_reporting(): void
     {
         $a = $this->teamWithData(['tasks']);
-        $b = $this->teamWithData(['tasks', 'emall', 'hr', 'billing', 'notify']);
+        $b = $this->teamWithData(['tasks', 'emall', 'hr', 'auction', 'notify']);
 
         $this->assertGreaterThan(
             $this->service()->computeForTeam($a)->confidence_score,

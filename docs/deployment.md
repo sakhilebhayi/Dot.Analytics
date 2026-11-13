@@ -33,8 +33,8 @@ The smoke check requests `/`, `/login`, `/up`, the built CSS and JS, `POST /up` 
 ## What the host `.env` needs
 
 - `INFODOT_PLATFORM_KEY=analytics`, `INFODOT_SERVICE_SECRET` (= `ECOSYSTEM_SECRET_ANALYTICS` in InfoDot's `.env`).
-- One `ANALYTICS_INGEST_SECRET_<KEY>` per publishing app (auction, billing, design, ehail, emall, farms, hr, notify,
-  pulse, tasks, tutor); each app holds the same value as `ANALYTICS_INGEST_SECRET`.
+- One `ANALYTICS_INGEST_SECRET_<KEY>` per publishing app (auction, design, ehail, emall, hr, notify, projects,
+  pulse, sheet, tasks, tutor); each app holds the same value as `ANALYTICS_INGEST_SECRET`.
 - `QUEUE_CONNECTION=database`, `SESSION_DRIVER=database`, `CACHE_STORE=database`, `BROADCAST_CONNECTION=log`.
 - `MAIL_*` before relying on email, and `ANTHROPIC_API_KEY`-style AI keys only if you want AI features
   (without a key they are unavailable, never faked).

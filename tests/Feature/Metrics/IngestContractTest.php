@@ -94,15 +94,15 @@ class IngestContractTest extends TestCase
     {
         $this->sourceFor('tasks');
         $unknown = $this->snapshotBody('11111111-2222-4333-8444-555555555555', 'tasks', ['open' => 1]);
-        $unconnected = $this->snapshotBody($this->company, 'billing', ['open_invoices' => 1]);
+        $unconnected = $this->snapshotBody($this->company, 'emall', ['orders_7d' => 1]);
 
         $a = $this->postSnapshot($this->owner, 'tasks', $unknown, self::SECRET);
-        $b = $this->postSnapshot($this->owner, 'billing', $unconnected, self::SECRET);
+        $b = $this->postSnapshot($this->owner, 'emall', $unconnected, self::SECRET);
 
         $a->assertNotFound();
         $b->assertNotFound();
         $this->assertSame(
-            str_replace('billing', 'tasks', $b->json('message')),
+            str_replace('emall', 'tasks', $b->json('message')),
             $a->json('message'),
             'unknown company and unconnected platform must not be distinguishable',
         );
@@ -205,17 +205,17 @@ class IngestContractTest extends TestCase
 
     public function test_money_needs_a_currency_and_is_stored_as_integer_cents(): void
     {
-        $this->sourceFor('billing');
+        $this->sourceFor('emall');
 
-        $this->postSnapshot($this->owner, 'billing', $this->snapshotBody($this->company, 'billing', ['mrr_cents' => 100]), self::SECRET)
+        $this->postSnapshot($this->owner, 'emall', $this->snapshotBody($this->company, 'emall', ['revenue_7d_cents' => 100]), self::SECRET)
             ->assertUnprocessable()
             ->assertJsonValidationErrors('metrics.currency');
 
-        $this->postSnapshot($this->owner, 'billing', $this->snapshotBody($this->company, 'billing', ['mrr_cents' => 1250000, 'currency' => 'ZAR']), self::SECRET)
+        $this->postSnapshot($this->owner, 'emall', $this->snapshotBody($this->company, 'emall', ['revenue_7d_cents' => 1250000, 'currency' => 'ZAR']), self::SECRET)
             ->assertStatus(201);
 
         $payload = $this->snapshots()->first()->payload;
-        $this->assertSame(1250000, $payload['metrics']['mrr_cents']);
+        $this->assertSame(1250000, $payload['metrics']['revenue_7d_cents']);
         $this->assertSame('ZAR', $payload['currency']);
     }
 
@@ -223,7 +223,7 @@ class IngestContractTest extends TestCase
     {
         $this->sourceFor('tasks');
 
-        $this->postSnapshot($this->owner, 'tasks', $this->snapshotBody($this->company, 'billing', ['open' => 1]), self::SECRET)
+        $this->postSnapshot($this->owner, 'tasks', $this->snapshotBody($this->company, 'emall', ['open' => 1]), self::SECRET)
             ->assertUnprocessable()
             ->assertJsonValidationErrors('platform');
     }

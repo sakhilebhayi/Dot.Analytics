@@ -84,9 +84,9 @@ class MetricsEndpointTest extends TestCase
 
     public function test_money_values_come_back_with_their_currency(): void
     {
-        $this->pushDays($this->owner->currentTeam, $this->company, 'billing', ['2026-10-17' => ['mrr_cents' => 4500000, 'currency' => 'ZAR']]);
+        $this->pushDays($this->owner->currentTeam, $this->company, 'emall', ['2026-10-17' => ['revenue_7d_cents' => 4500000, 'currency' => 'ZAR']]);
 
-        $row = $this->asApi($this->owner)->getJson('/api/v1/metrics?metric_key=billing.mrr_cents')->json('data.0');
+        $row = $this->asApi($this->owner)->getJson('/api/v1/metrics?metric_key=emall.revenue_7d_cents')->json('data.0');
 
         $this->assertSame('ZAR', $row['currency']);
         $this->assertSame('cents', $row['unit']);

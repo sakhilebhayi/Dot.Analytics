@@ -67,7 +67,7 @@ class MetricReaderTest extends TestCase
     {
         $dashboard = $this->read();
 
-        $this->assertCount(13, $dashboard['platforms']);
+        $this->assertCount(11, $dashboard['platforms']);
         $this->assertTrue(collect($dashboard['platforms'])->every(fn ($p) => $p['connected'] === false && $p['tiles'] === []));
         $this->assertSame(0, $dashboard['summary']['connected']);
         $this->assertSame(0, $dashboard['summary']['metrics_reporting']);
@@ -158,9 +158,9 @@ class MetricReaderTest extends TestCase
 
     public function test_money_is_formatted_from_cents_with_its_currency(): void
     {
-        $this->push($this->connect('billing'), ['2026-10-17' => ['mrr_cents' => 125000, 'currency' => 'ZAR']]);
+        $this->push($this->connect('emall'), ['2026-10-17' => ['revenue_7d_cents' => 125000, 'currency' => 'ZAR']]);
 
-        $tile = $this->tile($this->read(), 'billing', 'mrr_cents');
+        $tile = $this->tile($this->read(), 'emall', 'revenue_7d_cents');
 
         $this->assertSame('ZAR 1,250.00', $tile['value']);
         $this->assertSame('ZAR', $tile['currency']);
@@ -177,7 +177,7 @@ class MetricReaderTest extends TestCase
     public function test_the_summary_answers_in_words_what_needs_attention(): void
     {
         $tasks = $this->connect('tasks');
-        $this->connect('billing');
+        $this->connect('emall');
         $this->push($tasks, ['2026-10-17' => ['open' => 10, 'overdue' => 1], '2026-10-10' => ['created_7d' => 5]]);
 
         $summary = $this->read()['summary'];

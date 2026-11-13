@@ -53,8 +53,6 @@ publishing platform's own environment (never committed). Generate one with `php 
 | `hr` | `ANALYTICS_INGEST_SECRET_HR` |
 | `auction` | `ANALYTICS_INGEST_SECRET_AUCTION` |
 | `ehail` | `ANALYTICS_INGEST_SECRET_EHAIL` |
-| `farms` | `ANALYTICS_INGEST_SECRET_FARMS` |
-| `billing` | `ANALYTICS_INGEST_SECRET_BILLING` |
 | `emall` | `ANALYTICS_INGEST_SECRET_EMALL` |
 | `tutor` | `ANALYTICS_INGEST_SECRET_TUTOR` |
 | `pulse` | `ANALYTICS_INGEST_SECRET_PULSE` |
@@ -157,7 +155,7 @@ Retrying a request that timed out is safe: send it again with a fresh timestamp 
 
 ## Sending a snapshot with a user token
 
-The older way, still supported unchanged, for a team member's own tooling. `POST /api/v1/ingest/{platform}` where `{platform}` is the platform key (`tasks`, `billing`, ...).
+The older way, still supported unchanged, for a team member's own tooling. `POST /api/v1/ingest/{platform}` where `{platform}` is the platform key (`tasks`, `emall`, ...).
 
 Headers:
 
@@ -263,23 +261,6 @@ Keys are per platform. Only these are accepted; everything else is dropped.
 | `headcount` | Headcount | whole number >= 0 | no preference |
 | `on_leave_today` | On leave today | whole number >= 0 | no preference |
 | `pending_leave_requests` | Pending leave requests | whole number >= 0 | lower |
-
-#### `farms` (Dot.Farms)
-
-| Key | Meaning | Kind | Better when |
-|---|---|---|---|
-| `active_cycles` | Active crop cycles | whole number >= 0 | no preference |
-| `harvests_30d` | Harvests, 30 days | whole number >= 0 | higher |
-| `harvested_kg_30d` | Harvested, 30 days (kg) | number >= 0 | higher |
-
-#### `billing` (Dot.Billing)
-
-| Key | Meaning | Kind | Better when |
-|---|---|---|---|
-| `mrr_cents` | Monthly recurring revenue | whole cents >= 0 (needs `currency`) | higher |
-| `open_invoices` | Open invoices | whole number >= 0 | no preference |
-| `overdue_invoices` | Overdue invoices | whole number >= 0 | lower |
-| `overdue_cents` | Overdue amount | whole cents >= 0 (needs `currency`) | lower |
 
 #### `emall` (Dot.Emall)
 

@@ -84,11 +84,11 @@ class ConnectPlatformActionTest extends TestCase
     public function test_connect_persists_to_database(): void
     {
         $team = $this->team();
-        $this->action->handle($team, 'billing');
+        $this->action->handle($team, 'emall');
 
         $this->assertDatabaseHas('data_sources', [
             'team_id' => $team->id,
-            'platform' => 'billing',
+            'platform' => 'emall',
             'status' => 'connected',
         ]);
     }

@@ -123,7 +123,7 @@ class DashboardWidgetsTest extends TestCase
 
         $this->builder()->set('widgetType', 'kpi')->set('widgetMetric', '')->call('addWidget')->assertHasErrors(['widgetMetric']);
         $this->builder()->set('widgetType', 'kpi')->set('widgetMetric', 'tasks.not_a_metric')->call('addWidget')->assertHasErrors(['widgetMetric']);
-        $this->builder()->set('widgetType', 'kpi')->set('widgetMetric', 'billing.mrr_cents')->call('addWidget')->assertHasErrors(['widgetMetric']);
+        $this->builder()->set('widgetType', 'kpi')->set('widgetMetric', 'emall.revenue_7d_cents')->call('addWidget')->assertHasErrors(['widgetMetric']);
         $this->builder()->set('widgetType', 'kpi')->set('widgetMetric', 'dot.fleet.speed')->call('addWidget')->assertHasErrors(['widgetMetric']);
 
         $this->assertSame(0, DashboardWidget::count());
@@ -132,9 +132,9 @@ class DashboardWidgetsTest extends TestCase
     public function test_another_teams_connected_platform_does_not_make_a_metric_pickable(): void
     {
         $other = $this->ownerWithTeam();
-        DataSource::factory()->create(['team_id' => $other->currentTeam->id, 'platform' => 'billing', 'status' => 'connected']);
+        DataSource::factory()->create(['team_id' => $other->currentTeam->id, 'platform' => 'emall', 'status' => 'connected']);
 
-        $this->builder()->set('widgetType', 'kpi')->set('widgetMetric', 'billing.mrr_cents')->call('addWidget')->assertHasErrors(['widgetMetric']);
+        $this->builder()->set('widgetType', 'kpi')->set('widgetMetric', 'emall.revenue_7d_cents')->call('addWidget')->assertHasErrors(['widgetMetric']);
     }
 
     public function test_a_kpi_widget_shows_the_real_value_and_a_trend_widget_draws_the_real_points(): void
@@ -264,7 +264,7 @@ class DashboardWidgetsTest extends TestCase
         $html = $component->html();
 
         $this->assertStringContainsString('value="tasks.overdue"', $html);
-        $this->assertStringNotContainsString('value="billing.mrr_cents"', $html);
+        $this->assertStringNotContainsString('value="emall.revenue_7d_cents"', $html);
     }
 
     public function test_the_dashboard_page_mounts_the_builder(): void
