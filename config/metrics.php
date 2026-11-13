@@ -167,9 +167,9 @@ return [
             ],
         ],
 
-        // Dot.Sheets publishes counts only: no workbook names, people or cell contents.
+        // Dot.Sheet publishes counts only: no workbook names, people or cell contents.
         'sheet' => [
-            'label' => 'Dot.Sheets',
+            'label' => 'Dot.Sheet',
             'engine' => 'operational',
             'metrics' => [
                 'workbooks' => ['label' => 'Workbooks', 'type' => 'count', 'good' => 'neutral'],

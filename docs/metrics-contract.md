@@ -109,7 +109,7 @@ With curl and openssl (the timestamp must be fresh when you run it):
 BODY='{"company_uuid":"3f2b8c1e-9a4d-4e7b-8c55-1d2e3f4a5b6c","platform":"tasks","taken_at":"2026-10-17T06:00:00Z","period":"day","metrics":{"open":12,"overdue":3}}'
 TS=$(date +%s)
 SIG=$(printf '%s.%s' "$TS" "$BODY" | openssl dgst -sha256 -hmac "$SECRET" | sed 's/^.* //')
-curl -X POST https://analytics.infodot.app/api/ingest/snapshots \
+curl -X POST https://analytics.infodot.co.za/api/ingest/snapshots \
   -H 'Content-Type: application/json' -H "X-InfoDot-Timestamp: $TS" -H "X-InfoDot-Signature: sha256=$SIG" \
   --data-binary "$BODY"
 ```
@@ -317,7 +317,7 @@ money facts Dot.Projects' own portfolio shows. "Off track" and "at risk" are its
 | `late_milestones` | Milestones past due | whole number >= 0 | lower |
 | `serious_risks` | Serious project risks | whole number >= 0 | lower |
 
-#### `sheet` (Dot.Sheets)
+#### `sheet` (Dot.Sheet)
 
 Counted over the workbooks that belong to the company's team. Counts only: no workbook names, people or cell contents.
 

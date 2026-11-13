@@ -6,8 +6,9 @@ return [
     |--------------------------------------------------------------------------
     | Dot Platform Registry
     |--------------------------------------------------------------------------
-    | Every platform in the Dot Ecosystem, shared verbatim across all of them
-    | (see InfoDot's original config/ecosystem.php, the source of this file).
+    | Every platform in the Dot Ecosystem. InfoDot's registry is the authority:
+    | keys, names and live addresses here must match it (note the hosts of
+    | press, sheet and docs: pres, sheets and doc).
     | Used to power cross-platform "discover" surfaces (e.g. error pages)
     | without hardcoding a fixed subset -- add a platform here once and it
     | appears everywhere automatically. Update URLs per environment via the
@@ -20,7 +21,7 @@ return [
         'analytics' => ['name' => 'Dot.Analytics', 'url' => env('DOT_ANALYTICS_URL', 'https://analytics.infodot.co.za'), 'icon' => 'insights', 'accent' => '#f1c62e', 'active' => true],
         'auction' => ['name' => 'Dot.Auction', 'url' => env('DOT_AUCTION_URL', 'https://auction.infodot.co.za'), 'icon' => 'gavel', 'accent' => '#f1c62e', 'active' => true],
         'central' => ['name' => 'Dot.Central', 'url' => env('DOT_CENTRAL_URL', 'https://central.infodot.co.za'), 'icon' => 'hub', 'accent' => '#e8bd3d', 'active' => true],
-        'charts' => ['name' => 'Dot.Charts', 'url' => env('DOT_CHARTS_URL', 'https://charts.infodot.co.za'), 'icon' => 'candlestick_chart', 'accent' => '#f1c62e', 'active' => false],
+        'charts' => ['name' => 'Dot.Charts', 'url' => env('DOT_CHARTS_URL', 'https://charts.infodot.co.za'), 'icon' => 'candlestick_chart', 'accent' => '#f1c62e', 'active' => true],
         'design' => ['name' => 'Dot.Design', 'url' => env('DOT_DESIGN_URL', 'https://design.infodot.co.za'), 'icon' => 'palette', 'accent' => '#efb93a', 'active' => true],
         'dopemine' => ['name' => 'Dot.Dopemine', 'url' => env('DOT_DOPEMINE_URL', 'https://dopemine.infodot.co.za'), 'icon' => 'bolt', 'accent' => '#e8b923', 'active' => true],
         'ehail' => ['name' => 'Dot.Ehail', 'url' => env('DOT_EHAIL_URL', 'https://ehail.infodot.co.za'), 'icon' => 'local_taxi', 'accent' => '#e2b13d', 'active' => true],
@@ -33,13 +34,13 @@ return [
         'memory' => ['name' => 'Dot.Memory', 'url' => env('DOT_MEMORY_URL', 'https://memory.infodot.co.za'), 'icon' => 'memory', 'accent' => '#f4c94c', 'active' => true],
         'mines' => ['name' => 'Dot.Mines', 'url' => env('DOT_MINES_URL', 'https://mines.infodot.co.za'), 'icon' => 'terrain', 'accent' => '#f1c62e', 'active' => true],
         'notify' => ['name' => 'Dot.Notify', 'url' => env('DOT_NOTIFY_URL', 'https://notify.infodot.co.za'), 'icon' => 'notifications', 'accent' => '#f0c33a', 'active' => true],
-        'press' => ['name' => 'Dot.Press', 'url' => env('DOT_PRESS_URL', 'https://press.infodot.co.za'), 'icon' => 'newspaper', 'accent' => '#f0c33a', 'active' => true],
+        'press' => ['name' => 'Dot.Press', 'url' => env('DOT_PRESS_URL', 'https://pres.infodot.co.za'), 'icon' => 'newspaper', 'accent' => '#f0c33a', 'active' => true],
         'projects' => ['name' => 'Dot.Projects', 'url' => env('DOT_PROJECTS_URL', 'https://projects.infodot.co.za'), 'icon' => 'folder_special', 'accent' => '#f0c33a', 'active' => true],
         'pulse' => ['name' => 'Dot.Pulse', 'url' => env('DOT_PULSE_URL', 'https://pulse.infodot.co.za'), 'icon' => 'favorite', 'accent' => '#f1c62e', 'active' => true],
-        'sheet' => ['name' => 'Dot.Sheet', 'url' => env('DOT_SHEET_URL', 'https://sheet.infodot.co.za'), 'icon' => 'table_chart', 'accent' => '#e3ab1f', 'active' => true],
+        'sheet' => ['name' => 'Dot.Sheet', 'url' => env('DOT_SHEET_URL', 'https://sheets.infodot.co.za'), 'icon' => 'table_chart', 'accent' => '#e3ab1f', 'active' => true],
         'tasks' => ['name' => 'Dot.Tasks', 'url' => env('DOT_TASKS_URL', 'https://tasks.infodot.co.za'), 'icon' => 'task_alt', 'accent' => '#f2a803', 'active' => true],
         'tutor' => ['name' => 'Dot.Tutor', 'url' => env('DOT_TUTOR_URL', 'https://tutor.infodot.co.za'), 'icon' => 'school', 'accent' => '#f1c62e', 'active' => true],
-        'docs' => ['name' => 'Dot.docs', 'url' => env('DOT_DOCS_URL', 'https://docs.infodot.co.za'), 'icon' => 'description', 'accent' => '#f1c62e', 'active' => true],
+        'docs' => ['name' => 'Dot.docs', 'url' => env('DOT_DOCS_URL', 'https://doc.infodot.co.za'), 'icon' => 'description', 'accent' => '#f1c62e', 'active' => true],
     ],
 
     /*

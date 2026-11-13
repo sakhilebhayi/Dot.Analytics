@@ -31,7 +31,7 @@
                     <input id="livewire-analytics-ecosystem-map-panel-connecturl"
                         wire:model="connectUrl"
                         type="url"
-                        placeholder="https://fleet.infodot.app"
+                        placeholder="https://tasks.infodot.co.za"
                         class="w-full rounded px-3 py-2 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
                         style="background:var(--ink-soft);border:1px solid var(--line);color:var(--paper);"
                     />
