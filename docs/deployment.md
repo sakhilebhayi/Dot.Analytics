@@ -33,6 +33,8 @@ The smoke check requests `/`, `/login`, `/up`, the built CSS and JS, `POST /up` 
 ## What the host `.env` needs
 
 - `INFODOT_PLATFORM_KEY=analytics`, `INFODOT_SERVICE_SECRET` (= `ECOSYSTEM_SECRET_ANALYTICS` in InfoDot's `.env`).
+- `ANALYTICS_BUSINESS_PLATFORMS=true` only once InfoDot serves `GET /api/ecosystem/companies/{team uuid}/platforms`
+  (the "Your business platforms" panel; off by default, signed with `INFODOT_SERVICE_SECRET`).
 - One `ANALYTICS_INGEST_SECRET_<KEY>` per publishing app (auction, design, ehail, emall, hr, notify, projects,
   pulse, sheet, tasks, tutor); each app holds the same value as `ANALYTICS_INGEST_SECRET`.
 - `QUEUE_CONNECTION=database`, `SESSION_DRIVER=database`, `CACHE_STORE=database`, `BROADCAST_CONNECTION=log`.
