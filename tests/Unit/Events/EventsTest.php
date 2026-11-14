@@ -62,7 +62,7 @@ class EventsTest extends TestCase
 
     public function test_intelligence_engine_completed_broadcasts_correctly(): void
     {
-        $event = new IntelligenceEngineCompleted(1, 'financial', 2, 0, ['billing'], 1);
+        $event = new IntelligenceEngineCompleted(1, 'financial', 2, 0, ['emall'], 1);
 
         $this->assertEquals('engine.completed', $event->broadcastAs());
         $payload = $event->broadcastWith();

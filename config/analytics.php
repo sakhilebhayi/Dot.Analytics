@@ -13,6 +13,18 @@ $platformKeys = array_keys((require __DIR__.'/metrics.php')['platforms']);
 
 return [
 
+    /*
+    | "Your business platforms" on the workspace: which Dot platforms the company has, read from InfoDot
+    | (GET /api/ecosystem/companies/{team uuid}/platforms?platform=analytics, signed with INFODOT_SERVICE_SECRET). Off until InfoDot
+    | serves that address. When InfoDot cannot answer, the panel says so; it never guesses.
+    */
+    'business_platforms' => [
+        'enabled' => (bool) env('ANALYTICS_BUSINESS_PLATFORMS', false),
+        // Minutes a company's answer is kept, and seconds a failure is remembered before InfoDot is asked again.
+        'cache_minutes' => 10,
+        'retry_seconds' => 60,
+    ],
+
     'ingest' => [
         /*
         | POST /api/ingest/snapshots is server to server: no user, no token. The

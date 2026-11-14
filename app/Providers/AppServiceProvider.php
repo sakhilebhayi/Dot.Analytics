@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Http\Middleware\EnsureCompanyEntitled;
 use App\Models\DataSource;
 use App\Models\User;
 use App\Observers\DataSourceObserver;
@@ -16,6 +17,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
+use Livewire\Livewire;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -46,6 +48,9 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->prepareIntelligenceStore();
+
+        // R-50: Livewire updates from a page in the signed-in area carry that page's entitlement check with them.
+        Livewire::addPersistentMiddleware([EnsureCompanyEntitled::class]);
 
         // Register model observer for audit logging and domain events
         DataSource::observe(DataSourceObserver::class);

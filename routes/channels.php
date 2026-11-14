@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureCompanyEntitled;
 use App\Models\User;
 use Illuminate\Support\Facades\Broadcast;
 
@@ -27,10 +28,10 @@ Broadcast::channel('App.Models.User.{id}', function (User $user, int $id) {
 
 // Team intelligence channel — receives real-time engine completions and critical alerts
 Broadcast::channel('team.{teamId}.intelligence', function ($user, int $teamId) {
-    return $user->currentTeam?->id === $teamId;
+    return $user->currentTeam?->id === $teamId && ! EnsureCompanyEntitled::refuses($user->currentTeam);
 });
 
 // Team alerts channel — receives real-time critical insight notifications
 Broadcast::channel('team.{teamId}.alerts', function ($user, int $teamId) {
-    return $user->currentTeam?->id === $teamId;
+    return $user->currentTeam?->id === $teamId && ! EnsureCompanyEntitled::refuses($user->currentTeam);
 });

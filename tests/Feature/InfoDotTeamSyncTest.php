@@ -222,7 +222,7 @@ class InfoDotTeamSyncTest extends TestCase
     {
         $this->signIn('ann@acme.test', [$this->company(self::ACME, 'Acme Ltd', 'owner')], self::ACME);
 
-        foreach (['auditor', 'billing', '', 'EDITOR '] as $i => $role) {
+        foreach (['auditor', 'accountant', '', 'EDITOR '] as $i => $role) {
             $email = "who{$i}@acme.test";
             $this->signIn($email, [$this->company(self::ACME, 'Acme Ltd', $role)], self::ACME);
 

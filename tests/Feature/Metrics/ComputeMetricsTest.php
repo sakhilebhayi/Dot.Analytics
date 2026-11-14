@@ -199,30 +199,30 @@ class ComputeMetricsTest extends TestCase
 
     public function test_definitions_are_created_from_the_catalogue_once(): void
     {
-        $source = $this->source('billing');
-        $this->push($source, ['mrr_cents' => 100000, 'open_invoices' => 3, 'currency' => 'ZAR'], '2026-10-17T06:00:00Z');
+        $source = $this->source('emall');
+        $this->push($source, ['revenue_7d_cents' => 100000, 'orders_7d' => 3, 'currency' => 'ZAR'], '2026-10-17T06:00:00Z');
 
         $this->compute();
         $this->compute();
 
-        $definition = MetricDefinition::where('key', 'billing.mrr_cents')->sole();
-        $this->assertSame('billing', $definition->source_platform);
-        $this->assertSame('financial', $definition->engine);
-        $this->assertSame('Monthly recurring revenue', $definition->label);
+        $definition = MetricDefinition::where('key', 'emall.revenue_7d_cents')->sole();
+        $this->assertSame('emall', $definition->source_platform);
+        $this->assertSame('retail', $definition->engine);
+        $this->assertSame('Revenue, 7 days', $definition->label);
         $this->assertSame('cents', $definition->unit);
         $this->assertSame('latest', $definition->aggregation);
-        $this->assertSame(2, MetricDefinition::where('source_platform', 'billing')->count());
+        $this->assertSame(2, MetricDefinition::where('source_platform', 'emall')->count());
     }
 
     public function test_money_keeps_its_currency_and_never_compares_across_currencies(): void
     {
-        $source = $this->source('billing');
-        $this->push($source, ['mrr_cents' => 100000, 'currency' => 'ZAR'], '2026-10-16T06:00:00Z');
-        $this->push($source, ['mrr_cents' => 5000, 'currency' => 'USD'], '2026-10-17T06:00:00Z');
+        $source = $this->source('emall');
+        $this->push($source, ['revenue_7d_cents' => 100000, 'currency' => 'ZAR'], '2026-10-16T06:00:00Z');
+        $this->push($source, ['revenue_7d_cents' => 5000, 'currency' => 'USD'], '2026-10-17T06:00:00Z');
 
         $this->compute();
 
-        $rows = $this->rows('billing.mrr_cents');
+        $rows = $this->rows('emall.revenue_7d_cents');
         $this->assertSame('ZAR', $rows[0]->currency);
         $this->assertSame('USD', $rows[1]->currency);
         $this->assertNull($rows[1]->delta, 'ZAR to USD is not a change in value');

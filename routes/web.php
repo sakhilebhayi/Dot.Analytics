@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\EcosystemAuthController;
 use App\Http\Controllers\WorkspaceController;
+use App\Http\Middleware\EnsureCompanyEntitled;
 use App\Http\Middleware\ReverifyWithInfoDot;
 use App\Models\AnalyticsReport;
 use App\Services\ReportGenerationService;
@@ -37,10 +38,12 @@ Route::middleware([
     config('jetstream.auth_session'),
     'verified',
     ReverifyWithInfoDot::class,
+    // R-50: the company must still hold Dot.Analytics. The public library and sign-in are outside this group.
+    EnsureCompanyEntitled::class,
 ])->group(function () {
     Route::get('/dashboard', [WorkspaceController::class, 'overview'])->name('dashboard');
 
-    foreach (['insights', 'briefing', 'ask', 'reports'] as $section) {
+    foreach (WorkspaceController::SECTIONS as $section) {
         Route::get('/workspace/'.$section, fn () => app(WorkspaceController::class)->page($section))->name('workspace.'.$section);
     }
 

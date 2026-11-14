@@ -68,7 +68,7 @@ class MetricsPanelTest extends TestCase
             ->assertStatus(200)
             ->assertSee('Nothing is reporting yet.')
             ->assertSee('Connect a platform')
-            ->assertSeeHtml('href="#connected-platforms"')
+            ->assertSeeHtml('href="'.route('workspace.sources').'"')
             ->assertSee('POST /api/v1/ingest/{platform}')
             ->assertSee('X-Analytics-Signature')
             ->assertSee('company_uuid')
@@ -79,7 +79,7 @@ class MetricsPanelTest extends TestCase
 
     public function test_it_lists_the_platforms_that_could_be_connected_by_their_real_names(): void
     {
-        $this->panel()->assertSee('Dot.Tasks')->assertSee('Dot.Billing')->assertDontSee('Dot.Fleet')->assertDontSee('Dot.CRM');
+        $this->panel()->assertSee('Dot.Tasks')->assertSee('Dot.Emall')->assertDontSee('Dot.Fleet')->assertDontSee('Dot.CRM');
     }
 
     public function test_a_connected_platform_with_no_snapshot_shows_no_data_yet_and_no_numbers(): void
@@ -182,7 +182,7 @@ class MetricsPanelTest extends TestCase
             ->assertSet('selectedKey', 'tasks.open')
             ->call('select', 'dot.fleet.speed')
             ->assertSet('selectedKey', 'tasks.open')
-            ->call('select', 'billing.mrr_cents')
+            ->call('select', 'emall.revenue_7d_cents')
             ->assertSet('selectedKey', 'tasks.open', 'a platform that is not connected cannot be selected');
     }
 
@@ -248,8 +248,8 @@ class MetricsPanelTest extends TestCase
     {
         $viewer = $this->memberOf($this->owner, 'viewer');
 
-        $this->panel($viewer)->assertSee('Ask an owner or admin to connect a platform')->assertDontSee('Connect a platform in');
-        $this->panel($this->owner)->assertSee('Connect a platform in');
+        $this->panel($viewer)->assertSee('Ask an owner or admin to connect a platform')->assertDontSee('Connect a platform under Sources');
+        $this->panel($this->owner)->assertSee('Connect a platform under Sources');
     }
 
     public function test_it_only_shows_the_current_teams_numbers(): void
@@ -264,17 +264,17 @@ class MetricsPanelTest extends TestCase
         $this->panel()->assertSee('Open tasks')->assertDontSee('424,242');
     }
 
-    public function test_the_dashboard_page_mounts_the_panel(): void
+    public function test_the_figures_page_mounts_the_panel(): void
     {
-        $this->actingAs($this->owner)->get('/dashboard')
+        $this->actingAs($this->owner)->get('/workspace/figures')
             ->assertOk()
-            ->assertSee('Nothing is reporting yet.')
-            ->assertSeeHtml('id="connected-platforms"');
+            ->assertSee('Nothing is reporting yet.');
+        $this->actingAs($this->owner)->get('/workspace/sources')->assertOk()->assertSeeHtml('id="connected-platforms"');
     }
 
     public function test_money_tiles_show_the_currency(): void
     {
-        $this->push($this->connect('billing'), ['2026-10-17' => ['mrr_cents' => 125000, 'currency' => 'ZAR']]);
+        $this->push($this->connect('emall'), ['2026-10-17' => ['revenue_7d_cents' => 125000, 'currency' => 'ZAR']]);
 
         $this->panel()->assertSee('ZAR 1,250.00');
     }

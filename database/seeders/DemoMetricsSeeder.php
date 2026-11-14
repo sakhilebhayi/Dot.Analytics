@@ -39,7 +39,7 @@ class DemoMetricsSeeder extends Seeder
      */
     private const SHAPES = [
         'tasks' => ['open' => [120, 15], 'overdue' => [14, 4], 'completed_7d' => [88, 12], 'created_7d' => [95, 12]],
-        'billing' => ['mrr_cents' => [48_500_000, 500_000], 'open_invoices' => [37, 5], 'overdue_invoices' => [6, 2], 'overdue_cents' => [1_250_000, 300_000], 'currency' => 'ZAR'],
+        'auction' => ['active' => [18, 4], 'ended_7d' => [11, 3], 'gmv_7d_cents' => [48_500_000, 500_000], 'bids_7d' => [140, 25], 'currency' => 'ZAR'],
         'hr' => ['headcount' => [64, 1], 'on_leave_today' => [5, 2], 'pending_leave_requests' => [3, 2]],
         'emall' => ['orders_7d' => [210, 30], 'revenue_7d_cents' => [8_400_000, 900_000], 'low_stock_products' => [9, 3], 'currency' => 'ZAR'],
     ];

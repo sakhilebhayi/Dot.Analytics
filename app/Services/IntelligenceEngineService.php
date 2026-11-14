@@ -8,7 +8,7 @@ use App\Models\Team;
  * Registry of the REAL Dot platforms that report metrics to Dot.Analytics, and of
  * the intelligence engines that read them.
  *
- * Platform keys are the keys of config/ecosystem.php (tasks, auction, billing...)
+ * Platform keys are the keys of config/ecosystem.php (tasks, auction, emall...)
  * and must stay in step with the metric catalogue in config/metrics.php: a
  * platform is connectable here only if it has a catalogue to report against.
  * Roster names that never existed (Dot.Fleet, Dot.CRM...) were removed.
@@ -72,24 +72,6 @@ class IntelligenceEngineService
             'contributions' => ['Headcount', 'On leave today', 'Pending leave requests'],
             'engines' => ['business', 'operational', 'people', 'risk', 'prescriptive'],
             'produces' => ['Headcount trend', 'Leave-approval backlog trend'],
-        ],
-
-        'farms' => [
-            'label' => 'Dot.Farms',
-            'description' => 'Crop cycles, harvests & farm operations',
-            'color' => 'green',
-            'contributions' => ['Active crop cycles', 'Harvests, 30 days', 'Harvested, 30 days (kg)'],
-            'engines' => ['operational', 'predictive', 'agriculture'],
-            'produces' => ['Harvest volume trend', 'Active-cycle trend'],
-        ],
-
-        'billing' => [
-            'label' => 'Dot.Billing',
-            'description' => 'Invoices, subscriptions & receivables',
-            'color' => 'emerald',
-            'contributions' => ['Monthly recurring revenue', 'Open invoices', 'Overdue invoices', 'Overdue amount'],
-            'engines' => ['business', 'financial', 'customer', 'predictive', 'decision', 'risk', 'prescriptive'],
-            'produces' => ['Recurring revenue trend', 'Overdue receivables trend'],
         ],
 
         'emall' => [
@@ -176,17 +158,17 @@ class IntelligenceEngineService
         ],
         'business' => [
             'label' => 'Business Intelligence Engine',
-            'sources' => ['auction', 'hr', 'billing', 'emall'],
+            'sources' => ['auction', 'hr', 'emall'],
             'produces' => ['Business health score', 'Revenue trends', 'Growth signals'],
         ],
         'operational' => [
             'label' => 'Operational Intelligence Engine',
-            'sources' => ['tasks', 'ehail', 'hr', 'farms', 'tutor', 'notify', 'design', 'projects', 'sheet'],
+            'sources' => ['tasks', 'ehail', 'hr', 'tutor', 'notify', 'design', 'projects', 'sheet'],
             'produces' => ['Operational efficiency score', 'Process bottlenecks', 'Capacity forecasts'],
         ],
         'financial' => [
             'label' => 'Financial Intelligence Engine',
-            'sources' => ['auction', 'billing', 'emall'],
+            'sources' => ['auction', 'emall'],
             'produces' => ['Cash flow forecast', 'Cost per unit', 'Profitability by segment'],
         ],
         'people' => [
@@ -196,7 +178,7 @@ class IntelligenceEngineService
         ],
         'customer' => [
             'label' => 'Customer Intelligence Engine',
-            'sources' => ['ehail', 'billing', 'emall', 'pulse'],
+            'sources' => ['ehail', 'emall', 'pulse'],
             'produces' => ['Customer health score', 'Churn probability', 'Lifetime value'],
         ],
         'document' => [
@@ -216,17 +198,17 @@ class IntelligenceEngineService
         ],
         'predictive' => [
             'label' => 'Predictive Intelligence Engine',
-            'sources' => ['tasks', 'auction', 'ehail', 'farms', 'billing', 'emall'],
+            'sources' => ['tasks', 'auction', 'ehail', 'emall'],
             'produces' => ['Demand forecasts', 'Failure predictions', 'Growth projections'],
         ],
         'decision' => [
             'label' => 'Decision Intelligence Engine',
-            'sources' => ['tasks', 'billing', 'emall'],
+            'sources' => ['tasks', 'emall'],
             'produces' => ['Recommended actions', 'Decision trade-off analysis', 'Priority ranking'],
         ],
         'risk' => [
             'label' => 'Risk Intelligence Engine',
-            'sources' => ['hr', 'billing', 'pulse', 'notify', 'projects'],
+            'sources' => ['hr', 'pulse', 'notify', 'projects'],
             'produces' => ['Risk register', 'Exposure scores', 'Mitigation priorities'],
         ],
         'security' => [
@@ -246,7 +228,7 @@ class IntelligenceEngineService
         ],
         'agriculture' => [
             'label' => 'Agriculture Intelligence Engine',
-            'sources' => ['farms'],
+            'sources' => [],
             'produces' => ['Yield forecasting', 'Equipment efficiency', 'Input cost tracking', 'Harvest planning'],
         ],
         'construction' => [
@@ -276,7 +258,7 @@ class IntelligenceEngineService
         ],
         'prescriptive' => [
             'label' => 'Prescriptive Intelligence Engine',
-            'sources' => ['tasks', 'hr', 'billing', 'emall'],
+            'sources' => ['tasks', 'hr', 'emall'],
             'produces' => ['Ranked action recommendations', 'What-if scenario outcomes', 'Optimisation opportunities', 'Decision impact forecasts'],
         ],
     ];

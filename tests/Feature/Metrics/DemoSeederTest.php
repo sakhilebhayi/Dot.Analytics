@@ -84,7 +84,7 @@ class DemoSeederTest extends TestCase
         $expected = collect(config('metrics.platforms'))->sum(fn ($p) => count($p['metrics']));
         $this->assertSame($expected, MetricDefinition::count());
         $this->assertSame(0, MetricDefinition::where('source_platform', 'like', 'dot.%')->count());
-        $this->assertSame('financial', MetricDefinition::where('key', 'billing.mrr_cents')->value('engine'));
+        $this->assertSame('retail', MetricDefinition::where('key', 'emall.revenue_7d_cents')->value('engine'));
         $this->assertSame(0, ComputedMetric::withoutGlobalScopes()->count(), 'definitions are not values');
     }
 }

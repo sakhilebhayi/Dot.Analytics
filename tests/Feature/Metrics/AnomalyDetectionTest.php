@@ -264,11 +264,11 @@ class AnomalyDetectionTest extends TestCase
 
     public function test_money_alerts_carry_the_currency_and_format_it(): void
     {
-        $source = DataSource::factory()->create(['team_id' => $this->team->id, 'platform' => 'billing', 'status' => 'connected']);
+        $source = DataSource::factory()->create(['team_id' => $this->team->id, 'platform' => 'emall', 'status' => 'connected']);
         $values = [100000, 101000, 99000, 100000, 102000, 100000, 98000, 100000, 900000];
         foreach ($values as $i => $v) {
             $day = now()->utc()->startOfDay()->subDays(count($values) - $i)->format('Y-m-d');
-            app(SnapshotIngestService::class)->ingest($source, $this->snapshotBody($this->company, 'billing', ['overdue_cents' => $v, 'currency' => 'ZAR'], "{$day}T06:00:00Z"));
+            app(SnapshotIngestService::class)->ingest($source, $this->snapshotBody($this->company, 'emall', ['revenue_7d_cents' => $v, 'currency' => 'ZAR'], "{$day}T06:00:00Z"));
         }
 
         $this->detect();

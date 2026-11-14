@@ -53,8 +53,6 @@ publishing platform's own environment (never committed). Generate one with `php 
 | `hr` | `ANALYTICS_INGEST_SECRET_HR` |
 | `auction` | `ANALYTICS_INGEST_SECRET_AUCTION` |
 | `ehail` | `ANALYTICS_INGEST_SECRET_EHAIL` |
-| `farms` | `ANALYTICS_INGEST_SECRET_FARMS` |
-| `billing` | `ANALYTICS_INGEST_SECRET_BILLING` |
 | `emall` | `ANALYTICS_INGEST_SECRET_EMALL` |
 | `tutor` | `ANALYTICS_INGEST_SECRET_TUTOR` |
 | `pulse` | `ANALYTICS_INGEST_SECRET_PULSE` |
@@ -111,7 +109,7 @@ With curl and openssl (the timestamp must be fresh when you run it):
 BODY='{"company_uuid":"3f2b8c1e-9a4d-4e7b-8c55-1d2e3f4a5b6c","platform":"tasks","taken_at":"2026-10-17T06:00:00Z","period":"day","metrics":{"open":12,"overdue":3}}'
 TS=$(date +%s)
 SIG=$(printf '%s.%s' "$TS" "$BODY" | openssl dgst -sha256 -hmac "$SECRET" | sed 's/^.* //')
-curl -X POST https://analytics.infodot.app/api/ingest/snapshots \
+curl -X POST https://analytics.infodot.co.za/api/ingest/snapshots \
   -H 'Content-Type: application/json' -H "X-InfoDot-Timestamp: $TS" -H "X-InfoDot-Signature: sha256=$SIG" \
   --data-binary "$BODY"
 ```
@@ -157,7 +155,7 @@ Retrying a request that timed out is safe: send it again with a fresh timestamp 
 
 ## Sending a snapshot with a user token
 
-The older way, still supported unchanged, for a team member's own tooling. `POST /api/v1/ingest/{platform}` where `{platform}` is the platform key (`tasks`, `billing`, ...).
+The older way, still supported unchanged, for a team member's own tooling. `POST /api/v1/ingest/{platform}` where `{platform}` is the platform key (`tasks`, `emall`, ...).
 
 Headers:
 
@@ -264,23 +262,6 @@ Keys are per platform. Only these are accepted; everything else is dropped.
 | `on_leave_today` | On leave today | whole number >= 0 | no preference |
 | `pending_leave_requests` | Pending leave requests | whole number >= 0 | lower |
 
-#### `farms` (Dot.Farms)
-
-| Key | Meaning | Kind | Better when |
-|---|---|---|---|
-| `active_cycles` | Active crop cycles | whole number >= 0 | no preference |
-| `harvests_30d` | Harvests, 30 days | whole number >= 0 | higher |
-| `harvested_kg_30d` | Harvested, 30 days (kg) | number >= 0 | higher |
-
-#### `billing` (Dot.Billing)
-
-| Key | Meaning | Kind | Better when |
-|---|---|---|---|
-| `mrr_cents` | Monthly recurring revenue | whole cents >= 0 (needs `currency`) | higher |
-| `open_invoices` | Open invoices | whole number >= 0 | no preference |
-| `overdue_invoices` | Overdue invoices | whole number >= 0 | lower |
-| `overdue_cents` | Overdue amount | whole cents >= 0 (needs `currency`) | lower |
-
 #### `emall` (Dot.Emall)
 
 | Key | Meaning | Kind | Better when |
@@ -336,7 +317,7 @@ money facts Dot.Projects' own portfolio shows. "Off track" and "at risk" are its
 | `late_milestones` | Milestones past due | whole number >= 0 | lower |
 | `serious_risks` | Serious project risks | whole number >= 0 | lower |
 
-#### `sheet` (Dot.Sheets)
+#### `sheet` (Dot.Sheet)
 
 Counted over the workbooks that belong to the company's team. Counts only: no workbook names, people or cell contents.
 

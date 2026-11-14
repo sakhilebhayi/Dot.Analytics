@@ -22,7 +22,7 @@ class WorkspacePagesTest extends TestCase
     {
         $owner = $this->ownerWithTeam();
 
-        foreach (['/dashboard' => 'Overview', '/workspace/insights' => 'Insights', '/workspace/briefing' => 'Briefing', '/workspace/ask' => 'Ask', '/workspace/reports' => 'Reports', '/search' => 'Search'] as $path => $title) {
+        foreach (['/dashboard' => 'Overview', '/workspace/figures' => 'Figures', '/workspace/sources' => 'Sources', '/workspace/insights' => 'Insights', '/workspace/briefing' => 'Briefing', '/workspace/ask' => 'Ask', '/workspace/reports' => 'Reports', '/search' => 'Search'] as $path => $title) {
             $this->actingAs($owner)->get($path)->assertOk()->assertSee($title.' · Dot.Analytics', false);
         }
 
@@ -30,7 +30,7 @@ class WorkspacePagesTest extends TestCase
 
     public function test_a_guest_is_sent_to_sign_in_from_every_workspace_page(): void
     {
-        foreach (['/dashboard', '/workspace/insights', '/workspace/briefing', '/workspace/ask', '/workspace/reports'] as $path) {
+        foreach (['/dashboard', '/workspace/figures', '/workspace/sources', '/workspace/insights', '/workspace/briefing', '/workspace/ask', '/workspace/reports'] as $path) {
             $this->get($path)->assertRedirect(route('login'));
         }
     }
@@ -39,7 +39,7 @@ class WorkspacePagesTest extends TestCase
     {
         $user = User::factory()->create(['email_verified_at' => now(), 'current_team_id' => null]);
 
-        foreach (['/dashboard', '/workspace/insights', '/workspace/briefing', '/workspace/ask', '/workspace/reports', '/search'] as $path) {
+        foreach (['/dashboard', '/workspace/figures', '/workspace/sources', '/workspace/insights', '/workspace/briefing', '/workspace/ask', '/workspace/reports', '/search'] as $path) {
             $this->actingAs($user)->get($path)->assertRedirect(route('teams.create'));
         }
     }
@@ -59,7 +59,9 @@ class WorkspacePagesTest extends TestCase
     public function test_the_overview_states_what_it_knows_and_nothing_it_does_not(): void
     {
         $this->actingAs($this->ownerWithTeam())->get('/dashboard')->assertOk()
-            ->assertSee('Platforms connected')->assertSee('Nothing is reporting yet')->assertDontSee('Enterprise Intelligence');
+            ->assertSee('No figures yet')->assertSee('No platform reports to this workspace')->assertDontSee('Enterprise Intelligence');
+        $this->actingAs($this->ownerWithTeam())->get('/workspace/figures')->assertOk()
+            ->assertSee('platforms connected as data sources')->assertSee('Nothing is reporting yet');
     }
 
     public function test_the_sign_in_page_no_longer_offers_a_sign_up_that_does_not_exist_or_a_stock_photo(): void
