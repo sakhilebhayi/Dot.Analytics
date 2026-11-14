@@ -7,6 +7,8 @@
         <p class="btn-row">
             <a class="btn" href="{{ $platformsUrl }}" data-primary-action>Open Platforms in InfoDot</a>
         </p>
+        {{-- The working: this app shows where an answer came from, here as well as on a figure. --}}
+        <p class="prov">Source: InfoDot Platforms. Reason given: {{ $reason !== '' ? str_replace('_', ' ', $reason) : 'none stated' }}. Nothing in your workspace has been changed.</p>
 
         @auth
             @if ($otherCompanies->isNotEmpty())

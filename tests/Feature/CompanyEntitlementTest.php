@@ -576,6 +576,34 @@ class CompanyEntitlementTest extends TestCase
         Http::assertNothingSent();
     }
 
+    public function test_a_persons_own_export_and_erasure_are_never_blocked_by_a_refused_company(): void
+    {
+        [$owner] = $this->company();
+        $this->infodotSays([self::readUrl(self::ACME) => Http::response(self::platforms(self::ACME, false, 'suspended'))]);
+        $this->actingAs($owner);
+
+        $this->get(route('dashboard'))->assertStatus(403);
+        $this->get(route('me.export'))->assertOk();
+        $this->get(route('profile.show'))->assertOk();
+        $this->delete(route('me.erase'))->assertStatus(302);
+
+        Http::assertSentCount(1); // the dashboard's question only; the export, account page and erasure asked nothing
+    }
+
+    public function test_a_local_token_sign_in_remembers_nothing_and_asks_infodot_nothing_about_the_personal_workspace(): void
+    {
+        config(['ecosystem.infodot.secret' => null]);
+        $this->infodotSays([]);
+        $ann = User::factory()->withPersonalTeam()->create();
+        $token = $ann->createToken('handoff', ['ecosystem:read'])->plainTextToken;
+
+        $this->post(route('ecosystem.auth'), ['token' => $token], $this->fromInfodot())->assertRedirect(route('dashboard'));
+
+        $this->assertFalse(session()->has(EnsureCompanyEntitled::PERSONAL));
+        $this->get(route('dashboard'))->assertOk();
+        Http::assertNothingSent();
+    }
+
     public function test_a_second_company_that_is_entitled_can_still_be_switched_to(): void
     {
         [$owner, $acme] = $this->company();

@@ -29,7 +29,8 @@ class EnsureCompanyEntitled
     /** Routes inside the checked groups that must keep working for a person whose company is refused. */
     private const EXEMPT = [
         'current-team.update', // switching to another company
-        'profile.show',        // the person's own account
+        'profile.show',        // the person's own account (its Livewire forms include account deletion)
+        'me.export', 'me.erase', // data-subject rights: a person's own export and erasure are never blocked by a commercial state
         'terms.show', 'policy.show', 'team-invitations.accept',
     ];
 

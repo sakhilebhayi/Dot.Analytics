@@ -21,6 +21,7 @@ class EntitlementRefusal
         return response()
             ->view('entitlement.refused', [
                 ...self::wording($reason, $company),
+                'reason' => $reason,
                 'infodotUrl' => $infodot,
                 'platformsUrl' => $infodot.'/platforms/'.config('ecosystem.infodot.platform', 'analytics'),
                 'otherCompanies' => collect($otherCompanies)->values(),
