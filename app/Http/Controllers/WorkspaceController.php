@@ -11,8 +11,8 @@ use App\Services\AiModelRouter;
 use App\Services\IntelligenceEngineService;
 use App\Services\Metrics\MetricReader;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 /** The signed-in company workspace: the page a person lands on, and one page for each of the things the old single page piled together. */
@@ -21,10 +21,13 @@ class WorkspaceController extends Controller
     /** The pages under /workspace. The landing links to every one of them. */
     public const SECTIONS = ['figures', 'insights', 'briefing', 'ask', 'reports', 'sources'];
 
-    /** How many of the latest figures the landing prints on its working tape. */
-    private const TAPE_LINES = 3;
+    /** How many figures the landing's ledger lists. The Figures page holds the rest. */
+    public const LEDGER_ROWS = 12;
 
-    public function overview(MetricReader $reader, AiModelRouter $ai): View|RedirectResponse
+    /** Days of stored points the selected figure's chart reads. */
+    private const CHART_DAYS = 30;
+
+    public function overview(Request $request, MetricReader $reader, AiModelRouter $ai): View|RedirectResponse
     {
         // No team-context middleware runs ahead of this route, so a user who belongs to no team (e.g. removed from their
         // last team) reaches here with currentTeam genuinely null. Send them to team creation instead of crashing.
@@ -45,9 +48,18 @@ class WorkspaceController extends Controller
             ->filter(fn (array $tile) => $tile['state'] !== 'no_data')
             ->sortByDesc(fn (array $tile) => [$tile['as_of'], (string) $tile['observed_at']])
             ->values();
-        // One line from each reporting platform before a second from any, so one busy platform does not fill the tape.
+        // One line from each reporting platform before a second from any, so one busy platform does not fill the ledger.
         $first = $newest->unique('platform');
-        $figures = $first->concat($newest->reject(fn (array $tile) => $first->contains('key', $tile['key'])))->take(self::TAPE_LINES)->values();
+        $figures = $first->concat($newest->reject(fn (array $tile) => $first->contains('key', $tile['key'])))->take(self::LEDGER_ROWS)->values();
+
+        // The selected figure comes from ?figure= only when it is one of the rows listed (so it is this company's and
+        // really reporting). Otherwise: the figure an open anomaly alert is about, else the first row.
+        $requested = $request->query('figure');
+        $anomalyKeys = $dashboard['summary']['anomaly_keys'];
+        $selected = (is_string($requested) ? $figures->firstWhere('key', $requested) : null)
+            ?? $figures->first(fn (array $tile) => in_array($tile['key'], $anomalyKeys, true))
+            ?? $figures->first();
+        $series = $selected ? $reader->series($team, $selected['key'], self::CHART_DAYS) : null;
 
         $state = match (true) {
             $connected->isEmpty() => 'nothing-connected',
@@ -56,13 +68,19 @@ class WorkspaceController extends Controller
         };
 
         return view('dashboard', [
-            'firstName' => Str::of((string) $user->name)->trim()->before(' ')->toString(),
             'team' => $team,
             'state' => $state,
+            'canConnect' => $user->can('create', DataSource::class),
+            'notConnected' => collect($dashboard['platforms'])->where('connected', false)->pluck('label')->values(),
             'primary' => $this->primaryAction($user, $state, $ai->hasProvider()),
             'connected' => $connected,
             'reporting' => $reporting,
             'figures' => $figures,
+            'figureCount' => $newest->count(),
+            'selected' => $selected,
+            'series' => $series,
+            'summary' => $dashboard['summary'],
+            'newestObservedAt' => $newest->pluck('observed_at')->filter()->max(),
             'hasDemo' => (bool) $dashboard['summary']['has_demo'],
             // Kept under the names the page has always used: data sources this company has connected, of the platforms
             // that are able to report. This is about data arriving here, never about which platforms a company may use.

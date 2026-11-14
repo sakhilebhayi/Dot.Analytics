@@ -2,12 +2,14 @@
 
 namespace Tests\Feature;
 
+use App\Http\Controllers\WorkspaceController;
 use App\Livewire\Analytics\BusinessPlatformsPanel;
 use App\Models\AnalyticsAlert;
 use App\Models\DataSource;
 use App\Models\Recommendation;
 use App\Models\User;
 use App\Services\AiModelRouter;
+use App\Services\Metrics\MetricCatalogue;
 use App\Services\Metrics\SnapshotIngestService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
@@ -69,14 +71,14 @@ class LandingExperienceTest extends TestCase
     private function primaryAction(string $html): array
     {
         $this->assertSame(1, substr_count($html, 'data-primary-action'), 'exactly one primary action');
-        $this->assertSame(1, preg_match('/<a class="ld-primary" data-primary-action href="([^"]+)">([^<]+)<\/a>/', $html, $m));
+        $this->assertSame(1, preg_match('/<a class="primary" data-primary-action href="([^"]+)">([^<]+)<\/a>/', $html, $m));
 
         return [trim($m[2]), $m[1]];
     }
 
     private function tape(string $html): string
     {
-        $this->assertSame(1, preg_match('/<section class="ld-tape".*?<\/section>/s', $html, $m));
+        $this->assertSame(1, preg_match('/<section class="stage".*?<\/section>/s', $html, $m));
 
         return $m[0];
     }
@@ -150,12 +152,18 @@ class LandingExperienceTest extends TestCase
             ->assertSee('srcset="'.asset('images/logo-light.png').'" media="(prefers-color-scheme: dark)"', false);
     }
 
-    public function test_the_welcome_uses_the_persons_first_name_and_the_companys_name(): void
+    public function test_the_headline_states_what_is_true_now_and_the_page_has_one_h1(): void
     {
-        $this->actingAs($this->owner)->get('/dashboard')->assertOk()
-            ->assertSee('Welcome, Thandi. You are reading for Karoo Freight.')
-            ->assertDontSee('Mokoena. You are reading')
-            ->assertSee('Every figure shows its working.');
+        $html = $this->actingAs($this->owner)->get('/dashboard')->assertOk()
+            ->assertSee('Nothing is reporting yet.')
+            ->assertDontSee('Every figure shows its working.')
+            ->assertDontSee('Welcome, Thandi')
+            ->getContent();
+        $this->assertSame(1, substr_count($html, '<h1'));
+
+        $this->report('tasks', [$this->yesterday() => ['open' => 122, 'overdue' => 12]]);
+        $this->actingAs($this->owner)->get('/dashboard')->assertOk()->assertSee('Everything reporting is current.')
+            ->assertSee('Karoo Freight: 1 of 11 platforms that can report is reporting.');
     }
 
     public function test_the_way_back_to_infodot_is_in_the_same_words_on_every_platform(): void
@@ -190,22 +198,152 @@ class LandingExperienceTest extends TestCase
         Recommendation::factory()->create(['team_id' => $this->owner->currentTeam->id, 'status' => 'pending', 'title' => 'Review the oldest leave requests']);
 
         $response = $this->actingAs($this->owner)->get('/dashboard')->assertOk()->assertViewHas('connectedCount', 3);
-        $tape = preg_replace('/\s+/', ' ', strip_tags($this->tape($response->getContent())));
+        $html = $response->getContent();
+        $rows = $this->ledgerRows($html);
+
+        // One row from each reporting platform first, each with its platform, value and change.
+        $this->assertSame(['tasks.open', 'hr.headcount', 'tasks.overdue'], array_keys($rows));
+        $this->assertStringContainsString('Open tasks Dot.Tasks', $rows['tasks.open']);
+        $this->assertStringContainsString('122', $rows['tasks.open']);
+        $this->assertStringContainsString('Up 1', $rows['tasks.open']);
+        $this->assertStringContainsString('Headcount Dot.HR', $rows['hr.headcount']);
+        $this->assertStringContainsString('64 First report', $rows['hr.headcount']);
+        $this->assertStringContainsString('Down 2', $rows['tasks.overdue']);
+
+        // The stage shows the first row's working: sender, day, arrival, the report before.
+        $stage = preg_replace('/\s+/', ' ', strip_tags(preg_replace('/<\/(dt|dd|td|th)>/', ' ', $this->tape($html))));
         $day = now()->utc()->startOfDay()->subDay()->format('j M Y');
+        $this->assertStringContainsString('Open tasks 122 Up 1 (+0.8%) on the report before.', $stage);
+        $this->assertStringContainsString('Sent by Dot.Tasks For the day '.$day.' Received', $stage);
+        $this->assertStringContainsString('Report before 121 on '.now()->utc()->startOfDay()->subDays(2)->format('j M Y'), $stage);
 
-        // One line from each reporting platform first, each with the platform, the day and the arrival.
-        $this->assertStringContainsString('Open tasks 122 Up 1 on the report before Sent by Dot.Tasks, for '.$day.', received', $tape);
-        $this->assertStringContainsString('Headcount 64 First report of this figure Sent by Dot.HR, for '.$day, $tape);
-        $this->assertStringContainsString('Overdue tasks 12 Down 2 on the report before', $tape);
-        $this->assertStringContainsString('2 of 11 platforms that can report are reporting data: Dot.Tasks and Dot.HR. Dot.Emall is connected and has not sent a figure yet. Counted from this company\'s data sources.', $tape);
-
-        // Nothing else in the tape is a number: take away what was seeded and the dates, and no digit is left.
-        $rest = str_replace([$day, '2 of 11', 'Up 1', 'Down 2', '122', '64', '12'], '', $tape);
-        $this->assertDoesNotMatchRegularExpression('/\d(?! (second|minute|hour|day)s? ago)/', preg_replace('/\d+ (second|minute|hour|day)s? ago/', '', $rest));
+        $more = preg_replace('/\s+/', ' ', strip_tags($this->sourcesCount($html)));
+        $this->assertStringContainsString('2 of 11 platforms that can report are reporting data: Dot.Tasks and Dot.HR. Dot.Emall is connected and has not sent a figure yet. Counted from this company\'s data sources.', $more);
 
         $response->assertSee('2 alerts open')->assertSee('Overdue tasks are above their usual range')
             ->assertSee('1 recommended action')->assertSee('Review the oldest leave requests')
             ->assertDontSee('Nothing is waiting.');
+    }
+
+    public function test_the_ledger_is_capped_at_twelve_rows_and_says_how_many_figures_exist(): void
+    {
+        $this->seedEveryFigure();
+
+        $html = $this->actingAs($this->owner)->get('/dashboard')->assertOk()->getContent();
+
+        $this->assertCount(WorkspaceController::LEDGER_ROWS, $this->ledgerRows($html));
+        $this->assertSame(12, WorkspaceController::LEDGER_ROWS);
+        $this->assertMatchesRegularExpression('/All 1[3-9] figures|All [2-9]\d figures/', strip_tags($html));
+    }
+
+    public function test_the_selected_figure_is_validated_against_the_rows_listed(): void
+    {
+        $this->report('tasks', [$this->yesterday(2) => ['open' => 121, 'overdue' => 14], $this->yesterday() => ['open' => 122, 'overdue' => 12]]);
+        $this->report('hr', [$this->yesterday() => ['headcount' => 64]]);
+
+        // A listed figure is selected, and the stage and the chart are about it.
+        $html = $this->actingAs($this->owner)->get('/dashboard?figure=hr.headcount')->assertOk()->getContent();
+        $this->assertSame('hr.headcount', $this->selectedKey($html));
+        $this->assertStringContainsString('<h2 id="ld-stage-title">Headcount</h2>', $html);
+        $this->assertSame(1, substr_count($html, 'data-chart'));
+
+        // Unknown, malformed, array-shaped and not-reporting keys fall back to the default instead of erroring.
+        foreach (['nope.nothing', 'hr.<script>', 'emall.orders_7d', '', 'tasks.overdue%00'] as $bad) {
+            $html = $this->actingAs($this->owner)->get('/dashboard?figure='.rawurlencode($bad))->assertOk()->getContent();
+            $this->assertSame('tasks.open', $this->selectedKey($html), $bad);
+            $this->assertStringNotContainsString('<script>', explode('</main>', $html)[0]);
+        }
+        $this->actingAs($this->owner)->get('/dashboard?figure[]=hr.headcount')->assertOk();
+
+        // With an open anomaly alert, the figure it is about is the default.
+        AnalyticsAlert::factory()->create(['team_id' => $this->owner->currentTeam->id, 'status' => 'open', 'dedupe_key' => 'anomaly:tasks.overdue:t', 'context' => ['metric_key' => 'tasks.overdue', 'period_date' => $this->yesterday()]]);
+        $html = $this->actingAs($this->owner)->get('/dashboard')->assertOk()->getContent();
+        $this->assertSame('tasks.overdue', $this->selectedKey($html));
+    }
+
+    public function test_another_companys_figure_cannot_be_selected_by_key_and_its_series_is_not_read(): void
+    {
+        $this->report('tasks', [$this->yesterday() => ['open' => 122]]);
+        $stranger = $this->ownerWithTeam();
+        $this->linkCompany($stranger->currentTeam);
+        $this->connect($stranger->currentTeam, 'hr');
+
+        $html = $this->actingAs($stranger)->get('/dashboard?figure=tasks.open')->assertOk()
+            ->assertDontSee('Open tasks')->assertDontSee('Dot.Tasks')->getContent();
+        $this->assertSame([], $this->ledgerRows($html));
+        $this->assertNull($this->selectedKey($html));
+        $this->assertSame(0, substr_count($html, 'data-chart'));
+    }
+
+    public function test_the_overview_reads_one_series_and_the_chart_script_is_a_built_asset(): void
+    {
+        $this->seedEveryFigure();
+        $html = $this->actingAs($this->owner)->get('/dashboard')->assertOk()->getContent();
+
+        $this->assertSame(1, substr_count($html, 'data-chart'), 'one chart, for the selected figure only');
+        $this->assertSame(1, preg_match_all('/<polyline class="line"/', $html), 'one series drawn');
+        $this->assertSame(1, preg_match('/<div class="ld" .*<\/div>\s*<\/main>/s', $html, $page));
+        $this->assertStringNotContainsString('style="', $page[0]);
+        $this->assertSame(0, preg_match('/\son[a-z]+="/', $page[0]));
+        $this->assertFileExists(resource_path('js/dashboard.js'));
+        $this->assertStringContainsString("'resources/js/dashboard.js'", file_get_contents(base_path('vite.config.js')));
+        $this->assertStringContainsString("@vite(['resources/js/dashboard.js'])", file_get_contents(resource_path('views/dashboard.blade.php')));
+        $this->assertStringNotContainsString('<script', $page[0], 'no script is written into the page body');
+    }
+
+    public function test_a_stale_figure_keeps_its_value_and_is_marked_out_of_date(): void
+    {
+        $this->report('hr', [$this->yesterday(6) => ['headcount' => 64]]);
+
+        $html = $this->actingAs($this->owner)->get('/dashboard')->assertOk()->assertSee('Out of date')->getContent();
+
+        $this->assertStringContainsString('64', $this->ledgerRows($html)['hr.headcount']);
+        $this->assertStringContainsString('is-stale', $html);
+        $this->assertStringContainsString('1 out of date', preg_replace('/\s+/', ' ', strip_tags($html)));
+    }
+
+    public function test_the_lower_column_fills_the_width_when_only_alerts_or_only_actions_exist(): void
+    {
+        $this->report('tasks', [$this->yesterday() => ['open' => 122]]);
+        Recommendation::factory()->create(['team_id' => $this->owner->currentTeam->id, 'status' => 'pending', 'title' => 'Review the oldest leave requests']);
+
+        $html = $this->actingAs($this->owner)->get('/dashboard')->assertOk()->assertSee('1 recommended action')->assertDontSee('alert open')->getContent();
+
+        $this->assertSame(1, substr_count($html, '<ul class="rows">'));
+    }
+
+    /** @return array<string, string> data-figure => the row's text */
+    private function ledgerRows(string $html): array
+    {
+        preg_match_all('/<tr data-figure="([^"]+)".*?<\/tr>/s', $html, $m, PREG_SET_ORDER);
+
+        return collect($m)->mapWithKeys(fn ($r) => [$r[1] => trim(preg_replace('/\s+/', ' ', strip_tags(str_replace('<small>', ' <small>', $r[0]))))])->all();
+    }
+
+    private function sourcesCount(string $html): string
+    {
+        $this->assertSame(1, preg_match('/<p class="more" data-testid="landing-sources-count">.*?<\/p>/s', $html, $m));
+
+        return $m[0];
+    }
+
+    private function selectedKey(string $html): ?string
+    {
+        return preg_match('/<tr data-figure="([^"]+)"[^>]*aria-current="true"/', $html, $m) ? $m[1] : null;
+    }
+
+    /** Four platforms, every figure each can report, so the ledger has more than twelve candidates. */
+    private function seedEveryFigure(): void
+    {
+        $catalogue = new MetricCatalogue;
+        foreach (['tasks', 'auction', 'hr', 'emall'] as $platform) {
+            $metrics = collect(array_keys($catalogue->metrics($platform)))->mapWithKeys(fn ($k) => [$k => 10])->all();
+            $metrics = collect($metrics)->map(fn ($v, $k) => $catalogue->isMoney($platform, $k) ? 10000 : $v)->all();
+            if (collect(array_keys($metrics))->contains(fn ($k) => $catalogue->isMoney($platform, $k))) {
+                $metrics['currency'] = 'ZAR';
+            }
+            $this->report($platform, [$this->yesterday(2) => $metrics, $this->yesterday() => $metrics]);
+        }
     }
 
     public function test_another_companys_figures_never_reach_this_landing(): void
