@@ -236,6 +236,28 @@ class LandingExperienceTest extends TestCase
         $this->assertMatchesRegularExpression('/All 1[3-9] figures|All [2-9]\d figures/', strip_tags($html));
     }
 
+    public function test_the_report_rail_is_drawn_from_stored_days_only(): void
+    {
+        $this->report('tasks', [$this->yesterday(5) => ['open' => 120], $this->yesterday() => ['open' => 122]]);
+
+        $html = $this->actingAs($this->owner)->get('/dashboard')->assertOk()->getContent();
+
+        // Thirty slots: two days stored, so two tall ticks (one of them the newest, in the accent) and 28 short stubs.
+        $this->assertSame(30, substr_count($html, '<line class="d') + substr_count($html, '<line class="gap"'));
+        $this->assertSame(2, substr_count($html, '<line class="d'));
+        $this->assertSame(1, substr_count($html, 'class="d now"'));
+        $this->assertStringContainsString('Open tasks: 2 of 30 days reported, to '.now()->utc()->subDay()->format('j M'), $html);
+        $this->assertSame(1, substr_count($html, 'data-primary-action'));
+    }
+
+    public function test_the_report_rail_is_a_plain_rule_when_nothing_is_reporting(): void
+    {
+        $html = $this->actingAs($this->owner)->get('/dashboard')->assertOk()->getContent();
+
+        $this->assertStringNotContainsString('data-testid="report-rail"', $html);
+        $this->assertStringContainsString('days-none', $html);
+    }
+
     public function test_the_selected_figure_is_validated_against_the_rows_listed(): void
     {
         $this->report('tasks', [$this->yesterday(2) => ['open' => 121, 'overdue' => 14], $this->yesterday() => ['open' => 122, 'overdue' => 12]]);

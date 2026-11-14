@@ -95,10 +95,17 @@ body { margin: 0; background: var(--ink); color: var(--paper); font-family: var(
 .back { display: flex; gap: var(--s1); }
 .ld .back a { display: inline-flex; align-items: center; min-height: 32px; padding: 0 var(--s2); border-radius: var(--r); color: var(--mist); font-size: 14px; font-weight: 500; text-decoration: none; transition: color 120ms; }
 .ld .back a:hover { color: var(--paper); }
-/* Imagery: a perforated rule with one tick for each of the 30 days the chart reads, the last one in the accent. It
-   carries no data, it only draws the working tape's edge. */
-.days { grid-column: 1 / -1; height: 9px; border-bottom: 1px solid var(--line); background: repeating-linear-gradient(90deg, var(--line) 0 1px, transparent 1px calc(100% / 30)); background-size: 100% 5px; background-repeat: no-repeat; background-position: 0 100%; transform-origin: left; }
-.days::after { content: ''; position: absolute; right: 0; bottom: 0; width: 2px; height: 9px; background: var(--teal); }
+/* Imagery: the report rail. One slot for each of the 30 days the chart reads, drawn from the selected figure's real
+   stored points: a tall tick is a day that reported, a short stub is a day that did not, the newest day in the accent.
+   With nothing reporting it is a plain rule. */
+.days { grid-column: 1 / -1; margin: 0; }
+.days svg { display: block; width: 100%; height: 26px; overflow: visible; }
+.days line { stroke-width: 2; vector-effect: non-scaling-stroke; }
+.days .d { stroke: var(--paper); opacity: 0.78; transform-box: fill-box; transform-origin: bottom; }
+.days .gap { stroke: var(--mist); opacity: 0.55; transform-box: fill-box; transform-origin: bottom; }
+.days .now { stroke: var(--teal); opacity: 1; }
+.days figcaption { margin-top: var(--s2); padding-top: var(--s2); border-top: 1px solid var(--line); color: var(--mist); font-size: 13px; }
+.days-none { height: 9px; border-bottom: 1px solid var(--line); }
 
 /* Desk: the ledger beside the stage */
 .desk { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: var(--s5) clamp(24px, 3vw, 48px); align-items: start; padding-top: var(--s5); }
@@ -208,9 +215,21 @@ body { margin: 0; background: var(--ink); color: var(--paper); font-family: var(
 @keyframes ld-draw { from { stroke-dashoffset: 1; } }
 @keyframes ld-fade { from { opacity: 0; } }
 .arrive > :not(.days) { animation: ld-rise 260ms var(--ease) both; }
+@keyframes ld-tick { from { opacity: 0; transform: scaleY(0); } }
+@keyframes ld-pop { 0% { opacity: 0; transform: scale(0.4); } 100% { opacity: 1; transform: scale(1); } }
+.days .d, .days .gap { animation: ld-tick 220ms var(--ease) both; }
+.days .d:nth-child(-n+10), .days .gap:nth-child(-n+10) { animation-delay: 80ms; }
+.days .d:nth-child(n+11), .days .gap:nth-child(n+11) { animation-delay: 140ms; }
+.days .d:nth-child(n+21), .days .gap:nth-child(n+21) { animation-delay: 200ms; }
+.days .now { animation: ld-tick 260ms var(--ease) 300ms both; }
+.days figcaption { animation: ld-fade 240ms ease-out 340ms both; }
+.ledger tbody tr { transition: background 120ms; }
+.ledger tbody tr:active { background: var(--select); }
+.ledger tbody tr .chg svg, .ledger tbody tr .val svg { transition: transform 160ms var(--ease); }
+.ledger tbody tr:hover .chg svg { transform: translateY(-1px); }
+.plot .pt { transform-box: fill-box; transform-origin: center; animation: ld-pop 220ms var(--ease) 600ms both; }
 .arrive > div:nth-of-type(1) { animation-delay: 40ms; }
 .arrive .act { animation-delay: 80ms; }
-.days { animation: ld-lay 400ms var(--ease) 100ms both; }
 .ledger tbody tr { animation: ld-rise 240ms var(--ease) both; }
 .ledger tbody tr:nth-child(1) { animation-delay: 120ms; }
 .ledger tbody tr:nth-child(2) { animation-delay: 150ms; }
@@ -226,7 +245,7 @@ body { margin: 0; background: var(--ink); color: var(--paper); font-family: var(
 .stage .fig { animation: ld-rise 300ms var(--ease) 200ms both; }
 .stage .move, .stage .cap, .stage .tape, .stage .btns, .stage .none { animation: ld-fade 240ms ease-out 320ms both; }
 .plot .line { animation: ld-draw 400ms var(--ease) 260ms both; }
-.plot .pt, .plot .lab, .plot .ring { animation: ld-fade 160ms ease-out 600ms both; }
+.plot .lab, .plot .ring { animation: ld-fade 160ms ease-out 600ms both; }
 .lower > *, .foot { animation: ld-fade 240ms ease-out 420ms both; }
 
 @media (max-width: 1100px) {

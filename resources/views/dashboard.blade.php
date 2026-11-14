@@ -45,7 +45,30 @@
                     <a href="{{ $infodot }}/platforms">Platforms</a>
                 </nav>
             </div>
-            <div class="days" aria-hidden="true"></div>
+            @if($state === 'reporting' && $selected && ! empty($series['points']))
+                @php
+                    // One slot per day of the 30 the chart reads, ending on the newest stored day. A tall tick is a day
+                    // with a stored report for the selected figure; a short hatched stub is a day with none.
+                    $railEnd = Carbon::parse(end($series['points'])['date'])->startOfDay();
+                    $railHas = collect($series['points'])->mapWithKeys(fn ($p) => [Carbon::parse($p['date'])->format('Y-m-d') => true]);
+                    $railDays = collect(range(29, 0))->map(fn ($back) => $railEnd->copy()->subDays($back)->format('Y-m-d'));
+                    $railCount = $railDays->filter(fn ($d) => $railHas->has($d))->count();
+                @endphp
+                <figure class="days" data-testid="report-rail">
+                    <svg viewBox="0 0 300 26" preserveAspectRatio="none" width="300" height="26" aria-hidden="true" focusable="false">
+                        @foreach($railDays as $i => $day)
+                            @if($railHas->has($day))
+                                <line class="d{{ $i === 29 ? ' now' : '' }}" x1="{{ $i * 10 + 5 }}" x2="{{ $i * 10 + 5 }}" y1="{{ $i === 29 ? 0 : 6 }}" y2="26" />
+                            @else
+                                <line class="gap" x1="{{ $i * 10 + 5 }}" x2="{{ $i * 10 + 5 }}" y1="20" y2="26" />
+                            @endif
+                        @endforeach
+                    </svg>
+                    <figcaption>{{ $selected['label'] }}: {{ $railCount }} of 30 days reported, to {{ $railEnd->format('j M') }}.</figcaption>
+                </figure>
+            @else
+                <div class="days days-none" aria-hidden="true"></div>
+            @endif
         </section>
 
         <div class="desk">
