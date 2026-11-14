@@ -15,6 +15,12 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
 
+    {{-- The shared Dot UI (search pill, platform switcher), served from this site. --}}
+    <link rel="stylesheet" href="/dot-ui/css/dot-fonts.css">
+    <link rel="stylesheet" href="/dot-ui/css/dot-tokens.css">
+    <link rel="stylesheet" href="/dot-ui/css/dot-search.css">
+    <link rel="stylesheet" href="/dot-ui/css/dot-switcher.css">
+    <script src="/dot-ui/js/dot-switcher.js" defer></script>
     @vite(['resources/css/workspace.css'])
     @livewireStyles
     {{-- No separate Alpine script here on purpose: @livewireScripts below already bundles and starts Alpine for

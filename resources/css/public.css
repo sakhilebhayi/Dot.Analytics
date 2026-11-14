@@ -455,3 +455,26 @@ button, input, select { font: inherit; color: inherit; }
 /* A country row answers the pointer as a whole */
 .matrix tbody tr { transition: transform 140ms var(--ease); }
 @media (min-width: 721px) { .matrix tbody tr:hover { transform: translateX(4px); } }
+
+/* The shared Dot UI (public/dot-ui). The search pill is InfoDot's and is not mapped; its dropdown and the switcher follow the library's tokens. */
+:root {
+    --dsr-panel: var(--field);
+    --dsr-hover: var(--ground);
+    --dsr-rule: var(--line);
+    --dsr-rule-strong: var(--line);
+    --dsr-text: var(--ink);
+    --dsr-text-2: var(--ink);
+    --dsr-text-3: var(--muted);
+}
+.top .dsw {
+    --dsw-btn-ink: var(--ink);
+    --dsw-btn-border: var(--line);
+    --dsw-btn-bg-hover: var(--field);
+    --dsw-focus: var(--accent);
+    --dsw-radius: var(--radius);
+}
+.top-search { width: clamp(220px, 24vw, 320px); }
+.top-search .dsr, .menu-search .dsr { margin: 0; }
+.menu-search { margin-top: 8px; }
+@media (max-width: 1040px) { .top-search { display: none; } }
+@media print { .top-search, .menu-search, .dsw { display: none; } }

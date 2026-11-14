@@ -163,3 +163,34 @@ body { margin: 0; background: var(--ink); color: var(--paper); font-family: var(
     .ld a.ld-primary, .ld-row-title, .ld-index-name, .bp-name, .press { transition: none; }
     .ld a.ld-primary:hover, .ld a.ld-primary:active, .ld-wait li a:hover .ld-row-title, .ld-index li a:hover .ld-index-name, .bp-group li a:hover .bp-name { transform: none; }
 }
+
+/*
+ * The shared Dot UI (public/dot-ui). The search pill is InfoDot's and is not mapped. Its dropdown/filter surfaces and
+ * the switcher button follow this workspace's tokens. NB: here --ink is the page ground and --paper is the text.
+ */
+:root {
+    --dsr-panel: var(--ink-soft);
+    --dsr-hover: var(--ink);
+    --dsr-rule: var(--line);
+    --dsr-rule-strong: var(--line);
+    --dsr-text: var(--paper);
+    --dsr-text-2: var(--paper);
+    --dsr-text-3: var(--mist);
+    --dsr-filter-bg: var(--ink-soft);
+    --dsr-filter-ink: var(--paper);
+    --dsr-filter-placeholder: var(--mist);
+    --dsr-filter-border: var(--line);
+    --dsr-filter-border-hover: var(--mist);
+    --dsr-filter-border-focus: var(--paper);
+    --dsr-filter-radius: 4px;
+}
+.ws-top .dsw {
+    --dsw-btn-ink: var(--paper);
+    --dsw-btn-border: var(--line);
+    --dsw-btn-bg-hover: var(--ink);
+    --dsw-focus: var(--teal);
+    --dsw-radius: 4px;
+}
+.ws-search { width: clamp(200px, 22vw, 320px); }
+.ws-search .dsr { margin: 0; }
+.ws-filter { margin-bottom: 1.75rem; }

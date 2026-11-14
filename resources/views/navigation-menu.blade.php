@@ -22,6 +22,8 @@
         </nav>
 
         <div class="ws-tools">
+            <x-dot.switcher platform="analytics" :company="$team && ! $team->personal_team ? $team->infodot_team_uuid : null" :company-name="$team?->name" logos="/dot-ui/img/platforms" />
+
             <livewire:analytics.notification-bell />
 
             @if (Laravel\Jetstream\Jetstream::hasTeamFeatures() && $team)
@@ -53,9 +55,9 @@
                 </div>
             @endif
 
-            <form class="ws-search" method="GET" action="{{ route('search') }}" role="search">
-                <input type="search" name="q" aria-label="Search your company's intelligence" maxlength="100" placeholder="Search…" value="{{ request('q') }}">
-            </form>
+            <div class="ws-search">
+                <x-dot.search name="q" :action="route('search')" :value="request('q')" placeholder="Search…" label="Search your company's intelligence" maxlength="100" />
+            </div>
 
             <div class="relative ws-user">
                 <x-dropdown align="right" width="48">

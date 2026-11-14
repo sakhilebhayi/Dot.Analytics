@@ -14,6 +14,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Factory;
 use Illuminate\Http\Client\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -91,6 +92,10 @@ class CompanyEntitlementTest extends TestCase
         $owner ??= User::factory()->withPersonalTeam()->create();
         $team = Team::forceCreate(['user_id' => $owner->id, 'name' => $name, 'personal_team' => false, 'infodot_team_uuid' => $uuid]);
         $owner->forceFill(['current_team_id' => $team->id])->save();
+
+        // The header's platform switcher (dot-ui) reads the same InfoDot endpoint under its own cache key. Park its answer
+        // so these tests keep counting only the entitlement check's requests; DotUiHeaderTest covers the switcher itself.
+        Cache::put('infodot:platforms:analytics:'.$uuid, ['ok' => true, 'personal' => false, 'rows' => []], 600);
 
         return [$owner->fresh(), $team];
     }

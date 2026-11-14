@@ -4,6 +4,11 @@
     $tabs = [['me.home', 'Library'], ['me.watchlist', 'Watchlist'], ['me.saved', 'Saved'], ['me.alerts', 'Alerts'], ['me.preferences', 'Preferences']];
 @endphp
 <x-public-layout :title="$title" :noindex="true" section="me">
+    {{-- Signed-in only: the public pages are shared by everyone and know nobody, so the switcher lives here. --}}
+    <x-slot:tools>
+        @php($company = auth()->user()?->currentTeam)
+        <x-dot.switcher platform="analytics" :company="$company && ! $company->personal_team ? $company->infodot_team_uuid : null" :company-name="$company?->name" logos="/dot-ui/img/platforms" />
+    </x-slot:tools>
     <div class="wrap me-bar">
         <nav class="me-nav" aria-label="My library">
             @foreach($tabs as [$route, $label])
