@@ -22,8 +22,8 @@ body { margin: 0; background: var(--ink); color: var(--paper); font-family: var(
 .ws-in { display: flex; align-items: center; gap: 12px 24px; max-width: 1320px; margin: 0 auto; padding: 8px clamp(16px, 3vw, 40px); min-height: 60px; }
 .ws-brand { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; font: 700 19px/1 var(--font-display); color: var(--paper); }
 .ws-brand img { width: 26px; height: 26px; }
-.ws-nav { display: flex; flex-wrap: wrap; gap: 0; margin-right: auto; }
-.ws-nav a { display: inline-flex; align-items: center; min-height: 40px; padding: 0 10px; white-space: nowrap; border-radius: 4px; color: var(--mist); font-size: 15px; font-weight: 500; text-decoration: none; transition: background 120ms, color 120ms; }
+.ws-nav { display: flex; flex-wrap: nowrap; gap: 0; margin-right: auto; }
+.ws-nav a { display: inline-flex; align-items: center; min-height: 40px; padding: 0 8px; white-space: nowrap; border-radius: 4px; color: var(--mist); font-size: 14px; font-weight: 500; text-decoration: none; transition: background 120ms, color 120ms; }
 .ws-nav a:hover { background: var(--ink); color: var(--paper); }
 .ws-nav a[aria-current='page'] { color: var(--paper); box-shadow: inset 0 -2px 0 var(--paper); font-weight: 600; }
 .ws-tools { display: flex; align-items: center; gap: 8px 12px; }
@@ -60,7 +60,8 @@ body { margin: 0; background: var(--ink); color: var(--paper); font-family: var(
 .ws-bar { position: fixed; right: 16px; bottom: 16px; z-index: 40; display: none; }
 .ws-note { color: var(--mist); font-size: 14px; }
 
-@media (max-width: 1180px) {
+/* The shared switcher and search pill need the room the nav used to have, so the menu takes over earlier (was 1180px). */
+@media (max-width: 1340px) {
     .ws-nav, .ws-search, .ws-team, .ws-user { display: none; }
     .ws-menu { display: block; margin-left: 0; }
     .ws-tools { margin-left: auto; }
@@ -191,6 +192,10 @@ body { margin: 0; background: var(--ink); color: var(--paper); font-family: var(
     --dsw-focus: var(--teal);
     --dsw-radius: 4px;
 }
-.ws-search { width: clamp(200px, 22vw, 320px); }
+.ws-search { width: clamp(170px, 13vw, 200px); }
+.ws-team-button { max-width: 130px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ws-team-button svg { flex: none; }
 .ws-search .dsr { margin: 0; }
 .ws-filter { margin-bottom: 1.75rem; }
+.ws-menu-search { padding: 8px 8px 4px; }
+.ws-menu-search .dsr { margin: 0; }
