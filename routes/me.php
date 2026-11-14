@@ -5,13 +5,14 @@ use App\Http\Controllers\Me\OperateController;
 use App\Http\Controllers\Me\PreferenceController;
 use App\Http\Controllers\Me\SavedController;
 use App\Http\Controllers\Me\WatchController;
+use App\Http\Middleware\EnsureCompanyEntitled;
 use App\Http\Middleware\ReverifyWithInfoDot;
 use Illuminate\Support\Facades\Route;
 
 // One click from an email turns the digest off. The link is signed, so it needs no sign-in and cannot be guessed.
 Route::get('/me/digest/stop/{user}', [PreferenceController::class, 'stop'])->middleware(['signed', 'throttle:20,1'])->name('me.digest.stop');
 
-Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified', ReverifyWithInfoDot::class])->prefix('me')->group(function () {
+Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified', ReverifyWithInfoDot::class, EnsureCompanyEntitled::class])->prefix('me')->group(function () {
     Route::get('/', [LibraryController::class, 'home'])->name('me.home');
     Route::get('/watchlist', [LibraryController::class, 'watchlist'])->name('me.watchlist');
     Route::get('/saved', [LibraryController::class, 'saved'])->name('me.saved');

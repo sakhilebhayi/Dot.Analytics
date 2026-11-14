@@ -82,6 +82,11 @@ return [
         'secret' => env('INFODOT_SERVICE_SECRET'),
         'timeout' => (int) env('INFODOT_REDEEM_TIMEOUT', 5),
         'provision' => (bool) env('INFODOT_PROVISION_USERS', true),
+
+        // R-50: during a session, ask InfoDot whether the current company still holds this platform (cached ten
+        // minutes per company, sixty seconds after a failure; an outage or a misconfiguration never locks anyone
+        // out). Not the same switch as ANALYTICS_BUSINESS_PLATFORMS, which only shows the platforms panel.
+        'entitlement_check' => (bool) env('ANALYTICS_ENTITLEMENT_CHECK', true),
     ],
 
 ];
