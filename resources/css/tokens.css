@@ -29,6 +29,13 @@
     --tape-line: #2f3742;
     --tape-accent: #b7c3ff;
     --on-accent: #ffffff;
+    --chart: #2338d8;       /* the chart line; dark mode has its own step (passes the dataviz validator on the dark surface) */
+    --hover: #eaeef3;
+    --select: #e3e8fb;
+    /* Scales: spacing 4 8 12 16 24 32 48; radius 4 (buttons, tape, rows) and 2 (chips); rows 40 / 52 (56 on a phone). */
+    --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 24px; --s6: 32px; --s7: 48px;
+    --r: 4px; --r-chip: 2px; --row: 40px; --row-tall: 52px;
+    --ease: cubic-bezier(0.16, 1, 0.3, 1);
     --font-display: 'IBM Plex Sans Condensed', 'IBM Plex Sans', system-ui, sans-serif;
     --font-body: 'IBM Plex Sans', system-ui, sans-serif;
     --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
@@ -40,6 +47,7 @@
         --ink: #0e1116; --ink-soft: #161b22; --panel: #161b22; --paper: #eef1f5; --mist: #9aa6b6; --line: #2a323d;
         --teal: #8fa2ff; --teal-soft: #8fa2ff; --gold: #8fa2ff; --gold-soft: #b7c3ff; --danger: #ff8a80; --danger-soft: #ff8a80;
         --stale: #e0b04a; --tape: #05080c; --tape-ink: #eef1f5; --tape-muted: #8e9aab; --tape-line: #232a33; --tape-accent: #b7c3ff; --on-accent: #0e1116;
+        --chart: #6e84ee; --hover: #1b212a; --select: #1f2740;
         color-scheme: dark;
     }
 }
