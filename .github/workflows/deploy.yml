@@ -442,7 +442,7 @@ jobs:
           (
             set +e
             if [ "$(cd "$DOCROOT" && pwd -P)" = "$(cd public && pwd -P)" ]; then echo "== static files: the docroot is public/ itself; nothing to copy"; exit 0; fi
-            for STATIC in fonts images; do
+            for STATIC in fonts images dot-ui; do
               L="$DOCROOT/$STATIC"
               if [ -L "$L" ]; then echo "== docroot $STATIC/ is a symlink; nothing to copy"
               elif [ -d "$L" ]; then rsync -a public/$STATIC/ "$L/" && echo "== docroot $STATIC/ mirrored from public/$STATIC"

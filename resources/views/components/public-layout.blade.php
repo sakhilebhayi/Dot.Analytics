@@ -1,4 +1,4 @@
-@props(['title', 'description' => null, 'canonical' => null, 'section' => null, 'jsonld' => null, 'noindex' => false])
+@props(['title', 'description' => null, 'canonical' => null, 'section' => null, 'jsonld' => null, 'noindex' => false, 'tools' => null])
 @php
     $site = 'Dot.Analytics';
     $fullTitle = $title === $site ? $site.'. Business intelligence you can check' : $title.' · '.$site;
@@ -27,6 +27,14 @@
     <link rel="apple-touch-icon" href="/apple-touch-icon.png">
     <link rel="preload" href="/fonts/ibm-plex-sans-var.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="/fonts/ibm-plex-sans-condensed-700-normal.woff2" as="font" type="font/woff2" crossorigin>
+    {{-- The shared Dot UI (search pill, platform switcher), served from this site: the strict policy needs nothing more. --}}
+    <link rel="stylesheet" href="/dot-ui/css/dot-fonts.css">
+    <link rel="stylesheet" href="/dot-ui/css/dot-tokens.css">
+    <link rel="stylesheet" href="/dot-ui/css/dot-search.css">
+    @if($tools)
+    <link rel="stylesheet" href="/dot-ui/css/dot-switcher.css">
+    <script src="/dot-ui/js/dot-switcher.js" defer></script>
+    @endif
     @vite(['resources/css/public.css', 'resources/js/public.js'])
     @if($jsonld)<script type="application/ld+json">{!! json_encode($jsonld, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) !!}</script>@endif
 </head>
@@ -42,11 +50,10 @@
             @endforeach
         </nav>
         <div class="top-end">
-            <form class="find wide" action="{{ route('intel.find') }}" method="get" role="search" aria-label="Search the library">
-                <label class="sr" for="q-top">Search the library</label>
-                <input id="q-top" type="search" name="q" placeholder="Search or ask" autocomplete="off" maxlength="160">
-                <button type="submit">Search</button>
-            </form>
+            <div class="top-search">
+                <x-dot.search name="q" id="q-top" :action="route('intel.find')" placeholder="Search or ask" label="Search the library" maxlength="160" :form-attributes="['aria-label' => 'Search the library']" />
+            </div>
+            @if($tools){{ $tools }}@endif
             <a class="signin" href="{{ route('me.home') }}">My library</a>
         </div>
         <details class="menu">
@@ -54,11 +61,9 @@
             <div class="menu-panel">
                 @foreach($nav as [$route, $label])<a href="{{ route($route) }}">{{ $label }}</a>@endforeach
                 <a href="{{ route('me.home') }}">My library</a>
-                <form class="find" action="{{ route('intel.find') }}" method="get" role="search" aria-label="Search from the menu">
-                    <label class="sr" for="q-menu">Search the library</label>
-                    <input id="q-menu" type="search" name="q" placeholder="Search or ask" autocomplete="off" maxlength="160">
-                    <button type="submit">Search</button>
-                </form>
+                <div class="menu-search">
+                    <x-dot.search name="q" id="q-menu" :action="route('intel.find')" placeholder="Search or ask" label="Search the library" maxlength="160" :form-attributes="['aria-label' => 'Search from the menu']" />
+                </div>
             </div>
         </details>
     </div>
