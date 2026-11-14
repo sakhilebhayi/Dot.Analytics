@@ -14,7 +14,7 @@
     },
     "servers": [
         {
-            "url": "https://analytics.infodot.co.za/api",
+            "url": "http://localhost/api",
             "description": "Current server"
         },
         {
