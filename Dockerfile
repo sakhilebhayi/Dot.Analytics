@@ -23,6 +23,7 @@ FROM node:22-alpine AS assets
 WORKDIR /app
 COPY package.json package-lock.json vite.config.js postcss.config.js tailwind.config.js tailwind.workspace.config.js ./
 COPY resources ./resources
+COPY dot-ui/tailwind ./dot-ui/tailwind
 RUN npm ci && npm run build
 
 # ─── Stage 3: Production image ────────────────────────────────────────────────
