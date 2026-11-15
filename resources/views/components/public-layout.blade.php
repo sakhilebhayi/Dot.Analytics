@@ -5,10 +5,13 @@
     $fullTitle = \Illuminate\Support\Str::limit($fullTitle, 68);
     $description ??= 'Business developments, industry and country figures, each with its source, period, licence and last update. Free to read.';
     $canonical ??= url()->current();
-    $nav = [['intel.industries', 'Industries'], ['intel.countries', 'Countries'], ['intel.newsroom', 'Newsroom'], ['intel.briefings', 'Briefings'], ['intel.sources', 'Sources']];
+    $navItems = [];
+    foreach ([['intel.industries', 'Industries'], ['intel.countries', 'Countries'], ['intel.newsroom', 'Newsroom'], ['intel.briefings', 'Briefings'], ['intel.sources', 'Sources']] as [$navRoute, $navLabel]) {
+        $navItems[] = ['label' => $navLabel, 'href' => route($navRoute), 'current' => $section === $navRoute];
+    }
 @endphp
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dot-roboto">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -25,49 +28,34 @@
     <meta name="twitter:card" content="summary_large_image">
     <link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png">
     <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-    <link rel="preload" href="/fonts/ibm-plex-sans-var.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="preload" href="/fonts/ibm-plex-sans-condensed-700-normal.woff2" as="font" type="font/woff2" crossorigin>
-    {{-- The shared Dot UI (search pill, platform switcher), served from this site: the strict policy needs nothing more. --}}
-    <link rel="stylesheet" href="/dot-ui/css/dot-fonts.css">
+    {{-- Roboto and the shared Dot UI (header, search pill, switcher), served from this site: the strict policy needs nothing more. --}}
+    <link rel="preload" href="/dot-ui/fonts/roboto/roboto-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="/dot-ui/css/dot-roboto.css">
+    <link rel="stylesheet" href="/dot-ui/css/dot-type.css">
     <link rel="stylesheet" href="/dot-ui/css/dot-tokens.css">
     <link rel="stylesheet" href="/dot-ui/css/dot-search.css">
     @if($tools)
     <link rel="stylesheet" href="/dot-ui/css/dot-switcher.css">
     <script src="/dot-ui/js/dot-switcher.js" defer></script>
     @endif
+    <link rel="stylesheet" href="/dot-ui/css/dot-header.css">
+    <script src="/dot-ui/js/dot-search.js" defer></script>
+    <script src="/dot-ui/js/dot-nav.js" defer></script>
     @vite(['resources/css/public.css', 'resources/js/public.js'])
     @if($jsonld)<script type="application/ld+json">{!! json_encode($jsonld, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) !!}</script>@endif
 </head>
 <body>
-<a class="skip" href="#main">Skip to the content</a>
-
-<header class="top">
-    <div class="wrap top-in">
-        <a class="mark" href="{{ route('intel.home') }}" aria-label="Dot.Analytics home"><img src="{{ asset('images/mark.png') }}" alt="" width="26" height="26"><span>Dot.</span>Analytics</a>
-        <nav class="nav" aria-label="Main">
-            @foreach($nav as [$route, $label])
-                <a href="{{ route($route) }}" @if($section === $route) aria-current="page" @endif>{{ $label }}</a>
-            @endforeach
-        </nav>
-        <div class="top-end">
-            <div class="top-search">
-                <x-dot.search name="q" id="q-top" :action="route('intel.find')" placeholder="Search or ask" label="Search the library" maxlength="160" :form-attributes="['aria-label' => 'Search the library']" />
-            </div>
-            @if($tools){{ $tools }}@endif
-            <a class="signin" href="{{ route('me.home') }}">My library</a>
-        </div>
-        <details class="menu">
-            <summary aria-label="Menu">Menu</summary>
-            <div class="menu-panel">
-                @foreach($nav as [$route, $label])<a href="{{ route($route) }}">{{ $label }}</a>@endforeach
-                <a href="{{ route('me.home') }}">My library</a>
-                <div class="menu-search">
-                    <x-dot.search name="q" id="q-menu" :action="route('intel.find')" placeholder="Search or ask" label="Search the library" maxlength="160" :form-attributes="['aria-label' => 'Search from the menu']" />
-                </div>
-            </div>
-        </details>
-    </div>
-</header>
+<x-dot.header id="dh" brand-href="{{ route('intel.home') }}" brand-label="Dot.Analytics home" nav-label="Main" :nav="$navItems" skip="#main"
+              :guest="['login' => ['label' => 'My library', 'href' => route('me.home')]]">
+    <x-slot:brand>
+        <img src="{{ asset('images/mark.png') }}" alt="" width="26" height="26">
+        <span class="dh-brand__name">Dot.Analytics</span>
+    </x-slot:brand>
+    <x-slot:search>
+        <x-dot.search name="q" id="q-top" :action="route('intel.find')" placeholder="Search or ask" label="Search the library" maxlength="160" :form-attributes="['aria-label' => 'Search the library']" />
+    </x-slot:search>
+    <x-slot:tools>@if($tools){{ $tools }}@endif</x-slot:tools>
+</x-dot.header>
 
 <main id="main">{{ $slot }}</main>
 

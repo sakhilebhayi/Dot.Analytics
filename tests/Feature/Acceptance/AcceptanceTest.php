@@ -266,10 +266,10 @@ class AcceptanceTest extends TestCase
             $html = $this->get($path)->assertOk()->getContent();
 
             $this->assertStringContainsString('name="viewport"', $html, $path);
-            $this->assertStringContainsString('class="skip"', $html, $path);
+            $this->assertStringContainsString('class="dh-skip skip-link"', $html, $path);
             $this->assertStringContainsString('<main id="main">', $html, $path);
             $this->assertSame(1, substr_count($html, '<h1'), "{$path} must have exactly one h1");
-            $this->assertStringContainsString('<html lang="en">', $html, $path);
+            $this->assertStringContainsString('<html lang="en" class="dot-roboto">', $html, $path);
             $this->assertDoesNotMatchRegularExpression('/<input(?![^>]*type="hidden")(?![^>]*aria-label)(?![^>]*id=)[^>]*>/', $html, "{$path} has an unlabelled input");
             $this->assertDoesNotMatchRegularExpression('/<img(?![^>]*alt=)/', $html, "{$path} has an image with no alt");
         }

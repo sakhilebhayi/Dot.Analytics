@@ -37,9 +37,8 @@ Colour never carries meaning alone: rise and fall carry a word and an arrow, sta
 
 ## Type
 
-- **IBM Plex Sans Condensed** 600 and 700 for headlines and large figures: dense, newsroom authority without a serif. Tracking -0.015em at display size, leading 1.02.
-- **IBM Plex Sans** (variable 400 to 600) for text and interface. 17px body on 1.55.
-- **IBM Plex Mono** 400 and 500 only for the provenance line and codes, where alignment is the point.
+- **Roboto** (variable, self-hosted from `public/dot-ui/fonts/roboto`, R-52) for every user-facing face: headlines and large figures at 700 with tracking -0.015em, text and interface at 400 to 600, on the shared dot-ui type scale (`--dot-text-*`). The Plex Sans Condensed headline voice is retired.
+- **System monospace** (`--dot-font-mono`) only for the provenance line, codes, secrets and chart ticks, where alignment is the point.
 - Figures use tabular numerals. Numbers and units are joined with a no-break space. Sentence case everywhere. No em or en dashes.
 - Fluid display: `clamp(40px, 7vw, 92px)` for the front page statement, `clamp(30px, 4.5vw, 56px)` for page titles, `clamp(22px, 3vw, 32px)` for section heads.
 - Self-hosted woff2 in `public/fonts`. No third-party request on a public page.

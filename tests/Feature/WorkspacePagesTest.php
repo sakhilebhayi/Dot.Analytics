@@ -51,8 +51,10 @@ class WorkspacePagesTest extends TestCase
         $this->assertStringNotContainsString('cdn.tailwindcss.com', $html);
         $this->assertStringNotContainsString('unpkg.com', $html);
         $this->assertStringNotContainsString('Space+Grotesk', $html);
-        $this->assertStringContainsString('ibm-plex-sans-var.woff2', $html);
-        $this->assertStringContainsString('Skip to the content', $html);
+        $this->assertStringContainsString('/dot-ui/fonts/roboto/roboto-latin-wght-normal.woff2', $html);
+        $this->assertStringNotContainsString('fonts.googleapis.com', $html);
+        $this->assertStringNotContainsString('ibm-plex', $html);
+        $this->assertStringContainsString('Skip to content', $html);
         $this->assertStringContainsString(route('me.home'), $html, 'the personal library is one click from the workspace');
     }
 

@@ -1,4 +1,4 @@
-import defaultTheme from 'tailwindcss/defaultTheme';
+import dotPreset from './dot-ui/tailwind/tailwind-preset.cjs';
 
 /**
  * The signed-in company workspace. It styled itself from the Tailwind Play CDN with the reset switched off, because its
@@ -6,8 +6,8 @@ import defaultTheme from 'tailwindcss/defaultTheme';
  * third-party script in every signed-in session.
  */
 export default {
+    presets: [dotPreset],
     content: ['./resources/views/**/*.blade.php', './app/Livewire/**/*.php', './app/Services/IntelligenceEngineService.php'],
     corePlugins: { preflight: false },
-    theme: { extend: { fontFamily: { sans: ['Figtree', ...defaultTheme.fontFamily.sans] } } },
     plugins: [],
 };

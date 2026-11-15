@@ -1,9 +1,10 @@
-import defaultTheme from 'tailwindcss/defaultTheme';
+import dotPreset from './dot-ui/tailwind/tailwind-preset.cjs';
 import forms from '@tailwindcss/forms';
 import typography from '@tailwindcss/typography';
 
 /** @type {import('tailwindcss').Config} */
 export default {
+    presets: [dotPreset],
     content: [
         './vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php',
         './vendor/laravel/jetstream/**/*.blade.php',
@@ -11,13 +12,6 @@ export default {
         './resources/views/**/*.blade.php',
     ],
 
-    theme: {
-        extend: {
-            fontFamily: {
-                sans: ['Figtree', ...defaultTheme.fontFamily.sans],
-            },
-        },
-    },
 
     plugins: [forms, typography],
 };
