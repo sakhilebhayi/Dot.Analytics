@@ -99,7 +99,7 @@ button, input, select { font: inherit; color: inherit; }
 .working[open] summary::before { content: '−'; }
 .working summary:hover { text-decoration: underline; text-underline-offset: 4px; }
 .tape { margin-top: 10px; padding: 20px 22px 22px; background: var(--tape); color: var(--tape-ink); border-radius: var(--radius); animation: unroll 260ms var(--ease) both; transform-origin: top; }
-@keyframes unroll { from { opacity: 0; transform: scaleY(0.92) translateY(-6px); } }
+@keyframes unroll { from { opacity: 0; transform: translateY(-6px); } }
 .tape dl { display: grid; grid-template-columns: minmax(96px, 150px) minmax(0, 1fr); gap: 8px 16px; font-size: 14px; }
 .tape dt { color: var(--tape-muted); font: 400 12px/1.6 var(--mono); }
 .tape dd a { color: var(--tape-ink); }
@@ -461,3 +461,14 @@ button, input, select { font: inherit; color: inherit; }
     .search-big input, .search-big button { min-height: 44px; }
 }
 .matrix-wrap { min-height: 44px; }
+
+/* R-52 public targets: the library's repeated links reach 44x44 up to tablet width. Negative block margins keep the rows as tall as before. */
+@media (max-width: 1100px) {
+    .working summary { min-height: 44px; }
+    .tape-links { gap: 0 18px; }
+    .tape-links a { display: inline-flex; align-items: center; min-height: 44px; padding-block: 0; }
+    .figure-name a { display: inline-flex; align-items: center; min-height: 44px; margin-block: -9px; padding-block: 0; }
+    .news h2 a, .news h3 a { display: inline-flex; align-items: center; min-height: 44px; margin-block: -10px; }
+    .matrix tbody th a { display: flex; align-items: center; min-height: 44px; padding-block: 0; }
+    .matrix td a { display: inline-flex; align-items: center; justify-content: flex-end; min-width: 44px; min-height: 44px; margin-block: -9px; padding-block: 0; }
+}
