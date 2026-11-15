@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="dot-roboto">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -9,18 +9,12 @@
     <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon-32x32.png') }}">
     <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('favicon-16x16.png') }}">
     <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('apple-touch-icon.png') }}">
-    <link rel="preload" href="/fonts/ibm-plex-sans-var.woff2" as="font" type="font/woff2" crossorigin>
-    {{-- Icons only. The fonts for text are served from this site. --}}
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
-
-    {{-- The shared Dot UI (search pill, platform switcher), served from this site. --}}
-    <link rel="stylesheet" href="/dot-ui/css/dot-fonts.css">
-    <link rel="stylesheet" href="/dot-ui/css/dot-tokens.css">
-    <link rel="stylesheet" href="/dot-ui/css/dot-search.css">
-    <link rel="stylesheet" href="/dot-ui/css/dot-switcher.css">
-    <script src="/dot-ui/js/dot-switcher.js" defer></script>
+    {{-- Roboto and the shared Dot UI 0.6.1 (one bundle: type, header, search pill, platform switcher; the results controller loads lazily), all served from this site's own public/dot-ui: no
+         third-party font or icon request (R-52). The bell and the other icons are inline SVG. --}}
+    {{-- The dashboard's largest paint is text and the swap to Roboto is visible, so this page keeps the latin preload (dot-ui 0.6.1 PERFORMANCE.md): measured +0.2 s LCP without it. --}}
+    <link rel="preload" href="/dot-ui/fonts/roboto/roboto-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="/dot-ui/css/dot-ui.min.css">
+    <script src="/dot-ui/js/dot-ui-core.min.js" defer></script>
     @vite(['resources/css/workspace.css'])
     @livewireStyles
     {{-- No separate Alpine script here on purpose: @livewireScripts below already bundles and starts Alpine for
@@ -60,10 +54,9 @@
     @endauth
 </head>
 <body>
-    <a class="ws-skip" href="#main">Skip to the content</a>
     <x-banner />
 
-    @livewire('navigation-menu')
+    @include('partials.workspace-header')
 
     <div class="ws-page">
         <main id="main">

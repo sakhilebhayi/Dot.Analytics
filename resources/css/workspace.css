@@ -7,67 +7,34 @@
 *, *::before, *::after { box-sizing: border-box; }
 body { margin: 0; background: var(--ink); color: var(--paper); font-family: var(--font-body); font-size: 16px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
 .font-display { font-family: var(--font-display); }
-.font-mono { font-family: var(--font-mono); }
-.material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; line-height: 1; }
+/* .font-mono is the panels' label and readout class. Roboto now (one face for the interface, tabular figures for numbers);
+   real code, secrets and cron expressions keep the monospace stack. */
+.font-mono { font-family: var(--font-body); font-variant-numeric: tabular-nums; }
+code.font-mono, input.font-mono, pre.font-mono, .font-code { font-family: var(--font-mono); }
+/* The panels were written with rem sizes down to 0.56rem (9px) in style attributes. Nothing user-facing is read below 12px. */
+.ws-page [style*="font-size:0.5"], .ws-page [style*="font-size:0.6"], .ws-page [style*="font-size:.5"], .ws-page [style*="font-size:.6"] { font-size: 0.75rem !important; }
 [x-cloak] { display: none !important; }
 .press { transition: transform 160ms cubic-bezier(0.16, 1, 0.3, 1); }
 .press:active { transform: scale(0.97); }
 @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
 :focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
 
-/* Shell */
-.ws-skip { position: absolute; left: -9999px; top: 8px; padding: 8px 14px; background: var(--paper); color: var(--ink); z-index: 100; }
-.ws-skip:focus { left: 8px; }
-.ws-top { position: sticky; top: 0; z-index: 50; background: var(--ink-soft); border-bottom: 1px solid var(--line); }
-.ws-in { display: flex; align-items: center; gap: 12px 24px; max-width: 1320px; margin: 0 auto; padding: 8px clamp(16px, 3vw, 40px); min-height: 60px; }
-.ws-brand { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; font: 700 19px/1 var(--font-display); color: var(--paper); }
-.ws-brand img { width: 26px; height: 26px; }
-.ws-nav { display: flex; flex-wrap: nowrap; gap: 0; margin-right: auto; }
-.ws-nav a { display: inline-flex; align-items: center; min-height: 40px; padding: 0 8px; white-space: nowrap; border-radius: 4px; color: var(--mist); font-size: 14px; font-weight: 500; text-decoration: none; transition: background 120ms, color 120ms; }
-.ws-nav a:hover { background: var(--ink); color: var(--paper); }
-.ws-nav a[aria-current='page'] { color: var(--paper); box-shadow: inset 0 -2px 0 var(--paper); font-weight: 600; }
-.ws-tools { display: flex; align-items: center; gap: 8px 12px; }
-.ws-search input { width: 150px; min-height: 40px; padding: 0 12px; border: 1px solid var(--line); border-radius: 4px; background: var(--ink); color: var(--paper); font-size: 15px; }
-.ws-menu { display: none; margin-left: auto; }
-.ws-menu summary { list-style: none; display: inline-flex; align-items: center; min-height: 40px; padding: 0 14px; border: 1px solid var(--line); border-radius: 4px; cursor: pointer; font-weight: 500; }
-.ws-menu summary::-webkit-details-marker { display: none; }
-.ws-menu-panel { position: absolute; left: 0; right: 0; top: 100%; display: grid; gap: 2px; padding: 12px clamp(16px, 3vw, 40px) 18px; background: var(--ink-soft); border-bottom: 1px solid var(--line); }
-.ws-menu-panel a, .ws-menu-panel button { display: flex; align-items: center; min-height: 44px; padding: 0 8px; color: var(--paper); text-decoration: none; background: none; border: 0; font: inherit; text-align: left; cursor: pointer; }
+/* Shell: the top bar is the shared dot-ui header (public/dot-ui/css/dot-header.css); only the page frame is ours. */
 .ws-page { max-width: 1320px; margin: 0 auto; padding: clamp(20px, 3vw, 40px) clamp(16px, 3vw, 40px) 80px; }
 .ws-head { margin-bottom: 24px; }
-.ws-head .eyebrow { margin: 0 0 6px; color: var(--mist); font: 500 13px/1.4 var(--font-mono); }
+.ws-head .eyebrow { margin: 0 0 6px; color: var(--mist); font: 500 14px/1.4 var(--font-body); }
 .ws-head h1 { margin: 0; font: 700 clamp(28px, 4vw, 44px)/1.05 var(--font-display); letter-spacing: -0.012em; }
 .ws-head p.lede { margin: 10px 0 0; max-width: 62ch; color: var(--mist); font-size: 17px; }
 .ws-frame { display: grid; gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
 .ws-frame > * { background: var(--ink-soft); }
 .ws-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; background: var(--line); }
 .ws-pair > * { background: var(--ink-soft); }
-.ws-team-button { display: inline-flex; align-items: center; min-height: 40px; padding: 0 12px; border: 1px solid var(--line); border-radius: 4px; background: transparent; color: var(--mist); font: 500 14px/1 var(--font-body); cursor: pointer; }
-.ws-account { width: 40px; height: 40px; border: 0; border-radius: 9999px; background: var(--paper); color: var(--ink); font: 700 15px/1 var(--font-display); cursor: pointer; }
-.ws-bell { position: relative; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border: 1px solid var(--line); border-radius: 9999px; background: transparent; color: var(--mist); cursor: pointer; }
-.ws-bell .material-symbols-outlined { font-size: 20px; }
-.ws-bell-count { position: absolute; top: -4px; right: -4px; display: flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 9999px; background: var(--teal); color: var(--on-accent); font: 600 12px/1 var(--font-body); font-variant-numeric: tabular-nums; }
-.ws-bell-list { width: 20rem; max-width: 86vw; max-height: 24rem; overflow-y: auto; background: var(--ink-soft); color: var(--paper); }
-.ws-bell-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 16px; border-bottom: 1px solid var(--line); font-weight: 600; font-size: 14px; }
-.ws-bell-head button { padding: 4px 0; border: 0; background: none; color: var(--teal); font: 500 14px/1.2 var(--font-body); cursor: pointer; }
-.ws-bell-none { margin: 0; padding: 24px 16px; color: var(--mist); font-size: 15px; text-align: center; }
-.ws-bell-item { display: block; padding: 10px 16px; border-bottom: 1px solid var(--line); text-decoration: none; }
-.ws-bell-item.is-unread { background: color-mix(in srgb, var(--teal) 6%, transparent); }
-.ws-bell-item p { margin: 0; }
-.ws-bell-title { color: var(--paper); font-weight: 600; font-size: 15px; }
-.ws-bell-text { margin-top: 2px !important; color: var(--mist); font-size: 14px; }
-.ws-bell-when { margin-top: 4px !important; color: var(--mist); font-size: 13px; }
-.ws-bar { position: fixed; right: 16px; bottom: 16px; z-index: 40; display: none; }
+/* The notification panel's rows (inside the shared bell panel). */
+.ws-bell-title { display: block; color: var(--dhp-ink, var(--paper)); font-weight: 600; font-size: 14px; }
+.ws-bell-text { display: block; margin-top: 2px; color: var(--dhp-ink-2, var(--mist)); font-size: 14px; }
+.ws-bell-when { display: block; margin-top: 4px; color: var(--dhp-ink-2, var(--mist)); font-size: 12px; }
 .ws-note { color: var(--mist); font-size: 14px; }
 
-/* The shared switcher and search pill need the room the nav used to have, so the menu takes over earlier (was 1180px). */
-@media (max-width: 1340px) {
-    .ws-nav, .ws-search, .ws-team, .ws-user { display: none; }
-    .ws-menu { display: block; margin-left: 0; }
-    .ws-tools { margin-left: auto; }
-    .ws-in { position: relative; flex-wrap: nowrap; gap: 12px; }
-    .ws-brand span { white-space: nowrap; }
-}
 @media (max-width: 960px) {
     .ws-pair { grid-template-columns: minmax(0, 1fr); }
 }
@@ -111,11 +78,11 @@ body { margin: 0; background: var(--ink); color: var(--paper); font-family: var(
 .desk { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: var(--s5) clamp(24px, 3vw, 48px); align-items: start; padding-top: var(--s5); }
 .ld h2 { margin: 0; font: 700 22px/1.2 var(--font-display); letter-spacing: -0.008em; }
 .head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s4); margin-bottom: var(--s3); }
-.head h2 .chip { font-size: 11.5px; margin-left: var(--s2); vertical-align: 3px; }
+.head h2 .chip { font-size: 12px; margin-left: var(--s2); vertical-align: 3px; }
 .ld .head a { color: var(--mist); font-size: 14px; font-weight: 500; }
 .ld .head a:hover { color: var(--paper); }
 .ledger table { width: 100%; border-collapse: collapse; }
-.ledger th { height: 32px; padding: 0 var(--s3); border-bottom: 1px solid var(--paper); text-align: left; font: 500 12.5px/1 var(--font-body); color: var(--mist); white-space: nowrap; }
+.ledger th { height: 32px; padding: 0 var(--s3); border-bottom: 1px solid var(--paper); text-align: left; font: 500 12px/1 var(--font-body); color: var(--mist); white-space: nowrap; }
 .ledger th button { all: unset; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; min-height: 32px; color: inherit; }
 .ledger th button:hover { color: var(--paper); }
 .ledger th button:focus-visible { outline: 2px solid var(--teal); outline-offset: 0; }
@@ -130,13 +97,13 @@ body { margin: 0; background: var(--ink); color: var(--paper); font-family: var(
 .ledger td a:focus-visible { outline: none; }
 .ledger tbody tr:focus-within { outline: 2px solid var(--teal); outline-offset: -2px; }
 .ledger td.soft { color: var(--mist); }
-.ledger td.fig-cell small { display: block; color: var(--mist); font-size: 12.5px; font-weight: 400; line-height: 1.3; }
+.ledger td.fig-cell small { display: block; color: var(--mist); font-size: 12px; font-weight: 400; line-height: 1.3; }
 .sm-only { display: none; }
 .ledger td.val { font-weight: 600; text-align: right; }
 .ledger td.chg { text-align: right; }
 .chg svg, .move svg { margin-right: 6px; vertical-align: -1px; flex: none; }
 .val small { display: none; }
-.chip { display: inline-block; margin-left: 6px; padding: 0 6px; border: 1px solid currentColor; border-radius: var(--r-chip); color: var(--mist); font: 400 11.5px/1.5 var(--font-mono); vertical-align: 1px; }
+.chip { display: inline-block; margin-left: 6px; padding: 0 6px; border: 1px solid currentColor; border-radius: var(--r-chip); color: var(--mist); font: 400 12px/1.5 var(--font-mono); vertical-align: 1px; }
 .chip.stale { color: var(--stale); background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--stale) 24%, transparent) 0 2px, transparent 2px 5px); }
 .ledger tr.is-stale td.val { color: var(--mist); }
 .more { margin: var(--s3) 0 0; max-width: 70ch; color: var(--mist); font-size: 14px; }
@@ -163,7 +130,7 @@ body { margin: 0; background: var(--ink); color: var(--paper); font-family: var(
 .tape { margin-top: var(--s4); padding: var(--s4) var(--s5) var(--s3); border-radius: var(--r); background: var(--tape); color: var(--tape-ink); }
 .tape h3 { margin: 0 0 var(--s2); font: 600 16px/1.3 var(--font-display); }
 .tape dl { margin: 0; }
-.tape .row { display: grid; grid-template-columns: 9.5rem minmax(0, 1fr); gap: var(--s3); align-items: baseline; min-height: 36px; padding: var(--s2) 0; border-top: 1px solid var(--tape-line); font-size: 14.5px; }
+.tape .row { display: grid; grid-template-columns: 9.5rem minmax(0, 1fr); gap: var(--s3); align-items: baseline; min-height: 36px; padding: var(--s2) 0; border-top: 1px solid var(--tape-line); font-size: 14px; }
 .tape dt { color: var(--tape-muted); }
 .tape dd { margin: 0; }
 .tape a { color: var(--tape-accent); }
@@ -171,7 +138,7 @@ body { margin: 0; background: var(--ink); color: var(--paper); font-family: var(
 .tape :focus-visible { outline-color: var(--tape-ink); }
 .tape .chip { color: var(--tape-ink); }
 .tape details { padding: var(--s2) 0; border-top: 1px solid var(--tape-line); }
-.tape summary { display: flex; align-items: center; min-height: 36px; cursor: pointer; color: var(--tape-accent); font-size: 14.5px; }
+.tape summary { display: flex; align-items: center; min-height: 36px; cursor: pointer; color: var(--tape-accent); font-size: 14px; }
 .tape table { margin: var(--s2) 0; border-collapse: collapse; font: 400 13px/1.5 var(--font-mono); }
 .tape td, .tape th { padding: 2px var(--s5) 2px 0; text-align: left; font-weight: 400; }
 .tape th { color: var(--tape-muted); }
@@ -183,7 +150,7 @@ body { margin: 0; background: var(--ink); color: var(--paper); font-family: var(
 .none.soft { color: var(--mist); }
 .tape .none { color: var(--tape-muted); }
 .expect { list-style: none; margin: var(--s2) 0 0; padding: 0; }
-.expect li { display: grid; grid-template-columns: 9.5rem minmax(0, 1fr); gap: var(--s3); padding: var(--s2) 0; border-top: 1px solid var(--tape-line); font-size: 14.5px; }
+.expect li { display: grid; grid-template-columns: 9.5rem minmax(0, 1fr); gap: var(--s3); padding: var(--s2) 0; border-top: 1px solid var(--tape-line); font-size: 14px; }
 .expect li span:first-child { color: var(--tape-muted); }
 .missing { display: grid; gap: var(--s2); }
 .missing span { height: var(--row); border-radius: 2px; background: repeating-linear-gradient(135deg, var(--line) 0 2px, transparent 2px 8px); box-shadow: inset 0 0 0 1px var(--line); }
@@ -263,7 +230,7 @@ body { margin: 0; background: var(--ink); color: var(--paper); font-family: var(
     .ledger td { height: 56px; padding: 0 var(--s2); }
     .ledger td.fig-cell { white-space: normal; line-height: 1.3; }
     .sm-only { display: inline; }
-    .val small { display: block; color: var(--mist); font-size: 12.5px; font-weight: 400; line-height: 1.3; white-space: nowrap; }
+    .val small { display: block; color: var(--mist); font-size: 12px; font-weight: 400; line-height: 1.3; white-space: nowrap; }
     .val small svg { margin-right: 4px; }
     .ledger th { padding: 0 var(--s2); }
     .ledger th button { min-height: 44px; }
@@ -285,9 +252,9 @@ body { margin: 0; background: var(--ink); color: var(--paper); font-family: var(
 .bp-group li a { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 2px 16px; min-height: 44px; padding: 10px 0; border-top: 1px solid var(--line); color: var(--paper); text-decoration: none; }
 .bp-name { font-weight: 500; transition: transform 120ms var(--ease, ease-out); }
 .bp-group li a:hover .bp-name { transform: translateX(6px); color: var(--teal); }
-.bp-state { color: var(--mist); font-size: 14.5px; }
+.bp-state { color: var(--mist); font-size: 14px; }
 .bp-group[data-group='attention'] .bp-state { color: var(--danger); font-weight: 500; }
-.bp-source { margin: 16px 0 0; color: var(--mist); font: 400 12.5px/1.6 var(--font-mono); }
+.bp-source { margin: 16px 0 0; color: var(--mist); font: 400 12px/1.6 var(--font-mono); }
 
 ::selection { background: var(--paper); color: var(--ink); }
 
@@ -298,10 +265,25 @@ body { margin: 0; background: var(--ink); color: var(--paper); font-family: var(
 }
 
 /*
- * The shared Dot UI (public/dot-ui). The search pill is InfoDot's and is not mapped. Its dropdown/filter surfaces and
- * the switcher button follow this workspace's tokens. NB: here --ink is the page ground and --paper is the text.
+ * The shared Dot UI (public/dot-ui). The search pill is InfoDot's and is not mapped. Its dropdown/filter surfaces, the header
+ * bar and the switcher button follow this workspace's tokens (all unlayered, on :root, so light and dark both follow).
+ * NB: here --ink is the page ground and --paper is the text.
  */
 :root {
+    --dh-bg: var(--ink-soft);
+    --dh-ink: var(--paper);
+    --dh-ink-2: var(--mist);
+    --dh-rule: var(--line);
+    --dh-hover: var(--hover);
+    --dh-accent: var(--teal);
+    --dh-focus: var(--teal);
+    --dh-avatar-bg: var(--paper);
+    --dh-avatar-ink: var(--ink);
+    --dh-badge-bg: var(--danger);
+    --dh-badge-ink: var(--on-accent);
+    --dh-radius: var(--r);
+    --dh-logo-h: 26px;
+    --dh-search-w: clamp(280px, 20vw, 380px);
     --dsr-panel: var(--ink-soft);
     --dsr-hover: var(--ink);
     --dsr-rule: var(--line);
@@ -317,17 +299,51 @@ body { margin: 0; background: var(--ink); color: var(--paper); font-family: var(
     --dsr-filter-border-focus: var(--paper);
     --dsr-filter-radius: 4px;
 }
-.ws-top .dsw {
-    --dsw-btn-ink: var(--paper);
-    --dsw-btn-border: var(--line);
-    --dsw-btn-bg-hover: var(--ink);
-    --dsw-focus: var(--teal);
-    --dsw-radius: 4px;
-}
-.ws-search { width: clamp(170px, 13vw, 200px); }
-.ws-team-button { max-width: 130px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.ws-team-button svg { flex: none; }
-.ws-search .dsr { margin: 0; }
+.dh { border-bottom: 1px solid var(--line); }
 .ws-filter { margin-bottom: 1.75rem; }
-.ws-menu-search { padding: 8px 8px 4px; }
-.ws-menu-search .dsr { margin: 0; }
+
+/* R-52 responsive: the bar holds the mark alone on the narrowest phones; the arrival band stacks; touch targets reach 44px. */
+@media (max-width: 420px) {
+    .dh .dh-brand__name { display: none; }
+    .arrive { grid-template-columns: minmax(0, 1fr); gap: var(--s3); }
+    .arrive img { width: 64px; }
+}
+@media (max-width: 900px) {
+    .ld .head a { display: inline-flex; align-items: center; min-height: 44px; }
+    .ledger th button { min-width: 44px; }
+    .tape summary { min-height: 44px; }
+    .ws-page select, .ws-page button[class*="press"], .ws-page summary { min-height: 44px; }
+    .ws-page select, .ws-page input:not([type=checkbox]):not([type=radio]), .ws-page textarea { font-size: 16px; }
+}
+@media (max-width: 1100px) {
+    .ledger th button { min-height: 44px; min-width: 44px; }
+    .ld a.btn, .ws-page button.press, .ws-page select { min-height: 44px; }
+    .ws-page button.press { min-width: 44px; }
+}
+@media (max-width: 640px) {
+    .ws-page select { max-width: 100%; }
+    .ws-page .flex.gap-2, .ws-page .flex.items-center { flex-wrap: wrap; }
+    .ws-frame, .ws-pair { min-width: 0; }
+    .ws-frame { overflow: visible; }
+}
+@media (max-width: 1100px) {
+    .ld .head a, .ld .back a { display: inline-flex; align-items: center; min-height: 44px; }
+    .ws-page summary, .tape summary { min-height: 44px; display: flex; align-items: center; }
+}
+/* The search dropdown's rows reach the 44px touch target up to tablet width (dot-ui rows are 41.6px). */
+@media (max-width: 1100px) {
+    .dh .dsr-item { min-height: 44px; }
+}
+
+/* Panels written with fixed inline padding and nowrap rows: let the grid items shrink and the rows wrap on phones. */
+.ws-frame { grid-template-columns: minmax(0, 1fr); }
+.ws-frame > *, .ws-pair > * { min-width: 0; }
+@media (max-width: 1100px) {
+    .ws-page button, .ws-page select, .ws-page input:not([type=checkbox]):not([type=radio]) { min-height: 44px; }
+    .ws-page input, .ws-page textarea, .ws-page select { max-width: 100%; min-width: 0; }
+}
+@media (max-width: 640px) {
+    .ws-page form.flex { flex-wrap: wrap; }
+    .ws-page form.flex > input { flex: 1 1 12rem; }
+    .ws-page [style*="padding:2rem 2.25rem"], .ws-page [style*="padding:1.75rem 2rem"], .ws-page [style*="padding:1.75rem 2.25rem"] { padding: 1.25rem 1rem !important; }
+}

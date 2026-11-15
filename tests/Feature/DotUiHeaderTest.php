@@ -88,7 +88,9 @@ class DotUiHeaderTest extends TestCase
         $this->assertMatchesRegularExpression('/<input[^>]*\bid="q-top"[^>]*\btype="search"[^>]*\bname="q"[^>]*\bplaceholder="Search or ask"[^>]*\bmaxlength="160"/', $html);
         $this->assertStringContainsString('class="dsr-input"', $html, 'the shared pill');
         $this->assertStringNotContainsString('<form class="find wide"', $html, 'the old header form is gone');
-        $this->assertStringContainsString('id="q-menu"', $html, 'the menu search on a phone is the pill too');
+        $this->assertSame(1, substr_count($html, 'class="dsr-input"'), 'one pill: on a phone the header opens it as a sheet (no second copy in a menu)');
+        $this->assertStringContainsString('data-dh-search-toggle', $html);
+        $this->assertStringContainsString('My library', $html);
         $this->assertStringContainsString('dsr dsr--nohint', $html, 'no invented Ctrl K hint');
     }
 
@@ -176,7 +178,7 @@ class DotUiHeaderTest extends TestCase
         $html = $this->actingAs($this->memberOf(self::ACME, 'Acme Ltd'))->get(route('me.home'))->assertOk()->getContent();
 
         $this->assertStringContainsString('href="https://infodot.test/go/files?company='.self::ACME.'"', $this->switcherHtml($html));
-        $this->assertStringContainsString('/dot-ui/js/dot-switcher.js', $html);
+        $this->assertStringContainsString('/dot-ui/js/dot-ui-core.min.js', $html);
     }
 
     public function test_the_switcher_asks_infodot_about_the_current_company_with_the_service_secret(): void
@@ -251,7 +253,7 @@ class DotUiHeaderTest extends TestCase
             $this->assertStringContainsString("script-src 'self';", $csp);
             $this->assertStringContainsString("style-src 'self';", $csp);
             $this->assertStringNotContainsString('unsafe-inline', $csp, 'the strict policy stays strict');
-            $this->assertStringContainsString('href="/dot-ui/css/dot-search.css"', $html);
+            $this->assertStringContainsString('href="/dot-ui/css/dot-ui.min.css"', $html);
             $this->assertDotUiReferencesAreOwnFiles($html);
         }
 
@@ -282,9 +284,9 @@ class DotUiHeaderTest extends TestCase
 
         $workspace = $this->actingAs($user)->get(route('workspace.figures'))->getContent();
         $this->assertStringNotContainsString(' style="', $this->switcherHtml($workspace));
-        $this->assertSame(1, preg_match('/<div class="ws-search">.*?<\/form>/s', $workspace, $pill));
+        $this->assertSame(1, preg_match('/<div class="dh-search".*?<\/form>/s', $workspace, $pill));
         $this->assertStringNotContainsString(' style="', $pill[0]);
-        $this->assertMatchesRegularExpression('/<div class="ws-search">\s*<div class="dsr/', $workspace);
+        $this->assertMatchesRegularExpression('/<div class="dh-search"[^>]*>\s*<div[^>]*class="hs">\s*<div class="dsr/', $workspace);
     }
 
     // ── What this PR must not change ────────────────────────────────────────

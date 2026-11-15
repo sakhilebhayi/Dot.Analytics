@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="dot-roboto">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -11,7 +11,8 @@
     <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon-32x32.png') }}">
     <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('favicon-16x16.png') }}">
     <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('apple-touch-icon.png') }}">
-    <link rel="preload" href="/fonts/ibm-plex-sans-var.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="/dot-ui/css/dot-roboto.min.css">
+    <link rel="stylesheet" href="/dot-ui/css/dot-type.min.css">
 
     @vite(['resources/css/app.css', 'resources/css/tokens.css', 'resources/js/app.js'])
     @livewireStyles
@@ -21,6 +22,7 @@
         .font-mono { font-family: var(--font-mono); }
         .press { transition: transform 160ms cubic-bezier(0.16, 1, 0.3, 1); }
         .press:active { transform: scale(0.97); }
+        @media (max-width: 1100px) { main a, main button, main input:not([type=checkbox]) { min-height: 44px; } main a.inline-block, main a.press { display: inline-flex; align-items: center; } main label { min-height: 44px; display: inline-flex; align-items: center; } input[type=checkbox] { width: 20px; height: 20px; } }
     </style>
 </head>
 <body class="antialiased font-sans">
