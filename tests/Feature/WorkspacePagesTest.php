@@ -51,7 +51,10 @@ class WorkspacePagesTest extends TestCase
         $this->assertStringNotContainsString('cdn.tailwindcss.com', $html);
         $this->assertStringNotContainsString('unpkg.com', $html);
         $this->assertStringNotContainsString('Space+Grotesk', $html);
-        $this->assertStringContainsString('/dot-ui/fonts/roboto/roboto-latin-wght-normal.woff2', $html);
+        // dot-ui 0.6.1: the bundle's @font-face names the latin file; the signed-in shell keeps the one latin preload because its largest paint is text.
+        $this->assertStringContainsString('/dot-ui/css/dot-ui.min.css', $html);
+        $this->assertStringContainsString('roboto-latin-wght-normal.woff2', (string) file_get_contents(public_path('dot-ui/css/dot-ui.min.css')));
+        $this->assertStringContainsString('rel="preload" href="/dot-ui/fonts/roboto/roboto-latin-wght-normal.woff2"', $html, 'the dashboard\'s largest paint is text, so it keeps the one preload');
         $this->assertStringNotContainsString('fonts.googleapis.com', $html);
         $this->assertStringNotContainsString('ibm-plex', $html);
         $this->assertStringContainsString('Skip to content', $html);

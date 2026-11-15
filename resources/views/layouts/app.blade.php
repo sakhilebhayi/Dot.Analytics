@@ -9,19 +9,12 @@
     <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon-32x32.png') }}">
     <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('favicon-16x16.png') }}">
     <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('apple-touch-icon.png') }}">
-    {{-- Roboto and the shared Dot UI (header, search pill, platform switcher), all served from this site's own public/dot-ui: no
+    {{-- Roboto and the shared Dot UI 0.6.1 (one bundle: type, header, search pill, platform switcher; the results controller loads lazily), all served from this site's own public/dot-ui: no
          third-party font or icon request (R-52). The bell and the other icons are inline SVG. --}}
+    {{-- The dashboard's largest paint is text and the swap to Roboto is visible, so this page keeps the latin preload (dot-ui 0.6.1 PERFORMANCE.md): measured +0.2 s LCP without it. --}}
     <link rel="preload" href="/dot-ui/fonts/roboto/roboto-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="/dot-ui/css/dot-roboto.css">
-    <link rel="stylesheet" href="/dot-ui/css/dot-type.css">
-    <link rel="stylesheet" href="/dot-ui/css/dot-tokens.css">
-    <link rel="stylesheet" href="/dot-ui/css/dot-search.css">
-    <link rel="stylesheet" href="/dot-ui/css/dot-switcher.css">
-    <link rel="stylesheet" href="/dot-ui/css/dot-header.css">
-    <script src="/dot-ui/js/dot-search.js" defer></script>
-    <script src="/dot-ui/js/dot-search-results.js" defer></script>
-    <script src="/dot-ui/js/dot-switcher.js" defer></script>
-    <script src="/dot-ui/js/dot-nav.js" defer></script>
+    <link rel="stylesheet" href="/dot-ui/css/dot-ui.min.css">
+    <script src="/dot-ui/js/dot-ui-core.min.js" defer></script>
     @vite(['resources/css/workspace.css'])
     @livewireStyles
     {{-- No separate Alpine script here on purpose: @livewireScripts below already bundles and starts Alpine for

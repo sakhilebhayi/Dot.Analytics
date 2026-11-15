@@ -178,7 +178,7 @@ class DotUiHeaderTest extends TestCase
         $html = $this->actingAs($this->memberOf(self::ACME, 'Acme Ltd'))->get(route('me.home'))->assertOk()->getContent();
 
         $this->assertStringContainsString('href="https://infodot.test/go/files?company='.self::ACME.'"', $this->switcherHtml($html));
-        $this->assertStringContainsString('/dot-ui/js/dot-switcher.js', $html);
+        $this->assertStringContainsString('/dot-ui/js/dot-ui-core.min.js', $html);
     }
 
     public function test_the_switcher_asks_infodot_about_the_current_company_with_the_service_secret(): void
@@ -253,7 +253,7 @@ class DotUiHeaderTest extends TestCase
             $this->assertStringContainsString("script-src 'self';", $csp);
             $this->assertStringContainsString("style-src 'self';", $csp);
             $this->assertStringNotContainsString('unsafe-inline', $csp, 'the strict policy stays strict');
-            $this->assertStringContainsString('href="/dot-ui/css/dot-search.css"', $html);
+            $this->assertStringContainsString('href="/dot-ui/css/dot-ui.min.css"', $html);
             $this->assertDotUiReferencesAreOwnFiles($html);
         }
 

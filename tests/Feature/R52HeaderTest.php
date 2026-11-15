@@ -43,10 +43,11 @@ class R52HeaderTest extends TestCase
     public function test_the_login_page_and_the_public_library_use_roboto_and_the_shared_header(): void
     {
         $login = $this->get('/login')->assertOk()->getContent();
-        $this->assertStringContainsString('/dot-ui/css/dot-roboto.css', $login);
+        $this->assertStringContainsString('/dot-ui/css/dot-roboto.min.css', $login);
         $this->assertStringNotContainsString('Figtree', $login);
 
         $home = $this->get('/')->assertOk()->getContent();
+        $this->assertStringContainsString('rel="preload" href="/dot-ui/fonts/roboto/roboto-latin-wght-normal.woff2"', $home, 'the public home keeps the latin preload: without it the hero text reflows (CLS 0.20 at 320px)');
         $this->assertStringContainsString('class="dh', $home);
         $this->assertStringNotContainsString('class="top"', $home, 'the separate public header is gone');
         $this->assertStringContainsString('data-dh-menu-button', $home);
@@ -63,7 +64,10 @@ class R52HeaderTest extends TestCase
         foreach (['resources/css', 'public/dot-ui/css'] as $dir) {
             foreach (glob(base_path($dir).'/*.css') as $file) {
                 $css = file_get_contents($file);
-                $declared += preg_match_all('/@font-face/', $css);
+                // The .min files (dot-ui 0.6.1) are builds of the same sources: they repeat the declaration, so only the readable files are counted.
+                if (! str_ends_with($file, '.min.css')) {
+                    $declared += preg_match_all('/@font-face/', $css);
+                }
                 $this->assertStringNotContainsString('IBM Plex', $css, basename($file));
                 if ($dir === 'resources/css') {
                     $this->assertStringNotContainsString('Archivo', $css, basename($file));
@@ -72,6 +76,7 @@ class R52HeaderTest extends TestCase
             }
         }
         $this->assertSame(3, $declared, 'Roboto @font-face (latin, latin-ext, fallback), declared only in dot-roboto.css');
+        $this->assertSame(3, preg_match_all('/@font-face/', (string) file_get_contents(public_path('dot-ui/css/dot-ui.min.css'))), 'the bundle carries the same three');
 
         foreach (['/dashboard', '/workspace/figures'] as $path) {
             $html = $this->actingAs($this->ownerWithTeam())->get($path)->getContent();

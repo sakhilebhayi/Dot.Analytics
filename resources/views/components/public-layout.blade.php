@@ -28,19 +28,11 @@
     <meta name="twitter:card" content="summary_large_image">
     <link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png">
     <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-    {{-- Roboto and the shared Dot UI (header, search pill, switcher), served from this site: the strict policy needs nothing more. --}}
+    {{-- Roboto and the shared Dot UI 0.6.1 (one bundle: type, header, search pill, switcher), served from this site: the strict policy needs nothing more. --}}
+    {{-- Kept (dot-ui 0.6.1 allows it when the largest paint is text and the swap is visible): without it the home page's hero text reflows when Roboto arrives, CLS 0.20 at 320px. --}}
     <link rel="preload" href="/dot-ui/fonts/roboto/roboto-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="/dot-ui/css/dot-roboto.css">
-    <link rel="stylesheet" href="/dot-ui/css/dot-type.css">
-    <link rel="stylesheet" href="/dot-ui/css/dot-tokens.css">
-    <link rel="stylesheet" href="/dot-ui/css/dot-search.css">
-    @if($tools)
-    <link rel="stylesheet" href="/dot-ui/css/dot-switcher.css">
-    <script src="/dot-ui/js/dot-switcher.js" defer></script>
-    @endif
-    <link rel="stylesheet" href="/dot-ui/css/dot-header.css">
-    <script src="/dot-ui/js/dot-search.js" defer></script>
-    <script src="/dot-ui/js/dot-nav.js" defer></script>
+    <link rel="stylesheet" href="/dot-ui/css/dot-ui.min.css">
+    <script src="/dot-ui/js/dot-ui-core.min.js" defer></script>
     @vite(['resources/css/public.css', 'resources/js/public.js'])
     @if($jsonld)<script type="application/ld+json">{!! json_encode($jsonld, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) !!}</script>@endif
 </head>
