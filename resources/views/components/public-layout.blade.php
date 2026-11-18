@@ -38,7 +38,7 @@
 </head>
 <body>
 <x-dot.header id="dh" brand-href="{{ route('intel.home') }}" brand-label="Dot.Analytics home" nav-label="Main" :nav="$navItems" skip="#main"
-              :guest="['login' => ['label' => 'My library', 'href' => route('me.home')]]">
+              :guest="['login' => ['label' => 'My library', 'href' => route('me.home')]] + (\App\Support\CentralSignIn::active() ? ['register' => ['label' => 'Create account', 'href' => \App\Support\CentralSignIn::register('/register')]] : [])">
     <x-slot:brand>
         <img src="{{ asset('images/mark.png') }}" alt="" width="26" height="26">
         <span class="dh-brand__name">Dot.Analytics</span>
