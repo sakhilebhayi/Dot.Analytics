@@ -7,6 +7,7 @@ use App\Actions\Fortify\ResetUserPassword;
 use App\Actions\Fortify\UpdateUserPassword;
 use App\Actions\Fortify\UpdateUserProfileInformation;
 use App\Models\User;
+use App\Support\CentralSignIn;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -34,6 +35,10 @@ class FortifyServiceProvider extends ServiceProvider
         // Registered after every provider boots: Jetstream sets its own login view in its boot, and the last one wins.
         $this->app->booted(function () {
             $front = fn (string $view, string $path) => function () use ($view, $path) {
+                if (CentralSignIn::active()) {
+                    return redirect()->to(CentralSignIn::login());
+                }
+
                 $infodot = (string) config('ecosystem.platforms.infodot.url', '');
 
                 return $infodot !== '' && config('ecosystem.sso_only')
@@ -44,6 +49,10 @@ class FortifyServiceProvider extends ServiceProvider
             Fortify::loginView($front('auth.login', '/go/analytics'));
             Fortify::requestPasswordResetLinkView($front('auth.forgot-password', '/forgot-password'));
             Fortify::resetPasswordView(function () {
+                if (CentralSignIn::active()) {
+                    return redirect()->to(CentralSignIn::login());
+                }
+
                 $infodot = (string) config('ecosystem.platforms.infodot.url', '');
 
                 return $infodot !== '' && config('ecosystem.sso_only')
@@ -54,7 +63,7 @@ class FortifyServiceProvider extends ServiceProvider
 
         // With InfoDot in charge a password here means nothing, or someone InfoDot removed could still get in.
         Fortify::authenticateUsing(function (Request $request) {
-            if (config('ecosystem.sso_only')) {
+            if (config('ecosystem.sso_only') || CentralSignIn::active()) {
                 return null;
             }
 

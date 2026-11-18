@@ -166,7 +166,8 @@ class AcceptanceTest extends TestCase
         $this->get('/login')->assertRedirect();
         $this->assertStringContainsString('infodot.co.za', (string) $this->get('/login')->headers->get('Location'));
         $user = User::factory()->create(['password' => bcrypt('a-password-123')]);
-        $this->post('/login', ['email' => $user->email, 'password' => 'a-password-123'])->assertSessionHasErrors();
+        // R-54: the local password post is refused outright (404) while InfoDot is the only door, not merely failed.
+        $this->post('/login', ['email' => $user->email, 'password' => 'a-password-123'])->assertNotFound();
         $this->assertGuest();
     }
 

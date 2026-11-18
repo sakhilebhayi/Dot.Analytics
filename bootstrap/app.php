@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\CachePublicPage;
 use App\Http\Middleware\CountVisit;
+use App\Http\Middleware\RefuseLocalSignIn;
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SetLocale;
 use Illuminate\Foundation\Application;
@@ -44,6 +45,8 @@ return Application::configure(basePath: dirname(__DIR__))
             CountVisit::class,
             CachePublicPage::class,
         ]);
+
+        $middleware->alias(['local.signin' => RefuseLocalSignIn::class]);
 
         // Security headers on all responses
         $middleware->append(SecurityHeaders::class);

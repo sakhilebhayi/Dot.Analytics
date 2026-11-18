@@ -17,7 +17,7 @@
             @auth
                 <a class="btn quiet" href="{{ route('dashboard') }}">Company intelligence</a>
             @else
-                @if (Route::has('login'))<a class="btn quiet" href="{{ route('login') }}">Sign in</a>@endif
+                @if (Route::has('login'))<a class="btn quiet" href="{{ \App\Support\CentralSignIn::login() }}">Sign in</a>@endif
             @endauth
         </p>
 
