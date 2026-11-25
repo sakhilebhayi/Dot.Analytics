@@ -27,11 +27,11 @@ permissions:
   contents: read
 
 env:
-  DEPLOY_BRANCH: main
+  DEPLOY_BRANCH: feature/ecosystem-sso
 
 jobs:
   drift:
-    name: Compare the host tree with main
+    name: Compare the host tree with feature/ecosystem-sso
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
