@@ -301,7 +301,7 @@ class CompanyEntitlementTest extends TestCase
         Log::shouldHaveReceived('warning')->withArgs(fn ($message) => str_contains($message, 'InfoDot entitlement check gave no answer'))->once();
     }
 
-    public function test_a_failure_is_remembered_for_a_minute_and_an_answer_for_ten(): void
+    public function test_a_failure_is_remembered_for_a_minute_and_an_answer_for_a_minute(): void
     {
         [$owner] = $this->company();
         $this->infodotSays([self::readUrl(self::ACME) => Http::sequence()
@@ -629,5 +629,266 @@ class CompanyEntitlementTest extends TestCase
         $this->assertSame($globex->id, $owner->fresh()->current_team_id);
 
         $this->actingAs($owner->fresh())->get(route('dashboard'))->assertOk();
+    }
+
+    // ------------------------------------------------------------------ R-61 availability contract
+
+    /** The read endpoint's body with this platform's own row carrying the R-61 fields. */
+    private static function holding(string $uuid, bool $available, bool $entitled = true, ?string $message = null, string $status = 'active'): array
+    {
+        $body = self::platforms($uuid, $entitled, $status);
+        $body['platforms'][1] = array_merge($body['platforms'][1], ['available' => $available, 'message' => $message]);
+
+        return $body;
+    }
+
+    private function calls(string $uuid = self::ACME): int
+    {
+        return Http::recorded(fn (Request $request) => str_contains($request->url(), '/companies/'.$uuid.'/platforms'))->count();
+    }
+
+    public function test_an_unavailable_platform_gets_a_503_page_with_retry_after_and_no_data(): void
+    {
+        [$owner] = $this->company();
+        $this->infodotSays([self::readUrl(self::ACME) => Http::response(self::holding(self::ACME, false, true, 'Back at 18:00 for <b>maintenance</b>.'))]);
+
+        $this->actingAs($owner)->get(route('dashboard'))
+            ->assertStatus(503)
+            ->assertHeader('Retry-After', '60')
+            ->assertSee('Dot.Analytics is not available right now')
+            ->assertSee('Back at 18:00 for &lt;b&gt;maintenance&lt;/b&gt;.', false)
+            ->assertDontSee('<b>maintenance</b>', false)
+            ->assertSee('kept as they are');
+
+        $this->actingAs($owner)->get(route('workspace.insights'))->assertStatus(503);
+        $this->actingAs($owner)->get(route('reports.download', 1))->assertStatus(503);
+        $this->assertSame(1, $this->calls(), 'one read for the window');
+    }
+
+    public function test_an_unavailable_platform_answers_json_and_livewire_with_a_503_reason(): void
+    {
+        [$owner, $team] = $this->company();
+        $alert = AnalyticsAlert::factory()->create(['team_id' => $team->id, 'title' => 'Overdue tasks spiked', 'severity' => 'critical']);
+        $owner->notify(new CriticalAlertTriggered($alert));
+
+        $this->infodotSays([self::readUrl(self::ACME) => Http::sequence()
+            ->push(self::holding(self::ACME, true))
+            ->push(self::holding(self::ACME, false, true, 'Maintenance.'))]);
+        $this->actingAs($owner);
+        $snapshot = $this->bellSnapshot();
+
+        $this->travel(EntitlementCheck::ANSWER_TTL + 1)->seconds();
+        $this->getJson(route('dashboard'))->assertStatus(503)->assertHeader('Retry-After', '60')
+            ->assertExactJson(['message' => 'Maintenance.', 'reason' => 'platform_unavailable']);
+
+        // A real Livewire update runs the persistent middleware: nothing runs and no component comes back.
+        $response = $this->markAllRead($snapshot);
+        $this->assertSame(503, $response->getStatusCode());
+        $this->assertSame('platform_unavailable', $response->json('reason'));
+        $this->assertSame('60', $response->headers->get('Retry-After'));
+        $this->assertStringNotContainsString('"components"', $response->getContent());
+        $this->assertSame(1, $this->unread(), 'the data is unchanged');
+    }
+
+    public function test_unavailable_wins_over_a_refusal(): void
+    {
+        [$owner] = $this->company();
+        $this->infodotSays([self::readUrl(self::ACME) => Http::response(self::holding(self::ACME, false, false, null, 'suspended'))]);
+
+        $this->actingAs($owner)->get(route('dashboard'))->assertStatus(503)->assertSee('not available right now')->assertDontSee('is suspended for');
+    }
+
+    public function test_an_answer_without_available_is_not_a_switch_off(): void
+    {
+        [$owner] = $this->company();
+        $this->infodotSays([self::readUrl(self::ACME) => Http::response(self::platforms(self::ACME, true, 'active'))]);
+
+        $this->actingAs($owner)->get(route('dashboard'))->assertOk();
+    }
+
+    public function test_the_last_clear_answer_is_used_when_infodot_cannot_be_reached(): void
+    {
+        [$owner] = $this->company();
+        $this->infodotSays([self::readUrl(self::ACME) => Http::response(self::holding(self::ACME, false, true, 'Maintenance.'))]);
+        $this->actingAs($owner)->get(route('dashboard'))->assertStatus(503);
+
+        // A kept "unavailable" stays unavailable through an outage, past the 60 second window.
+        $this->infodotSays([self::readUrl(self::ACME) => Http::response('', 500)]);
+        $this->travel(EntitlementCheck::ANSWER_TTL + 5)->seconds();
+        $this->actingAs($owner)->get(route('dashboard'))->assertStatus(503)->assertSee('Maintenance.');
+        $this->assertSame(1, $this->calls(), 'the outage was asked about once');
+
+        // A kept refusal stays a refusal (another company), and does not turn into "carry on" when InfoDot is down.
+        [$other] = $this->company(self::GLOBEX, 'Globex');
+        $this->infodotSays([self::readUrl(self::GLOBEX) => Http::response(self::holding(self::GLOBEX, true, false, null, 'suspended'))]);
+        $this->actingAs($other)->get(route('dashboard'))->assertStatus(403);
+        $this->infodotSays([self::readUrl(self::GLOBEX) => Http::response('', 503)]);
+        $this->travel(EntitlementCheck::ANSWER_TTL + 5)->seconds();
+        $this->actingAs($other)->get(route('dashboard'))->assertStatus(403)->assertSee('suspended for Globex');
+
+        // A kept "available and held" carries on, even when the next body is unreadable.
+        $third = '33333333-3333-4333-8333-333333333333';
+        [$thirdOwner] = $this->company($third, 'Initech');
+        $this->infodotSays([self::readUrl($third) => Http::response(self::holding($third, true))]);
+        $this->actingAs($thirdOwner)->get(route('dashboard'))->assertOk();
+        $this->infodotSays([self::readUrl($third) => Http::response('not json', 200)]);
+        $this->travel(EntitlementCheck::ANSWER_TTL + 5)->seconds();
+        $this->actingAs($thirdOwner)->get(route('dashboard'))->assertOk();
+
+        // A clear answer replaces the remembered one as soon as InfoDot is back.
+        $this->infodotSays([self::readUrl(self::ACME) => Http::response(self::holding(self::ACME, true))]);
+        $this->travel(EntitlementCheck::ANSWER_TTL + 5)->seconds();
+        $this->actingAs($owner)->get(route('dashboard'))->assertOk();
+    }
+
+    public function test_the_last_clear_answer_expires_after_six_hours(): void
+    {
+        [$owner] = $this->company();
+        $this->infodotSays([self::readUrl(self::ACME) => Http::response(self::holding(self::ACME, false))]);
+        $this->actingAs($owner)->get(route('dashboard'))->assertStatus(503);
+
+        $this->infodotSays([self::readUrl(self::ACME) => Http::response('', 500)]);
+        $this->travel(EntitlementCheck::LAST_KNOWN_TTL - 60)->seconds();
+        $this->actingAs($owner)->get(route('dashboard'))->assertStatus(503);
+
+        $this->travel(120)->seconds();
+        $this->actingAs($owner)->get(route('dashboard'))->assertOk();
+    }
+
+    public function test_with_no_answer_ever_stored_an_outage_fails_open(): void
+    {
+        [$owner] = $this->company();
+        $this->infodotSays([self::readUrl(self::ACME) => Http::response('', 500)]);
+
+        $this->actingAs($owner)->get(route('dashboard'))->assertOk();
+    }
+
+    public function test_an_unavailable_answer_is_kept_for_sixty_seconds_then_asked_again(): void
+    {
+        [$owner] = $this->company();
+        $this->infodotSays([self::readUrl(self::ACME) => Http::sequence()
+            ->push(self::holding(self::ACME, false))
+            ->push(self::holding(self::ACME, true))]);
+
+        $this->actingAs($owner)->get(route('dashboard'))->assertStatus(503);
+        $this->travel(EntitlementCheck::ANSWER_TTL - 5)->seconds();
+        $this->actingAs($owner)->get(route('workspace.insights'))->assertStatus(503);
+        $this->assertSame(1, $this->calls());
+
+        $this->travel(10)->seconds();
+        $this->actingAs($owner)->get(route('dashboard'))->assertOk();
+        $this->assertSame(2, $this->calls());
+    }
+
+    public function test_an_entry_in_the_old_cache_format_is_a_miss(): void
+    {
+        [$owner] = $this->company();
+        $key = 'infodot:entitlement:analytics:'.self::ACME;
+        Cache::put($key, ['entitled' => true, 'status' => 'active'], 600);
+        $this->infodotSays([self::readUrl(self::ACME) => Http::response(self::holding(self::ACME, false))]);
+
+        $this->actingAs($owner)->get(route('dashboard'))->assertStatus(503);
+        $this->assertSame(1, $this->calls(), 'the old entry was not trusted');
+
+        // An answer entry with no `available` is a miss too, never read as "available".
+        Cache::put($key, ['answer' => ['entitled' => true, 'status' => 'active']], 600);
+        Cache::forget($key.':last');
+        $this->actingAs($owner)->get(route('dashboard'))->assertStatus(503);
+        $this->assertSame(2, $this->calls());
+    }
+
+    public function test_answers_are_kept_per_company(): void
+    {
+        [$owner, $acme] = $this->company();
+        [, $globex] = $this->company(self::GLOBEX, 'Globex', $owner);
+        $this->infodotSays([
+            self::readUrl(self::ACME) => Http::response(self::holding(self::ACME, false)),
+            self::readUrl(self::GLOBEX) => Http::response(self::holding(self::GLOBEX, true)),
+        ]);
+
+        $owner->forceFill(['current_team_id' => $acme->id])->save();
+        $this->actingAs($owner->fresh())->get(route('dashboard'))->assertStatus(503);
+        $owner->forceFill(['current_team_id' => $globex->id])->save();
+        $this->actingAs($owner->fresh())->get(route('dashboard'))->assertOk();
+        $this->assertSame(1, $this->calls(self::ACME));
+        $this->assertSame(1, $this->calls(self::GLOBEX));
+    }
+
+    public function test_a_personal_workspace_is_never_asked_about_availability(): void
+    {
+        $owner = User::factory()->withPersonalTeam()->create();
+        $this->infodotSays([]);
+
+        $this->actingAs($owner)->get(route('dashboard'))->assertOk();
+
+        Http::assertNothingSent();
+    }
+
+    public function test_the_always_open_routes_work_while_the_platform_is_unavailable(): void
+    {
+        [$owner, $acme] = $this->company();
+        [, $globex] = $this->company(self::GLOBEX, 'Globex', $owner);
+        $owner->forceFill(['current_team_id' => $acme->id])->save();
+        $this->infodotSays([self::readUrl(self::ACME) => Http::response(self::holding(self::ACME, false)), self::readUrl(self::GLOBEX) => Http::response(self::holding(self::GLOBEX, true))]);
+        $this->actingAs($owner->fresh());
+
+        $this->get(route('dashboard'))->assertStatus(503);
+        $before = $this->calls(self::ACME);
+
+        $this->get(route('profile.show'))->assertOk();
+        $this->get(route('me.export'))->assertOk();
+        $this->put(route('current-team.update'), ['team_id' => $globex->id])->assertRedirect();
+        $this->assertSame($globex->id, $owner->fresh()->current_team_id);
+        $this->post(route('logout'))->assertRedirect();
+        $this->get('/login')->assertOk();
+        $this->get('/auth/ecosystem')->assertRedirect('/login');
+
+        $this->assertSame($before, $this->calls(self::ACME));
+    }
+
+    public function test_a_live_channel_is_refused_while_the_platform_is_unavailable(): void
+    {
+        [$owner, $team] = $this->company();
+        $this->infodotSays([self::readUrl(self::ACME) => Http::response(self::holding(self::ACME, false))]);
+        $this->actingAs($owner);
+
+        $this->assertTrue(EnsureCompanyEntitled::refuses($team));
+    }
+
+    public function test_machine_ingest_api_webhook_and_health_routes_are_untouched_and_ask_nothing_while_unavailable(): void
+    {
+        [$owner] = $this->company();
+        // The company's answer is "unavailable" and remembered: the machine routes must neither read it nor be changed by it.
+        Cache::put('infodot:entitlement:analytics:'.self::ACME, ['answer' => ['entitled' => true, 'status' => 'active', 'available' => false, 'message' => null, 'features' => []]], 600);
+        $this->infodotSays([]);
+
+        $this->getJson('/up')->assertOk();
+        $this->getJson('/api/ping')->assertOk();
+        $this->getJson('/api/health')->assertOk();
+        // Unauthenticated machine calls get their own answers (401/422/...), never the platform's 503.
+        foreach (['/api/ingest/snapshots', '/api/v1/ingest/stripe'] as $path) {
+            $this->assertNotSame(503, $this->postJson($path, [])->getStatusCode(), $path);
+        }
+        $this->assertNotSame(503, $this->getJson('/api/v1/ingest/stripe/ping')->getStatusCode());
+
+        // With a person's API token on the company whose answer is "unavailable", the token API still answers.
+        $this->app['auth']->forgetGuards();
+        $this->withToken($owner->createToken('t')->plainTextToken)->getJson('/api/user')->assertOk();
+        $this->withToken($owner->createToken('t2')->plainTextToken)->getJson('/api/v1/platforms')->assertOk();
+
+        Http::assertNothingSent();
+    }
+
+    public function test_the_asking_address_and_timeout_can_be_set(): void
+    {
+        [$owner] = $this->company();
+        config(['ecosystem.infodot.entitlement_url' => 'https://entitle.test/read/{uuid}/rows', 'ecosystem.infodot.entitlement_timeout' => 7]);
+        $this->infodotSays(['https://entitle.test/read/'.self::ACME.'/rows*' => Http::response(self::holding(self::ACME, false))]);
+
+        $this->actingAs($owner)->get(route('dashboard'))->assertStatus(503);
+
+        Http::assertSent(fn (Request $request) => str_starts_with($request->url(), 'https://entitle.test/read/'.self::ACME.'/rows')
+            && $request->hasHeader('X-Dot-Platform', 'analytics')
+            && $request->hasHeader('Authorization', 'Bearer '.$this->credential));
     }
 }
