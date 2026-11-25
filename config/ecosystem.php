@@ -83,10 +83,15 @@ return [
         'timeout' => (int) env('INFODOT_REDEEM_TIMEOUT', 5),
         'provision' => (bool) env('INFODOT_PROVISION_USERS', true),
 
-        // R-50: during a session, ask InfoDot whether the current company still holds this platform (cached ten
-        // minutes per company, sixty seconds after a failure; an outage or a misconfiguration never locks anyone
-        // out). Not the same switch as ANALYTICS_BUSINESS_PLATFORMS, which only shows the platforms panel.
+        // R-50: during a session, ask InfoDot whether the current company still holds this platform and whether InfoDot
+        // has it switched on (R-61 availability: a 503 page). The answer is cached 60 seconds per company and the last
+        // clear answer 6 hours; when InfoDot cannot be reached that last answer is used, and with none ever stored the
+        // person carries on, so an outage never locks out a company that was last told it could work. Not the same
+        // switch as ANALYTICS_BUSINESS_PLATFORMS, which only shows the platforms panel.
         'entitlement_check' => (bool) env('ANALYTICS_ENTITLEMENT_CHECK', true),
+        // Optional: where the check asks ({uuid} is replaced by the company's uuid) and how long it waits, in seconds.
+        'entitlement_url' => env('ANALYTICS_ENTITLEMENT_URL'),
+        'entitlement_timeout' => env('ANALYTICS_ENTITLEMENT_TIMEOUT'),
     ],
 
 ];

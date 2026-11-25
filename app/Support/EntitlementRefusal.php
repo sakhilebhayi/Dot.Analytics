@@ -2,6 +2,8 @@
 
 namespace App\Support;
 
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
 /**
@@ -27,6 +29,28 @@ class EntitlementRefusal
                 'otherCompanies' => collect($otherCompanies)->values(),
             ], 403)
             ->header('Cache-Control', 'no-store, private');
+    }
+
+    /**
+     * InfoDot has Dot.Analytics switched off (maintenance or unavailable, R-61): a plain 503 that reads nothing of the
+     * company's workspace. JSON and Livewire callers get a JSON body with the reason; both carry Retry-After so a client
+     * waits a minute. Unlike a refusal, this is not about what the company holds.
+     */
+    public static function unavailable(Request $request, ?string $message): Response|JsonResponse
+    {
+        $message = filled($message) ? $message : 'Dot.Analytics is temporarily unavailable.';
+
+        if ($request->expectsJson() || $request->is('livewire/*') || $request->hasHeader('X-Livewire')) {
+            return response()->json(['message' => $message, 'reason' => 'platform_unavailable'], 503)->header('Retry-After', '60');
+        }
+
+        return response()
+            ->view('entitlement.unavailable', [
+                'message' => $message,
+                'infodotUrl' => rtrim((string) config('ecosystem.platforms.infodot.url', 'https://infodot.co.za'), '/'),
+            ], 503)
+            ->header('Cache-Control', 'no-store, private')
+            ->header('Retry-After', '60');
     }
 
     /**
