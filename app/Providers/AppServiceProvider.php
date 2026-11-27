@@ -12,6 +12,7 @@ use App\Services\CrossPlatformIntelligenceService;
 use App\Services\CurrencyService;
 use App\Services\IntelligenceEngineService;
 use App\Services\ReportGenerationService;
+use App\Support\EssentialCron;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -47,6 +48,8 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        EssentialCron::listen();
+
         $this->prepareIntelligenceStore();
 
         // R-50: Livewire updates from a page in the signed-in area carry that page's entitlement check with them.
